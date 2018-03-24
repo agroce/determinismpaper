@@ -1,1 +1,51 @@
 \section{Introduction}
+
+For ourselves, we might prefer to think (and act as if) we had free
+will; however, we generally prefer our software systems to be as
+constrained in their actions as possible:  in other words, we wish
+them to be largely deterministic, from our perspective.
+
+WHY DETERMINISM:  Bugs, flaky tests, pain debugging.
+
+\subsection{What is Determinism?}
+
+A system is deterministic if, given its complete state at a point in
+time, it is possible, in principle, to predict its future behavior
+perfectly.  We say ``in principle'' because in the real world,
+prediction may be possible but hopelessly impractical.  We write
+complex software systems in many cases because we cannot predict their
+behavior (if we could perform the calculations in advance, ourselves,
+we would just do so).  As a consequence, in software, rather than
+defining determinism in terms of prediction, we usually therefore
+simply say that a system is deterministic if, given the same state and
+inputs, it always produces the same outputs\footnote{Of course, this
+  shift of definition is often adopted in arguments for physical or
+  human behavioral determinism, due to the even greater difficulties
+  of prediction in those arenas.}.  The change of
+definition, we will see, is central to our approach, and comes with a
+number of limitations.
+
+Technically, many ``nondeterministic'' systems are not
+nondeterministic in a strong sense, at all.  Given the complete state
+of the system (which includes the entire state of the underlying
+hardware, the operating system, storage devices, etc.), ignoring
+quantum effects, and treating outside interventions such as network
+traffic, human activity at an input device, etc. properly as inputs,
+most software \emph{is} completely predictable.  What we actually
+mean, usually, is that, given a certain limited abstraction of state
+and of inputs, observable behavior is repeatable.  This abstraction,
+for most software, is not expected to include many elements outside of
+the software system itself.
+
+Unexpected nondeterminism usually arises when there is an element of
+state or input that \emph{is} critical to the produced behavior, but
+the programmer has not anticipated.  E.g., it is beleived that the
+behavior of a thread scheduler will not matter, but a race condition
+in the code means that it does matter, after all.
+
+\subsection{The High Cost of Unexpected Nondeterminism}
+
+Unexpected nondeterminism is, unfortunately, usually only discovered
+in a context that makes it very hard to debug.   The most common such
+contexts are occasional rare failures of a system in deployment, and
+flaky tests.
