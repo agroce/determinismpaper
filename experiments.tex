@@ -7,3 +7,47 @@
 \subsection{Case Study: Datarray Inference Algorithms}
 
 \url{https://github.com/BIDS/datarray}
+
+\begin{figure*}
+{\scriptsize
+\begin{code}
+@import inference\_algs
+@import datarray
+\vspace{0.1in}
+<@
+def flatten\_and\_sort(v):
+    return (sorted(map(flatten\_and\_sort,v),key=repr) if type(v) in [list,tuple] else
+                (flatten\_and\_sort(list(v.items())) if type(v) == dict else v))
+
+def psplit(P):
+    return ([P,1.0-P])
+@>
+\vspace{0.1in}
+pool: <P> 3
+pool: <cpts> 3
+pool: <evidence> 3 OPAQUE
+pool: <ename> 3
+pool: <event> 3
+\vspace{0.1in}
+<P> := 0.01 * <[0..100]>
+\vspace{0.1in}
+<ename> := "E" + str(<[1..5]>)
+\vspace{0.1in}
+\{Exception\} <event> := [datarray.DataArray(psplit(<P>), axes = [<ename>])]
+\{Exception\} <ename,1>!=<ename,2> -> <event> := [datarray.DataArray([[psplit(<P>)],psplit(<P>)],[<ename>,<ename>])]
+\vspace{0.1in}
+<cpts> := []
+~<cpts>.append(<event>[0])
+\vspace{0.1in}
+<evidence> := \{\}
+~<evidence>.update([(<ename>,0)])
+\vspace{0.1in}
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,<evidence>)))
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,<evidence>)))
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_jtree(<cpts>,<evidence>)))
+\end{code}
+}
+\caption {Complete TSTL harness for finding the hash-order bug in the datarray
+  inference algorithms.}
+\label{hashbug}
+\end{figure*}
