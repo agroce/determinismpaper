@@ -16,3 +16,14 @@ Apple bugs.
 \subsubsection{Failure Nondeterminism}
 
 \subsection{Nondeterminism and Delta-Debugging}
+
+In \emph{monotonic} cases, removing a part of a test cannot
+increase the probability of a predicate holding.  This is fairly
+common.  In these cases, when use a reduction algorithm to reduce $t$
+to $r$, $P(p(r) \leq P(p(t))$.  In \emph{non-monotonic} cases,
+however, there is no such upper bound.  Removing a step in $R$
+
+The probabilistic predicate of interest for determinism is always of
+the form:  {\bf the test will exhibit at least two different behaviors in $S$
+runs, with probability $P$}.  This predicate may be monotonic or
+non-monotonic, depending on the causes of the nondeterminism detected.
