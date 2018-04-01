@@ -17,13 +17,26 @@ Apple bugs.
 
 \subsection{Nondeterminism and Delta-Debugging}
 
+Two purposes:  one is simply the usual purpose of test reduction: shrinking the test to make debugging
+easier; however, the other purpose is \emph{changing the probability of failure.}
+
 In \emph{monotonic} cases, removing a part of a test cannot
 increase the probability of a predicate holding.  This is fairly
-common.  In these cases, when use a reduction algorithm to reduce $t$
+common.  In these cases, when we use a reduction algorithm to reduce $t$
 to $r$, $P(p(r) \leq P(p(t))$.  In \emph{non-monotonic} cases,
-however, there is no such upper bound.  Removing a step in $R$
+however, there is no such upper bound.  Removing a step in $t$ may
+increase the probability that $t$ behaves nondeterministically.
 
 The probabilistic predicate of interest for determinism is always of
 the form:  {\bf the test will exhibit at least two different behaviors in $S$
 runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
+
+The key changes required to standard delta-debugging implementations
+are simply removal of some ``sanity checks'' in the code:  first, many
+implementations (including the Python code provided by Zeller) assert
+that the predicate holds on the original test.  In probabilistic
+settings, this may not be true, and we may even be trying to find a
+subset where a predicate that is very far from holding on the original
+holds (a non-monotonic case where we aim to increase the probability
+of nondeterminism).
