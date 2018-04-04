@@ -153,8 +153,23 @@ using a dynamic sampling approach, where $N$ is small, but if the
 predicate evaluates to true, $M$ repeated true evaluations
 (``replications'') are
 required before the predicate returns ``true'' to the delta-debugging
-algorithm.  Tuning $M$, any degree of confidence can be achieved, with
+algorithm.  A set of $M$ repeated false positives with
+$\frac{N}{M}$ samples each is much less likely than a false positive
+with $N$ samples; so long as we accept the resulting bias in favor of
+false negatives, we can therefore produce a reduced test with a
+desired $P(fail)$ much more cheaply:  the use of replications not only
+means we only pay the full sampling price on rare occasions, but a
+desired accuracy for $P$ can be obtained with a much smaller value $M
+\times N$ than a non-dynamically-sampled $N$.  For example, if we the predicate
+is $P(fail) \geq 0.5$, and the true probability for a candidate test
+is 0.25, using $N=8$ will give a false positive rate of over 10\%.
+Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
+positive rate of about 3.7\%, yet requires only $X$ as many
+executions of the test.
+
+Tuning $M$, any degree of confidence can be achieved, with
 the basic tradeoff being between finding a test with the desired
 probabilities, and the speed and effectiveness of delta-debugging.
 Because increasing $M$ makes false negatives more likely, larger $M$
-will usually result in less-than-optimal reduction of the original test.
+will usually result in less-than-optimal reduction of the original
+test.
