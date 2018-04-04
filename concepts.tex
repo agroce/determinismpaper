@@ -1,7 +1,31 @@
 \section{Practical Lightweight Nondeterminism
   Detection and Debugging}
 
+
+
 \subsection{Horizontal Determinism}
+
+\subsubsection{Determinism and Reflexive Differential Testing}
+
+Horizontal determinism can be best understood by thinking of
+nondeterminism detection as an unusual kind of \emph{differential
+  testing} \cite{Differential,ICSEDiff}.  In differential testing, a
+system is compared against a reference in order to ensure that
+it behaves equivalently, at some level of abstraction, to another
+implementation of the same functionality.  Differential testing is
+extremely powerful, in that any divergence of behavior, if divergence
+is correctly defined, indicates a functional correctness fault in (at
+least) one of the systems under test.  Being able to detect functional
+correctness errors without the cost of constructing a formal
+specification is extremely useful in automated test generation.  Differential testing is widely
+used for systems software components such as compilers
+\cite{Differential,csmith} and POSIX file systems \cite{CFV08,AMAI}, where multiple
+implementations are common.  The major limitation of differential
+testing, of course, is that multiple implementations of a system are
+almost as rare as good correcteness specifications.
+
+For the special case of detecting nondeterminism, however, \emph{a
+  system can serve as its own reference implementation.}  
 
 \subsubsection{Visible Value Determinism}
 
@@ -17,8 +41,20 @@ Apple bugs.
 
 \subsection{Nondeterminism and Delta-Debugging}
 
-Two purposes:  one is simply the usual purpose of test reduction: shrinking the test to make debugging
-easier; however, the other purpose is \emph{changing the probability of failure.}
+Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
+  all test reduction algorithms, even those \cite{CReduce,tstl} that do not use the exact
+  binary-search that distinguishes delta-debugging \emph{per se}; the
+  differences are immaterial for our purposes.}  is a widely used method for reducing the
+size of failing tests, making them easier to understand and debug.
+Delta-debugging in the context of detecting nondeterminism has two
+purposes.  One is simply the usual goal of reducing the size of a
+test.  Identifying the cause of nondeterminism may be very easy in a
+test consisting of ten library function calls (it is one of these ten
+calls), but very difficult in a test consisting of a hundred library
+function calls.  This is no different than the common use of
+delta-debugging.  However, in nondeterminism detection,
+delta-debugging can also be used to \emph{change the probability of
+  nondeterministic behavior}.
 
 In \emph{monotonic} cases, removing a part of a test cannot
 increase the probability of a predicate holding.  This is fairly
@@ -32,11 +68,93 @@ the form:  {\bf the test will exhibit at least two different behaviors in $S$
 runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
 
-The key changes required to standard delta-debugging implementations
-are simply removal of some ``sanity checks'' in the code:  first, many
+The only absolutely necessary changes required to use standard
+delta-debugging implementations in nondeterminism detection
+are simply removal of some ``sanity checks'' in the code:  many
 implementations (including the Python code provided by Zeller) assert
 that the predicate holds on the original test.  In probabilistic
 settings, this may not be true, and we may even be trying to find a
-subset where a predicate that is very far from holding on the original
-holds (a non-monotonic case where we aim to increase the probability
+subset where a predicate that is very far from holding on the original test
+holds (in a non-monotonic case where we aim to increase the probability
 of nondeterminism).
+
+\subsubsection{``Publication Bias'' in Delta-Debugging}
+
+However, simply using delta-debugging off the shelf with a predicate
+like $P(fail) > 0.3 \wedge P(fail) < 1.0$, to force a test to be flaky, and force it to fail
+sufficiently often to be used in debugging, will often produce
+surprising and unfortunate results.  In many cases,
+delta-debugging will indeed reduce the large test to a small subset.
+And, in a technical sense, delta-debugging will work:  it will never
+convert a nondeterministic test to a completely deterministic test,
+because the reduced test that delta-debugging returns is always one
+where the predicate of interest has been seen to evaluate to true.
+However, if you run the resulting test, it will, in many cases, have a
+$P(fail)$ that is much, much smaller than
+0.3, perhaps as low as 0.01.  Why?
+
+The problem is analogous to the problem of publication bias in
+scientific fields \cite{ahmed2012assessment}.  A predicate like
+$P(fail) > 0.3 \wedge P(fail) < 1.0$ cannot be evaluated by
+determining the true probability of failure; rather, the test must be
+run some concrete number of times, and the number of failures counted.
+However, even if the number of samples $N$ is large, there is some
+probability (based on the sample size) of a result that diverges
+significantly from the actual probability of failure.  If the
+predicate were run only once, and the number of samples reasonably
+large, this would not matter.  However, by their nature,
+delta-debugging and other test reduction algorithms, explore a search
+space that often contains hundreds or even thousands or millions of
+candidate tests.  The predicate is evaluated on each of these, and so
+even with large $N$, it is extremely likely that some evaluation will
+produce a very poor estimate of $P(fail)$.  If such an evaluation
+causes the predicate to appear to hold for a test, delta-debugging is
+``stuck'' with the error, because (to our knowledge) no test reduction
+algorithms allow backtracking.  After such a mistake, finding further
+reductions will become harder, but may still be possible due to the
+same source of errors:  the number of experiments run is far larger
+than the probability of an incorrect result.
+
+It is the combination of
+a one-way bias on faulty evaluations (the consequences of a false
+positive for the predicate are much greater than for a false negative)
+and the huge number of experiments relative to error rate, that
+produces bad results, akin to the magnification of effect sizes
+in science due to publication bias.  The bias in delta-debugging tends
+towards producing a reduced test where probabilities are much smaller
+than demanded by a predicate, due to the pressure on delta-debugging
+to produce shorter tests.  Shorter tests have smaller probabilities,
+on average, due to two factors:  first, timing-induced nondeterminism
+has a much smaller temporal space to operate in, and second, if some
+test operation introduces a small probability of nondeterminism, and
+only many repetitions of that operation make the probability large,
+small tests obviously on average have fewer instances of the
+problematic operation.
+
+In scientific literature, the most frequently proposed solution is the
+use of replications:  repeated runs of ``successful'' experiments to
+minimize the probability that a result is a fluke due to publication
+bias.  One way to produce this effect would be to allow
+delta-debugging to backtrack if the probabilties observed in predicate
+evaluations suddely exhibit a strong discontinuity, a kind of ``paper
+retraction'' based on near-replications.  However, this requires
+modifying the delta-debugging implementations, which is difficult and
+sometimes not really feasible (e.g., few users of AFL-fuzz \cite{aflfuzz} will wish
+to change its C code for test reduction).  Ideally, the solution
+should be implementable simply by modifying the predictate that is
+evaluated.  
+
+A costly but effective solution is to make $N$ large in comparison to
+the number of expected predicate evaluations performed during
+delta-debugging.  If the error rate is low enough, the problem
+disappears.  However, given the large number of evaluations performed,
+this will tend to make delta-debugging extremely slow.  We propose
+using a dynamic sampling approach, where $N$ is small, but if the
+predicate evaluates to true, $M$ repeated true evaluations
+(``replications'') are
+required before the predicate returns ``true'' to the delta-debugging
+algorithm.  Tuning $M$, any degree of confidence can be achieved, with
+the basic tradeoff being between finding a test with the desired
+probabilities, and the speed and effectiveness of delta-debugging.
+Because increasing $M$ makes false negatives more likely, larger $M$
+will usually result in less-than-optimal reduction of the original test.

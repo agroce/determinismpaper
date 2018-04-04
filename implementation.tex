@@ -1,3 +1,11 @@
 \section{Implementation}
 
 We implemented our approach in the TSTL \cite{NFM15} system.
+
+Because TSTL supports differential testing \cite{tstlsttt}, horizontal
+nondeterminism detection can technically be implemented simply by
+declaring a system to be its own reference, using TSTL's notation for
+differential testing.  However, such an approach requires some effort
+on the part of the user to control which values are checked for
+equivalence, and does not easily support injecting timing differences,
+or using a new process, in checking the behavior.
