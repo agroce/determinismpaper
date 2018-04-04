@@ -164,8 +164,17 @@ desired accuracy for $P$ can be obtained with a much smaller value $M
 is $P(fail) \geq 0.5$, and the true probability for a candidate test
 is 0.25, using $N=8$ will give a false positive rate of over 10\%.
 Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
-positive rate of about 3.7\%, yet requires only $X$ as many
-executions of the test.
+positive rate of about 3.7\%, yet requires almost 60\% fewer
+executions of the test\footnote{The probability calculations for such comparisons
+  are relatively simple, but in real testing are
+  usually not very useful, since the true
+  probabilitiy distributions of test behaviors vary widely and
+  dynamically during the
+  delta-debugging process, making exact calculation unwieldy, even if
+  the changing probabilities were known; exact results would be based on fictional
+  probabilities, so gathering experimental data during a trial
+  delta-debugging run and tuning $N$ and $M$ to yield desired
+  results is  more effective.}.
 
 Tuning $M$, any degree of confidence can be achieved, with
 the basic tradeoff being between finding a test with the desired
