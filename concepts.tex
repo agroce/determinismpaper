@@ -151,7 +151,7 @@ disappears.  However, given the large number of evaluations performed,
 this will tend to make delta-debugging extremely slow.  We propose
 using a dynamic sampling approach, where $N$ is small, but if the
 predicate evaluates to true, $M$ repeated true evaluations
-(``replications'') are
+(``replications'', where the first true evaluation is counted as 1 replication) are
 required before the predicate returns ``true'' to the delta-debugging
 algorithm.  A set of $M$ repeated false positives with
 $\frac{N}{M}$ samples each is much less likely than a false positive
