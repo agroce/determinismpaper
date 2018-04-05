@@ -1,9 +1,29 @@
 \section{Practical Lightweight Nondeterminism
   Detection and Debugging}
 
+\begin{figure}
+\includegraphics[width=\columnwidth]{types}
+\caption{Types of determinism}
+\label{fig:types}
+\end{figure}
 
+We define two basic types of determinism, shown in Figure
+\ref{fig:types}:  horizontal determinism and vertical determinism.  In
+horizontal determinism, which is what we usually think of when we
+think about deterministic behavior, a software system reliably
+produces the same behavior given the same steps of a test: the
+behavior of multiple executions that are ``the same'' in terms of
+inputs/actions can be aligned and checked for some type of equality.  In
+vertical determinism, rather than behavior across executions, we are
+interested in behavior within an execution, where repeating the same
+step of a test twice should result in the same behavior.  Obviously,
+vertical determinism is both rarer and more specialized than
+horizontal determinism.  However, in some instances, as we discuss
+below, vertical determinism can be extremely important, both for
+correctness and for ease-of-use of software interfaces.
 
 \subsection{Horizontal Determinism}
+
 
 \subsubsection{Determinism and Reflexive Differential Testing}
 
