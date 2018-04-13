@@ -2,7 +2,27 @@
 
 \subsection {Case Study: Redis-Py}
 
-\subsection {Case Study: pyfakefs and OS X}
+\subsection {Case Study: pyfakefs}
+
+The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
+system that mocks the Python file system modules, to allow Python
+tests both to run faster by using an in-memory file system and to make
+or depend on file system changes that would
+not be safe or easily performed using real persistent storage.  Originally
+developed in 2006 at Google by Mike Bland, {\tt pyfakefs} is now used
+in over 2,000 Python tests, inside and outside Google.
+
+We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
+call checks that its target is not a directory, and returns the
+correct error, but still carries out the remove operation.  Using {\tt
+  os.remove} to delete directories does not break any file system
+invariants, but violates the Python {\tt os} specification (and,
+indirectly, the usual POSIX implementation behavior where {\tt unlink}
+does not work for directories).  Detecting this bug using the TSTL
+{\tt pyfakefs} harness is normally impossible without using another
+file system as a reference.  However, the fault is detected
+immediately, without using a reference, when we compile the harness
+with the {\tt --checkFailureDeterminism} flag.
 
 \subsection{Case Study: Datarray Inference Algorithms}
 
