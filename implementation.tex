@@ -1,5 +1,9 @@
 \section{Implementation}
 
+\subsection{Sources of Nondeterminism in Practice}
+
+\subsection{Implementing Nondeterminism Detection}
+
 We implemented our approach in the TSTL \cite{NFM15} system.
 
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
@@ -9,3 +13,10 @@ differential testing.  However, such an approach requires some effort
 on the part of the user to control which values are checked for
 equivalence, and does not easily support injecting timing differences,
 or using a new process, in checking the behavior.
+
+
+
+Because TSTL has an interface to afl \cite{aflfuzz}, we can even use
+afl's sophisticated heuristics to perform very thorough, week-long
+checks for nondeterminism, using strategies built to find subtle
+security vulnerabilities in C programs.
