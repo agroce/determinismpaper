@@ -55,7 +55,8 @@ predictable order for dictionary iteration across processess.
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
   datarray} algorithms.  Running this harness using TSTL's {\tt
   --checkProcessDeterminism} flag requires less than 10 seconds on
-average to produce a test exhibiting process-level nondeterminism.
+average to produce a test exhibiting process-level nondeterminism in
+the {\tt calc\_marginals\_sumproduct} function (the only broken algorithm).
 
 \begin{figure*}
 {\scriptsize
