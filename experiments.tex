@@ -26,9 +26,12 @@ does not work for directories).  Detecting this bug using the TSTL
 {\tt pyfakefs} harness is normally impossible without using another
 file system as a reference.  However, the fault was detected
 immediately, even without using a reference, when we compiled the harness
-with the {\tt --checkFailureDeterminism} flag.
+with the {\tt --checkFailureDeterminism} flag.  Because vertical
+reduction does not require running complete tests multiple times, and
+does not affect the delta-debugging algorithm's performance, reducing
+the failing test to 3 steps required less than a second.
 Moreover, the overhead for adding a check for failure determinism was
-less than 8\%. 
+less than 8\%.
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
@@ -58,7 +61,7 @@ Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
 algorithm).  Reducing this test to a minimal test of only 6 steps
-requires another 144 seconds, and shows the problem very clearly.
+requires another 92 seconds, and shows the problem very clearly.
 
 \begin{figure*}
 {\scriptsize
