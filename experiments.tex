@@ -30,8 +30,13 @@ with the {\tt --checkFailureDeterminism} flag.  Because vertical
 reduction does not require running complete tests multiple times, and
 does not affect the delta-debugging algorithm's performance, reducing
 the failing test to 3 steps required less than a second.
-Moreover, the overhead for adding a check for failure determinism was
-less than 8\%.
+Moreover, the overhead for the check for failure determinism in a
+version of the code without the {\tt remove} error was
+less than 8\%.  Detecting the fault using a reference file system also
+required 17\% more time, and took about twice as long to reduce to a
+slightly longer failing test, which did not have {\tt remove} as its
+final operation (since further file system interaction is required to
+expose the bad state).
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
