@@ -32,8 +32,9 @@ does not affect the delta-debugging algorithm's performance, reducing
 the failing test to 3 steps required less than a second.
 Moreover, the overhead for the check for failure determinism in a
 version of the code without the {\tt remove} error was
-less than 8\%.  Detecting the fault using a reference file system also
-required 17\% more time, and took about twice as long to reduce to a
+less than 8\%.  Detecting the fault using a reference file system 
+required 17\% more runtime before detection, and took over twice as
+long to reduce the failure to a
 slightly longer failing test, which did not have {\tt remove} as its
 final operation (since further file system interaction is required to
 expose the bad state).
@@ -62,11 +63,12 @@ predictable order for dictionary iteration across processess.
 
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
   datarray} algorithms.  Running this harness using TSTL's {\tt
-  --checkProcessDeterminism} flag requires less than 10 seconds on
+  --checkProcessDeterminism} flag required less than 10 seconds on
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
-algorithm).  Reducing this test to a minimal test of only 6 steps
-requires another 92 seconds, and shows the problem very clearly.
+algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
+showing an extremely simple input producing the issue 
+required another 92 seconds.
 
 \begin{figure*}
 {\scriptsize
