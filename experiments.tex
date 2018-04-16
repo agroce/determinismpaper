@@ -1,43 +1,11 @@
 \section{Experimental Evaluation}
 
-\subsection {Case Study: Redis-Py}
+\subsection {Case Study: {\tt redis-py}}
 
-\subsection {Case Study: {\tt pyfakefs}}
+The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
+to the popular Redis in-memory data store, database, cache, and
+message broker \cite{redis}.
 
-The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
-system that mocks the Python file system modules, to allow Python
-tests both to run faster by using an in-memory file system and to make
-file system changes that would not be safe or easily performed using
-real persistent storage.  Originally developed in 2006 at Google by
-Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
-inside and outside Google \cite{pyfakefs}.
-
-The TSTL harness for {\tt pyfakefs} has been used to detect (and
-correct) over 50 faults.  However, the testing completely relies on
-the existence of a reference file system implementation.
-
-We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
-call checks that its target is not a directory, and returns the
-correct error, but still carries out the remove operation.  Using {\tt
-  os.remove} to delete directories does not break any file system
-invariants, but violates the Python {\tt os} specification (and,
-indirectly, the usual POSIX implementation behavior where {\tt unlink}
-does not work for directories).  Detecting this bug using the TSTL
-{\tt pyfakefs} harness is normally impossible without using another
-file system as a reference.  However, the fault was detected
-immediately, even without using a reference, when we compiled the harness
-with the {\tt --checkFailureDeterminism} flag.  Because vertical
-reduction does not require running complete tests multiple times, and
-does not affect the delta-debugging algorithm's performance, reducing
-the failing test to 3 steps required less than a second.
-Moreover, the overhead for the check for failure determinism in a
-version of the code without the {\tt remove} error was
-less than 8\%.  Detecting the fault using a reference file system 
-required 17\% more runtime before detection, and took over twice as
-long to reduce the failure to a
-slightly longer failing test, which did not have {\tt remove} as its
-final operation (since further file system interaction is required to
-expose the bad state).
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
@@ -113,3 +81,40 @@ pool: <event> 3
   inference algorithms.}
 \label{hashbug}
 \end{figure*}
+
+\subsection {Vertical Determinism Case Study: {\tt pyfakefs}}
+
+The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
+system that mocks the Python file system modules, to allow Python
+tests both to run faster by using an in-memory file system and to make
+file system changes that would not be safe or easily performed using
+real persistent storage.  Originally developed in 2006 at Google by
+Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
+inside and outside Google \cite{pyfakefs}.
+
+The TSTL harness for {\tt pyfakefs} has been used to detect (and
+correct) over 50 faults.  However, the testing completely relies on
+the existence of a reference file system implementation.
+
+We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
+call checks that its target is not a directory, and returns the
+correct error, but still carries out the remove operation.  Using {\tt
+  os.remove} to delete directories does not break any file system
+invariants, but violates the Python {\tt os} specification (and,
+indirectly, the usual POSIX implementation behavior where {\tt unlink}
+does not work for directories).  Detecting this bug using the TSTL
+{\tt pyfakefs} harness is normally impossible without using another
+file system as a reference.  However, the fault was detected
+immediately, even without using a reference, when we compiled the harness
+with the {\tt --checkFailureDeterminism} flag.  Because vertical
+reduction does not require running complete tests multiple times, and
+does not affect the delta-debugging algorithm's performance, reducing
+the failing test to 3 steps required less than a second.
+Moreover, the overhead for the check for failure determinism in a
+version of the code without the {\tt remove} error was
+less than 8\%.  Detecting the fault using a reference file system 
+required 17\% more runtime before detection, and took over twice as
+long to reduce the failure to a
+slightly longer failing test, which did not have {\tt remove} as its
+final operation (since further file system interaction is required to
+expose the bad state).
