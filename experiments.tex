@@ -38,8 +38,7 @@ a set of minimal flaky tests exposing the sources of
 nondeterminism/flakiness.  In this case, the probability of flakiness
 is not important, just the possibility, so we let the delta-debugging
 create a minimal test with some non-zero (but possibly very small)
-observed probability of nondeterminism.  The overhead for adding
-nondeterminism checking is 
+observed probability of nondeterminism.  
 
 After removing all identified sources of nondeterminism (the {\tt random-} functions, all
 expiration-related functionality and {\tt restore} calls with non-zero
@@ -60,7 +59,7 @@ crashes and unexpected exceptions), this is a very acceptable price.
 Moreover, turning off sources of expected nondeterminism makes
 it possible to aggressively test {\tt redis-py} and Redis for
 unexpected nondeterminism arising from actual bugs.  The overhead for such
-determinism checks, with a 0 second delay between operations, is only
+determinism checks, with no delay between operations, is only
 20\%, much lower than the expected cost of running each test twice.
 This is because choosing the actions in a test (and determining which
 actions are enabled at each step) consumes a large part of the test
@@ -88,7 +87,7 @@ showing an extremely simple input producing the issue,
 required another 92 seconds.
 
 Removing the nondeterministic call, we can see that the cost of
-checking for process nondeterminism, with a zero delay on operations,
+checking for process nondeterminism, with no delay between operations,
 is high, a 93\% slowdown.  This is due to the very high cost of
 using a new subprocess to re-run the test, and comparing values using
 text I/O on output pipes, rather than on values alone.
