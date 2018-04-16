@@ -76,18 +76,7 @@ inference in
 Bayesian belief networks \cite{russell2016artificial}.  An earlier
 version of these algorithms produced nondeterministic (and in some
 cases incorrect) results due to dependence on the order of values in
-an iterator over a Python dictionary.  This is a simple, clean example
-of a problem that appeared in numerous Python programs when Python
-version 3.3 introduced automatic random salting of hashes per-process,
-in order to mitigate hash-based denial of service attacks
-\cite{denial}.  Until version 3.6 this not only resulted in changes in
-exact hash values, but in the order of iteration on
-dictionaries\footnote{In version 3.6, the default dictionary
-  implementation became an ordered dictionary with consistent
-  iteration, though actual hashes remained nondeterministic.}.  While
-relatively few programs relied on exact hash values, many implicitly
-relied on them in that they only functioned correctly with a
-predictable order for dictionary iteration across processess.
+an iterator over a Python dictionary (see Section \ref{sec:pnondet}).
 
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
   datarray} algorithms.  Running this harness using TSTL's {\tt

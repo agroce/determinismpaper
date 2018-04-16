@@ -4,7 +4,31 @@
 
 \subsubsection{Process-Based Nondeterminism}
 
-Address Space Layout Randomization (ASLR) \cite{ASLR} 
+\label{sec:pnondet}
+
+Some sources of nondeterminism require executing a test in a new
+process environment, because the source is inherently tied to the
+process environment.
+
+Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
+important source of nondeterminism that arises (only) from change in
+process.  ASLR scrambles the layout of 
+
+Different CPU.
+
+This is a simple, clean example
+of a problem that appeared in numerous Python programs when Python
+version 3.3 introduced automatic random salting of hashes (see Section
+\ref{sec:pnondet} per-process,
+in order to mitigate hash-based denial of service attacks
+\cite{denial}.  Until version 3.6 this not only resulted in changes in
+exact hash values, but in the order of iteration on
+dictionaries\footnote{In version 3.6, the default dictionary
+  implementation became an ordered dictionary with consistent
+  iteration, though actual hashes remained nondeterministic.}.  While
+relatively few programs relied on exact hash values, many implicitly
+relied on them in that they only functioned correctly with a
+predictable order for dictionary iteration across processess.
 
 \subsection{Implementing Nondeterminism Detection}
 
