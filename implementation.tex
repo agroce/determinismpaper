@@ -12,12 +12,15 @@ process environment.
 
 Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
 important source of nondeterminism that arises (only) from change in
-process.  ASLR scrambles the layout of 
+process.  ASLR scrambles the layout of memory of the process in which
+an executable runs in order to make it
+harder to exploit memory-safety vulnerabilities.  As a side effect, it
+means that a test that, in some circumstances, causes a crash, may at
+other times not fail at all.
 
 Different CPU.
 
-This is a simple, clean example
-of a problem that appeared in numerous Python programs when Python
+Another example of process-based nondeterminism was discovered by numerous Python programs when Python
 version 3.3 introduced automatic random salting of hashes (see Section
 \ref{sec:pnondet} per-process,
 in order to mitigate hash-based denial of service attacks
@@ -28,7 +31,10 @@ dictionaries\footnote{In version 3.6, the default dictionary
   iteration, though actual hashes remained nondeterministic.}.  While
 relatively few programs relied on exact hash values, many implicitly
 relied on them in that they only functioned correctly with a
-predictable order for dictionary iteration across processess.
+predictable order for dictionary iteration across processess.  Testing
+Python code for nondeterminism based on this hash seed requires
+running in a new process:  Python does not allow changing the salt, since changing hash values on-the-fly would
+break all existing dictionaries and other structures relying on hashing.
 
 \subsection{Implementing Nondeterminism Detection}
 
