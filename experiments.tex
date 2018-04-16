@@ -47,8 +47,8 @@ lifetimes, and {\tt spop}), but leaving all other suspect funcitonality in
 place (e.g. pipes), no flakiness was observed in a sample of over 1,000 length
 200 tests.  Moreover, because the removals were limited to acutally
 observed sources of flakiness, the code coverage loss was minimal.
-Average branch coverage, for regression tests of length 200 is reduced
-by less than 5 branches.  Obviously, it is
+Mean branch coverage, for regression tests of length 200 was reduced
+by less than 5 branches (a less than 1\% decrease).  Obviously, it is
 impossible to test the removed calls, but the overall coverage loss is
 both minimal and known, and can be made up for using specially-crafted
 tests (for instance, wrapping the problematic calls in a way that does
@@ -56,7 +56,8 @@ not check the values, or adding a delay after an expiration to allow
 the data to expire).  As a price to pay for the ability to produce
 fast-executing high-coverage full regression tests (not just tests for
 crashes and unexpected exceptions), this is a very acceptable price.
-Moreover, turning off sources of known, expected nondeterminism makes
+
+Moreover, turning off sources of expected nondeterminism makes
 it possible to aggressively test {\tt redis-py} and Redis for
 unexpected nondeterminism arising from actual bugs.  The overhead for such
 determinism checks, with a 0 second delay between operations, is only
