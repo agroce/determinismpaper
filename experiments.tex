@@ -3,9 +3,68 @@
 \subsection {Case Study: {\tt redis-py}}
 
 The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
-to the popular Redis in-memory data store, database, cache, and
+to the popular Redis in-memory database, cache, and
 message broker \cite{redis}.
 
+Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
+itself can be tested; unfortunately, generating standalone
+high-coverage regression tests for {\tt redis-py} and Redis using TSTL
+was difficult, as numerous Redis commands introduce nondeterministic
+behavior.  Some of these are obvious (e.g., {\tt randomkey, srandmember}) by
+name.  Given an understanding of Redis semantics, that the various
+commands producing data with a limited lifetime (e.g., {\tt expire,
+  pexpire}) also introduce timing-based nondeterminism is also clear.
+However, that a command such as {\tt restore} takes an expiration
+argument is not obvious on inspection, nor is the behavior of {\tt
+  spop} which pops a random value from a set.  Moreover, it is
+difficult to guess whetehr the {\tt pipe} mechanism, which allows a
+large sequence of commands to be queued up in a pipe and executed all
+at once, introduced the potential for nondeterminism (does it execute
+sequentially before other command are handled, or is it in parallel
+with further commands).  Deep experience with Redis would make these
+issues clear, but tests using a library are often written by those not
+intimately familliar with the semantics of every used library (otherwise they would not have
+been as likely to introduce flaky tests in the first place).  This is
+even more true in the case of automated test generation, where the
+test engineer is often chosen for expertise in test generation tools,
+not in the domain of the software under test (SUT), and is seldom the
+original developer of the code.
+
+Using the original TSTL harness, approxoimately \emph{over 20\%} of all {\tt redis-py}
+regression tests (of length 200) generated were flaky.  Using the
+nondeterminism checker to reduce flaky tests to a minimal set allows
+an engineer to leave an overnight run that will, in 12 hours, produce
+a set of minimal flaky tests exposing the sources of
+nondeterminism/flakiness.  In this case, the probability of flakiness
+is not important, just the possibility, so we let the delta-debugging
+create a minimal test with some non-zero (but possibly very small)
+observed probability of nondeterminism.  The overhead for adding
+nondeterminism checking is 
+
+After removing all identified sources of nondeterminism (the {\tt random-} functions, all
+expiration-related functionality and {\tt restore} calls with non-zero
+lifetimes, and {\tt spop}), but leaving all other suspect funcitonality in
+place (e.g. pipes), no flakiness was observed in a sample of over 1,000 length
+200 tests.  Moreover, because the removals were limited to acutally
+observed sources of flakiness, the code coverage loss was minimal.
+Average branch coverage, for regression tests of length 200 is reduced
+by less than 5 branches.  Obviously, it is
+impossible to test the removed calls, but the overall coverage loss is
+both minimal and known, and can be made up for using specially-crafted
+tests (for instance, wrapping the problematic calls in a way that does
+not check the values, or adding a delay after an expiration to allow
+the data to expire).  As a price to pay for the ability to produce
+fast-executing high-coverage full regression tests (not just tests for
+crashes and unexpected exceptions), this is a very acceptable price.
+Moreover, turning off sources of known, expected nondeterminism makes
+it possible to aggressively test {\tt redis-py} and Redis for
+unexpected nondeterminism arising from actual bugs.  The overhead for such
+determinism checks, with a 0 second delay between operations, is only
+20\%, much lower than the expected cost of running each test twice.
+This is because choosing the actions in a test (and determining which
+actions are enabled at each step) consumes a large part of the test
+generator's time; running the test again and checking equality is
+relatively inexpensive.  
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
@@ -35,8 +94,51 @@ Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
 algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
-showing an extremely simple input producing the issue 
+showing an extremely simple input producing the issue, 
 required another 92 seconds.
+
+Removing the nondeterministic call, we can see that the cost of
+checking for process nondeterminism, with a zero delay on operations,
+is high, a 93\% slowdown.  This is due to the very high cost of
+using a new subprocess to re-run the test, and comparing values using
+text I/O on output pipes, rather than on values alone.
+
+\subsection {Case Study: {\tt pyfakefs}}
+
+The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
+system that mocks the Python file system modules, to allow Python
+tests both to run faster by using an in-memory file system and to make
+file system changes that would not be safe or easily performed using
+real persistent storage.  Originally developed in 2006 at Google by
+Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
+inside and outside Google \cite{pyfakefs}.
+
+The TSTL harness for {\tt pyfakefs} has been used to detect (and
+correct) over 50 faults.  However, the testing completely relies on
+the existence of a reference file system implementation.
+
+We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
+call checks that its target is not a directory, and returns the
+correct error, but still carries out the remove operation.  Using {\tt
+  os.remove} to delete directories does not break any file system
+invariants, but violates the Python {\tt os} specification (and,
+indirectly, the usual POSIX implementation behavior where {\tt unlink}
+does not work for directories).  Detecting this bug using the TSTL
+{\tt pyfakefs} harness is normally impossible without using another
+file system as a reference.  However, the fault was detected
+immediately, even without using a reference, when we compiled the harness
+with the {\tt --checkFailureDeterminism} flag.  Because vertical
+reduction does not require running complete tests multiple times, and
+does not affect the delta-debugging algorithm's performance, reducing
+the failing test to 3 steps required less than a second.
+Moreover, the overhead for the check for failure determinism in a
+version of the code without the {\tt remove} error was
+less than 8\%.  Detecting the fault using a reference file system 
+required 17\% more runtime before detection, and took over twice as
+long to reduce the failure to a
+slightly longer failing test, which did not have {\tt remove} as its
+final operation (since further file system interaction is required to
+expose the bad state).
 
 \begin{figure*}
 {\scriptsize

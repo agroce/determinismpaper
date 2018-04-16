@@ -106,9 +106,20 @@ Many \emph{idempotent} operations fall into this category.
 Consider adding an element to an AVL tree implementing a set, not a
 multiset.  Assume the method call returns the parent node of the
 element, whether it was added or was already in the tree.  Calling
-this mehtod any number of times in sequence should always return the
+this method any number of times in sequence should always return the
 same value, though the first call may have modified the contents of
 the AVL tree.
+
+One application of vertical determinism, then, is to identify
+idempotent operations in an automated test generation harness, and
+simply automatically retry all such operations, checking that the
+result is unchanged.  The overhead of vertical nondeterminism detection will
+generally be much lower than that for horizontal nondeterminism
+(horizontal checks must re-execute an entire test; vertical checks
+only re-execute proportional to the number of idempotent operations
+performed).  However, identifying idempotent operations is a
+fairly serious specification burden.  Are there instances where a tool
+can automatically identify a limited kind of idempotent behavior?
 
 \subsubsection{Failure Determinism}
 
@@ -129,6 +140,26 @@ nondeterminism.  Attempting to login with the root account with an
 empty password appeared to fail, then, on a repeated try, succeeded
 \cite{applebug1,applebug2}. 
 
+Many library APIs are largely failure deterministic.  For instance, if
+we exclude actual I/O errors, most POSIX file system calls either
+succeed or do nothing (interfaces that may only partially succeed,
+such as {\tt read} tend to explicitly return the degree of success
+rather than signaling an error on partial success).  In fact, the
+design of the POSIX {\tt write} call is carefully crafted to largely maintain
+failure determinism.  If the failure mode is one that can be
+anticipated, such as insufficient space to write all bytes requested
+(but some bytes can be written), the call returns the actual bytes
+written, and does not set a failure code.
+
+In languages with a clear mechanism for expressing failure of a call
+(e.g., exceptions in Python and Java, or Option/Result types in Rust,
+Haskell, and ML), failure determinism can be automatically checked.
+Moreover, the expected overhead should be even lower than the general
+overhead for vertical determinism, in that we can expect most failing
+operations to be fast in an automated test generation setting (that the
+parameters to a call are illegal is the most common cause for
+failure).
+
 \subsection{Nondeterminism and Delta-Debugging}
 
 Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
@@ -142,12 +173,16 @@ test.  Identifying the cause of nondeterminism may be very easy in a
 test consisting of ten library function calls (it is one of these ten
 calls), but very difficult in a test consisting of a hundred library
 function calls.  This is no different than the common use of
-delta-debugging.  However, in nondeterminism detection,
-delta-debugging can also be used to \emph{change the probability of
-  nondeterministic behavior}.
+delta-debugging.  However, in horizontal nondeterminism detection,
+delta-debugging also tends to \emph{change the probability of
+  nondeterministic behavior}; this can be both harmful and
+beneficial.  The behavior is part of a more general (and, to our
+knowledge, not previously investigate) issue:  using delta-debugging
+to minimize a test with respect to a predicate that only holds with a
+certain probability (the predicate itself is nondeterministic).
 
-In \emph{monotonic} cases, removing a part of a test cannot
-increase the probability of a predicate holding.  This is fairly
+In \emph{monotonic} probabilistic delta-debugging, removing a part of a test cannot
+increase the probability of the predicate holding.  This is fairly
 common.  In these cases, when we use a reduction algorithm to reduce $t$
 to $r$, $P(p(r) \leq P(p(t))$.  In \emph{non-monotonic} cases,
 however, there is no such upper bound.  Removing a step in $t$ may
