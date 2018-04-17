@@ -2,23 +2,35 @@
 
 \subsection{Sources of Nondeterminism in Practice}
 
+In order to implement a practical nondeterminism-detection tool, it is
+important to consider the sources of nondeterminism.  Most of these
+sources can, in principle, be detected simply by re-running a test
+twice and comparing results, either at all visible values or at the
+final state.  For example, if some library call uses a random number
+generator (perhaps in a stochastic algorithm), the value should be
+different on a second run.  Timing dependencies may change on a second
+execution, especially if a delay is added between steps of the test (a
+more principled version of the unfortunate tradition of testing
+concurrent code by adding ad-hoc {\tt sleep} statements).  However,
+simply running a test twice (possibly with a delay between steps) does
+not suffice in all cases.
+
 \subsubsection{Process-Based Nondeterminism}
 
 \label{sec:pnondet}
 
-Some sources of nondeterminism require executing a test in a new
+Some sources of nondeterminism unfortunately require executing a test in a new
 process environment, because the source is inherently tied to the
-process environment.
+process in which code runs; simply re-executing a test in the same
+process will not reveal the problem.
 
 Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
 important source of nondeterminism that arises (only) from change in
 process.  ASLR scrambles the layout of memory of the process in which
-an executable runs in order to make it
-harder to exploit memory-safety vulnerabilities.  As a side effect, it
+an executable runs in order to make it harder to exploit memory-safety
+vulnerabilities in code.  As a side effect, it
 means that a test that, in some circumstances, causes a crash, may at
 other times not fail at all.
-
-Different CPU.
 
 Another example of process-based nondeterminism was discovered by numerous Python programs when Python
 version 3.3 introduced automatic random salting of hashes (see Section
@@ -34,12 +46,103 @@ relied on them in that they only functioned correctly with a
 predictable order for dictionary iteration across processess.  Testing
 Python code for nondeterminism based on this hash seed requires
 running in a new process:  Python does not allow changing the salt, since changing hash values on-the-fly would
-break all existing dictionaries and other structures relying on hashing.
+break all existing dictionaries and other structures relying on
+hashing.
+
+Other, less common, effects tied to process also exist.  A few tests
+may somehow depend on their actual PID (Process ID) or at least the
+parent process' ID.  Process change increases the likelyhood that on a multicore
+system a test will execut on a different CPU than in the first
+execution, which can have many subtle effects, mostly related to
+changed timing.
 
 \subsection{Implementing Nondeterminism Detection}
 
-We implemented our approach in the TSTL \cite{NFM15} system.
 
+\begin{table*}
+\centering
+{%\scriptsize 
+
+\caption{TSTL Method Calls for Nondeterminism Detection}
+\label{tab:methods}
+\begin{tabular}{l|l}
+%\hline
+Name & Purpose \\
+\hline
+\hline
+{\tt nondeterministic} & returns True if test exhibits final state nondeterminism in $k$
+  tries with delay $d$\\
+\hline
+{\tt stepNondeterministic} & as above, except checks all visible values
+                       (compares state at every step)\\
+\hline
+{\tt processNondeterministic} & as above, except runs test provided in
+                          subprocess and compares non-opaque output
+                          values \\
+\hline
+{\tt forceP} & wraps a predicate for test reduction (e.g. {\tt
+         nondeterministic}) with desired probability of holding,
+         sample size,\\
+&  and replications required \\
+\hline
+\hline
+
+%\hline
+\end{tabular}
+}
+\end{table*}
+
+\begin{table*}
+\centering
+{%\scriptsize
+\caption{TSTL Command Line Options for
+  Nondeterminism Detection}
+\label{tab:options}
+\begin{tabular}{l|l|l}
+%\hline
+Name &  Tool(s) & Purpose \\
+\hline
+\hline
+{\tt --checkDeterminism} & {\tt rt}, {\tt reduce} & Checks tests for deterministic
+                                  behavior (visible value in rt, final
+  value in reduce)\\
+\hline
+{\tt --checkProcessDeterminism} & {\tt rt}, {\tt reduce} & Checks determinism using more 
+                                         expensive process-changed 
+                                         execution \\
+\hline
+{\tt --determinismTries INT} & {\tt rt}, {\tt reduce} & Number of times to repeat test 
+                                  checking for nondeterministic
+                                  behavior \\
+\hline 
+{\tt --determinismDelay FLOAT} & {\tt rt}, {\tt reduce} & Delay between steps when 
+                                  re-executing to check for
+                                              determinism \\
+\hline 
+{\tt --checkFailureDeterminism} & tstl compiler & Produce a harness
+                                                  that checks
+                                                  determinism on all
+                                                  failing actions \\
+\hline 
+{\tt --probability P} & {\tt reduce} & force property with respect to which 
+                               test is being reduce to hold with 
+                                 probability $P$ \\
+\hline 
+{\tt --samples S} & {\tt reduce} & use $S$ samples when checking predicate
+                             probability\\
+\hline 
+{\tt --replications R} & {\tt reduce} & use $R$ replications when checking predicate probability\\
+\hline
+\hline
+
+%\hline
+\end{tabular}
+}
+\end{table*}
+
+
+We implemented our approach in the TSTL \cite{NFM15} system, a
+language and tool for property-based testing of Python code.
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
 nondeterminism detection can technically be implemented simply by
 declaring a system to be its own reference, using TSTL's notation for
@@ -48,7 +151,38 @@ on the part of the user to control which values are checked for
 equivalence, and does not easily support injecting timing differences,
 or using a new process, in checking the behavior.
 
+We therefore instead made nondeterminism detection a first-class
+property in TSTL, using TSTL's existing notation for marking some
+types of values as \emph{opaque} (not usefully compared for equality),
+used in automatic abstraction-based testing.  Tables \ref{tab:methods}
+and \ref{tab:options} show, respectively, the primary additions to the
+TSTL Python API and the TSTL command line tools.  The TSTL test
+generation tool is called {\tt rt}, since the default mode is a fast
+pure Random Tester, and {\tt reduce} is TSTL's tool for
+delta-debugging and test
+normalization (more aggressive reduction that also tends to ease
+debugging and test triage by making tests failing due to the same
+fault more similar \cite{onetest}).  With these additions,
+developers of TSTL-based testing tools, or developers using TSTL tools
+to test code can easily add nondeterminism to the set of properties
+checked.  First-class vertical nondeterminism checks are currently
+limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
+compiler to emit a harness where every action that causes an expected
+exception to be raised is repeated to ensure the same exception is
+still raised.  Users can also express that any action should exhibit
+vertical determinism by wrapping the action in a function that checks
+for failure and calls the code again.
 
+Unlike the other additions, explicitly designed for nondeterminism
+detection, the {\tt forceP} wrapper and {\tt --probability}, {\tt
+  --samples}, and {\tt --replications} reducer options are general
+tools for use with nondeterministic predicates in delta-debugging.  Of
+course, nondeterminism and flakyness are the most common probabilistic
+test properties we are aware of, but in theory these tools can be used
+for other probabilistic debugging problems (e.g., if the property of
+interest is that a value is above a certain threshold in 90\% of test
+executions, these TSTL additions can be used to find a small test where this property
+fails to hold).
 
 Because TSTL has an interface to afl \cite{aflfuzz}, we can even use
 afl's sophisticated heuristics to perform very thorough, week-long
