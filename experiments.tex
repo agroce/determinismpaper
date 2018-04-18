@@ -78,7 +78,7 @@ cases incorrect) results due to dependence on the order of values in
 an iterator over a Python dictionary, on Python versions above 3.2, until 3.6 (see Section \ref{sec:pnondet}).
 
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
-  datarray} algorithms.  The {\tt flatten_and_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
+  datarray} algorithms.  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
   --checkProcessDeterminism} flag required less than 10 seconds on
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
