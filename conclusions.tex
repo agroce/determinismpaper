@@ -1,2 +1,32 @@
 \section{Conclusions and Future Work}
 
+Unexpected nondeterminism of software systems frustrates users,
+whether they be humans or (more importantly) other software systems.
+Nondeterminism is even more pernicious in software testing,
+frustrating debugging efforts (``Heisenbugs'' are widely loathed \cite{Heisenbug}), and
+leading to the costly problem of flaky tests
+\cite{miccoflaky,listfieldtestanalysis}.
+
+This paper proposes a formulation of types of nondeterminism, and a
+practical approach to using automated test generation to detect
+nondeterminism, especially in the library code that underlies most
+systems. In addition to traditional \emph{horizontal} nondeterminism
+(the phenonmenon behind Heisenbugs and flaky tests), we also discuss
+the related concept of \emph{vertical} nondeterminism, which is more
+frequently simply a software bug.  We implemented our approach in the
+TSTL automated test generation system for Python, and demonstated the
+simplicity and basic utility of the approach on three real-world examples.
+
+As future work, we would like to make the automatic detection of
+values that should not be visible (e.g., count towards nondeterminism)
+possible: if a value (e.g., a timestamp) is always different in every
+run, it is likely of no interest to developers.  This would make
+testing libraries mixing deterministic behavior and nondeterministic
+behavior, e.g. cryptographic libraries offering high-quality random
+number generators, easier for users, who would only be shown
+``surprising'' nondeterminism.  Similarly, in order to extend the
+utility of vertical nondeterminism detection, we would like to
+automatically identify usually-idempotent operations, and check them
+for deviation from the expected behavior.  We would also like to lower the cost
+of checking process nondeterminism, perhaps by using methods taken in
+afl \cite{aflfuzz} to avoid high startup costs for test executions.

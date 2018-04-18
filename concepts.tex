@@ -179,7 +179,17 @@ delta-debugging also tends to \emph{change the probability of
 beneficial.  The behavior is part of a more general (and, to our
 knowledge, not previously investigate) issue:  using delta-debugging
 to minimize a test with respect to a predicate that only holds with a
-certain probability (the predicate itself is nondeterministic).
+certain probability (the predicate itself is nondeterministic).  Note
+that while most descriptions of delta-debugging discuss reducing a
+test with respect to \emph{test failure} (hence the term
+``delta-\emph{debugging}'') we adopt the wider view of delta-debugging
+as reducing the length of a test while maintaining that an arbitrary
+predicate remains true of the shorter versions of the test.  The
+traditional predicate is ``the test fails'' but other predicates,
+especially those related to code-coverage, can also be useful
+\cite{icst2014,stvrcausereduce,NonAdeq}.  Our contribution here is to consider
+what happens when the predicate to be evaluated is not deterministic.
+``The test behaves flakily'' is a simple, important, example of such a predicate.
 
 In \emph{monotonic} probabilistic delta-debugging, removing a part of a test cannot
 increase the probability of the predicate holding.  This is fairly
@@ -204,6 +214,30 @@ holds (in a non-monotonic case where we aim to increase the probability
 of nondeterminism).
 
 \subsubsection{``Publication Bias'' in Delta-Debugging}
+
+\begin{figure*}
+\centering 
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{lengthddmin}
+\caption{Standard delta-debugging}
+\label{fig:p1}
+\end{subfigure}
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{lengthddminforcep}
+\caption{P=0.5, 100 samples}
+\label{fig:p2}
+\end{subfigure}
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{lengthddminforceprep}
+\caption{10 samples, 10 replications}
+\label{fig:p3}
+\end{subfigure}
+\caption{Delta-debugging of the same test, with different ways of
+  handling nondeterministic in the reduction predicate.}
+\end{figure*}
 
 However, simply using delta-debugging off the shelf with a predicate
 like $P(fail) > 0.3 \wedge P(fail) < 1.0$, to force a test to be flaky, and force it to fail
@@ -240,6 +274,8 @@ reductions will become harder, but may still be possible due to the
 same source of errors:  the number of experiments run is far larger
 than the probability of an incorrect result.
 
+
+
 It is the combination of
 a one-way bias on faulty evaluations (the consequences of a false
 positive for the predicate are much greater than for a false negative)
@@ -250,11 +286,12 @@ towards producing a reduced test where probabilities are much smaller
 than demanded by a predicate, due to the pressure on delta-debugging
 to produce shorter tests.  Shorter tests have smaller probabilities,
 on average, due to two factors:  first, timing-induced nondeterminism
-has a much smaller temporal space to operate in, and second, if some
-test operation introduces a small probability of nondeterminism, and
-only many repetitions of that operation make the probability large,
-small tests obviously on average have fewer instances of the
-problematic operation.
+has a much smaller temporal space to operate in (the test may be over
+before a ``time-bomb'' set by an operation goes off, for example), and second, if some
+test operations introduce a small probability of nondeterminism, and
+only many repetitions of those operations make the probability large,
+small tests obviously, on average, have fewer instances of the
+problematic operations.
 
 In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to
@@ -290,7 +327,7 @@ is $P(fail) \geq 0.5$, and the true probability for a candidate test
 is 0.25, using $N=8$ will give a false positive rate of over 10\%.
 Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
 positive rate of about 3.7\%, yet requires almost 60\% fewer
-executions of the test\footnote{The probability calculations for such comparisons
+executions of the test.  The probability calculations for such comparisons
   are relatively simple, but in real testing are
   usually not very useful, since the true
   probabilitiy distributions of test behaviors vary widely and
@@ -299,7 +336,7 @@ executions of the test\footnote{The probability calculations for such comparison
   the changing probabilities were known; exact results would be based on fictional
   probabilities, so gathering experimental data during a trial
   delta-debugging run and tuning $N$ and $M$ to yield desired
-  results is  more effective.}.
+  results is  more effective.
 
 Tuning $M$, any degree of confidence can be achieved, with
 the basic tradeoff being between finding a test with the desired
@@ -307,3 +344,42 @@ probabilities, and the speed and effectiveness of delta-debugging.
 Because increasing $M$ makes false negatives more likely, larger $M$
 will usually result in less-than-optimal reduction of the original
 test.
+
+
+
+To make the basic concepts, more clear, Figures
+\ref{fig:p1}-\ref{fig:p3} graphically show the interplay of
+delta-debugging and nondeterministic predicates for a simple example.
+In the example, tests consist of a sequence of operations that behave
+nondeterministically with (independent) probabilities of 0.01, 0.05,
+and 0.10, respectively, storing the value of the operation one of five array locations.
+There is also an operation that clears out an array location, making
+it possible to store another (possibly nondeterministic) value in that
+array slot.  An example test sequence would be:
+
+\begin{code}
+array[2] = op01();
+array[3] = op05();
+clear(array[2]);
+array[2] = op10();
+\end{code}
+
+The probability that this test behaves nondeterministically is
+0.84645, the result of the simple calculation $(1-0.01) \times
+(1-0.05) \times (1-0.10)$.  Figure \ref{fig:p1} shows one run of
+delta-debugging on a test of length 500.  The initial test is
+esentially guaranteed to behave nondeterministically; delta-debugging
+only checks that it \emph{can} behave nondeterministically, and so, in
+the course of reducing the test length to a test with only two
+operations, the delta-debugging algorithm also reduces the probability
+of nondeterminism to only about 20\%.  If we use a predicate that
+``forces'' the test to behave nondeterministically at least half the
+time, by sampling the predicate value 100 times and only returning
+true when at least 50 of the evaluations report true, we see the
+behavior in Figure \ref{fig:p2}:  the final test is slightly longer,
+but still falls well short of our target of exhibiting nondeterminism
+50\% of the time.  Finally, Figure \ref{fig:p3} shows what happens if
+we use the same target of 50\% nondeterminism, but use only 10
+samples, with 10 replications ($N$ = 10, $M$ = 10):  the test is not
+much longer than in Figure \ref{fig:p2}, but the probability of
+nondeterminism is above our target value, close to 60\%.

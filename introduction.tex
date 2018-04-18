@@ -12,7 +12,8 @@ significantly different behavior each time it is run, the consequences
 can be unfortunate.  Developers using a test exhibiting nondeterminism
 to debug a system
 face a challenge in reasoning about causality, in that an event
-observed may not even take place the next time the test is run.
+observed may not even take place the next time the test is run; this
+pernicious phenomenon has been dubbed the dreaded ``Heisenbug'' \cite{Heisenbug}.
 Automated test generation systems using test coverage results to drive
 the search for interesting inputs may be mislead when a run executes
 code only rarely.  And, most significantly, regression testing
@@ -24,7 +25,7 @@ al. \cite{Gao:2015:MSU:2818754.2818764} observed coverage differences
 of up to 184 lines of code for the same test, and false positive rates
 as high as 96\%.  Nondeterminism is sometimes problematic for
 developers, who will usually want to  assume that library code they
-use is deterministic; it is often disastrous for large-scale or highly
+use is deterministic; it is frequently vexing in debugging efforts; it is often disastrous for large-scale highly
 automated testing.
 
 

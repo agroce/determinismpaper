@@ -30,20 +30,23 @@ process.  ASLR scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
 vulnerabilities in code.  As a side effect, it
 means that a test that, in some circumstances, causes a crash, may at
-other times not fail at all.
+other times not fail at all.  Even if no inputs produce a crash,
+however, memory errors may produce variation in values that are
+overwritten or arise from uninitialized memory, and thus be detectable
+as nondeterminism.
 
-Another example of process-based nondeterminism was discovered by numerous Python programs when Python
-version 3.3 introduced automatic random salting of hashes (see Section
-\ref{sec:pnondet} per-process,
+Another example of process-based nondeterminism was discovered by numerous Python developers when Python
+version 3.3 introduced automatic random salting of hashes on a
+per-process basis (a new salt chosen for each Python process),
 in order to mitigate hash-based denial of service attacks
 \cite{denial}.  Until version 3.6 this not only resulted in changes in
 exact hash values, but in the order of iteration on
 dictionaries\footnote{In version 3.6, the default dictionary
   implementation became an ordered dictionary with consistent
   iteration, though actual hashes remained nondeterministic.}.  While
-relatively few programs relied on exact hash values, many implicitly
+relatively few programs rely on exact hash values, many implicitly
 relied on them in that they only functioned correctly with a
-predictable order for dictionary iteration across processess.  Testing
+predictable order for dictionary iteration.  Testing
 Python code for nondeterminism based on this hash seed requires
 running in a new process:  Python does not allow changing the salt, since changing hash values on-the-fly would
 break all existing dictionaries and other structures relying on
@@ -52,7 +55,7 @@ hashing.
 Other, less common, effects tied to process also exist.  A few tests
 may somehow depend on their actual PID (Process ID) or at least the
 parent process' ID.  Process change increases the likelyhood that on a multicore
-system a test will execut on a different CPU than in the first
+system a test will execute on a different CPU than in the first
 execution, which can have many subtle effects, mostly related to
 changed timing.
 
@@ -79,6 +82,9 @@ Name & Purpose \\
 {\tt processNondeterministic} & as above, except runs test provided in
                           subprocess and compares non-opaque output
                           values \\
+\hline
+{\tt P} & returns probability that a predicate holds for a test (with
+          optional number of sample to use in estimate) \\
 \hline
 {\tt forceP} & wraps a predicate for test reduction (e.g. {\tt
          nondeterministic}) with desired probability of holding,
@@ -141,8 +147,11 @@ Name &  Tool(s) & Purpose \\
 \end{table*}
 
 
-We implemented our approach in the TSTL \cite{NFM15} system, a
-language and tool for property-based testing of Python code.
+We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt} system, a
+language and tool for property-based testing of Python code. TSTL has
+been used to detect (and usually fix) errors in a number of widely
+used Python libraries, the Python implementation itself, the Solidity
+compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
 nondeterminism detection can technically be implemented simply by
 declaring a system to be its own reference, using TSTL's notation for
@@ -165,7 +174,9 @@ debugging and test triage by making tests failing due to the same
 fault more similar \cite{onetest}).  With these additions,
 developers of TSTL-based testing tools, or developers using TSTL tools
 to test code can easily add nondeterminism to the set of properties
-checked.  First-class vertical nondeterminism checks are currently
+checked.  
+
+First-class vertical nondeterminism checks are currently
 limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
 compiler to emit a harness where every action that causes an expected
 exception to be raised is repeated to ensure the same exception is
