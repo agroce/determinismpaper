@@ -382,7 +382,8 @@ but still falls well short of our target of exhibiting nondeterminism
 we use the same target of 50\% nondeterminism, but use only 10
 samples, with 10 replications ($N$ = 10, $M$ = 10):  the test is not
 much longer than in Figure \ref{fig:p2}, but the probability of
-nondeterminism is above our target value, close to 60\%.  Note that
+nondeterminism is above our target value, close to 60\% (and, as a bonus, fewer
+test executions are required on average for each check of the predicate).  Note that
 this example is purely monotonic; the pattern of probability changes
 in non-monotonic settings can be even more difficult to predict and
 control, but the principle of forcing a probability by sampling and

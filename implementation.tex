@@ -192,7 +192,19 @@ debugging and test triage by making tests failing due to the same
 fault more similar \cite{onetest}).  With these additions,
 developers of TSTL-based testing tools, or developers using TSTL tools
 to test code can easily add nondeterminism to the set of properties
-checked.  
+checked.  It is even possible to write a TSTL harness that
+automatically checks itself for nondeterminism, even if the random
+tester is not run with {\tt --checkDeterminism}, simply by adding:
+
+{\scriptsize
+\begin{code}
+property: not self.nondeterministic(self.test())
+\end{code}
+}
+
+\noindent to the harness; in fact, by removing the {\tt not}, a test harness can
+even specify that behavior should not be deterministic, a property of
+possible use in some security-related libraries.
 
 First-class vertical nondeterminism checks are currently
 limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
