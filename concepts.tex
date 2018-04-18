@@ -177,7 +177,7 @@ delta-debugging.  However, in horizontal nondeterminism detection,
 delta-debugging also tends to \emph{change the probability of
   nondeterministic behavior}; this can be both harmful and
 beneficial.  The behavior is part of a more general (and, to our
-knowledge, not previously investigate) issue:  using delta-debugging
+knowledge, not previously investigated) issue:  using delta-debugging
 to minimize a test with respect to a predicate that only holds with a
 certain probability (the predicate itself is nondeterministic).  Note
 that while most descriptions of delta-debugging discuss reducing a
@@ -382,4 +382,8 @@ but still falls well short of our target of exhibiting nondeterminism
 we use the same target of 50\% nondeterminism, but use only 10
 samples, with 10 replications ($N$ = 10, $M$ = 10):  the test is not
 much longer than in Figure \ref{fig:p2}, but the probability of
-nondeterminism is above our target value, close to 60\%.
+nondeterminism is above our target value, close to 60\%.  Note that
+this example is purely monotonic; the pattern of probability changes
+in non-monotonic settings can be even more difficult to predict and
+control, but the principle of forcing a probability by sampling and
+replication still holds.

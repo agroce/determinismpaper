@@ -163,7 +163,25 @@ or using a new process, in checking the behavior.
 We therefore instead made nondeterminism detection a first-class
 property in TSTL, using TSTL's existing notation for marking some
 types of values as \emph{opaque} (not usefully compared for equality),
-used in automatic abstraction-based testing.  Tables \ref{tab:methods}
+used in automatic abstraction-based testing.  In TSTL, a test is a
+sequence of \emph{actions}; parameter values to method and function
+calls of the Software Under Test (SUT) are stored in finite-sized variable \emph{pools}.  A
+TSTL test is (essentially) a sequence of assignments to pool values,
+and method/function calls using pool values (including method calls on
+pool objects).  This formalism is a widely used and efficient way to
+represent unit tests \cite{Pachecho,AndrewsTR}.  In TSTL, \emph{visible
+value determinism} is based on comparing the values of \emph{all pool
+variables} after each test action (pool values other than the one
+assigned to must also be compared, since a common source of
+nondeterminism is when a call results in a change to a value passed as
+a parameter, or even due to a shared reference held by two values).
+TSTL omits comparison only of pools marked as {\tt OPAQUE} in the
+TSTL language test harness (and values that do not support equality
+checking).  \emph{Final State Determinism} simply performs the same
+comparison, but only on the final values of all pool variables after a test has
+finished executing.
+
+ Tables \ref{tab:methods}
 and \ref{tab:options} show, respectively, the primary additions to the
 TSTL Python API and the TSTL command line tools.  The TSTL test
 generation tool is called {\tt rt}, since the default mode is a fast

@@ -30,3 +30,15 @@ automatically identify usually-idempotent operations, and check them
 for deviation from the expected behavior.  We would also like to lower the cost
 of checking process nondeterminism, perhaps by using methods taken in
 afl \cite{aflfuzz} to avoid high startup costs for test executions.
+
+More generally, we are interested in using test decomposition
+\cite{Composition} to more easily isolate, understand, and avoid
+nondeterminism is tests, and to mitigate the problem of flaky tests.
+Reliable detection of nondeterminism/flakiness is the first step to
+active solutions to eliminating nondeterministic/flaky test behavior.
+
+{\scriptsize {\bf Acknowledgements:}  The authors would like to thank John Micco,
+Jeff Listfield, and Celal Ziftci, all at Google, for discussions of
+the problem of flaky tests, Andreas Zeller and David R. MacIver for discussion of the
+problem of delta-debugging of nondeterministic properties, and Chris
+Colohan for discussion of sources of process-based nondeterminism.}
