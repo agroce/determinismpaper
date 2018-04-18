@@ -149,7 +149,13 @@ inside and outside Google \cite{pyfakefs}.
 
 The TSTL harness for {\tt pyfakefs} has been used to detect (and
 correct) over 50 faults.  However, the testing completely relies on
-the existence of a reference file system implementation.
+the existence of a reference file system implementation.  One purpose
+of failure nondeterminism is to make it somewhat easier to perform
+property-based testing of
+complex APIs like this even without a reference implementation, or in cases
+where (as is common, e.g. in file system development at NASA
+\cite{ICSEDiff,CFV08}) the implementations do not use the same error
+codes, making checking of behavior of failing calls more problematic.
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
