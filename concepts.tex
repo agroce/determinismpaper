@@ -356,12 +356,14 @@ There is also an operation that clears out an array location, making
 it possible to store another (possibly nondeterministic) value in that
 array slot.  An example test sequence would be:
 
+{\scriptsize
 \begin{code}
 array[2] = op01();
 array[3] = op05();
 clear(array[2]);
 array[2] = op10();
 \end{code}
+}
 
 The probability that this test behaves nondeterministically is
 0.84645, the result of the simple calculation $(1-0.01) \times

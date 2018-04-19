@@ -64,7 +64,7 @@ changed timing.
 
 \begin{table*}
 \centering
-{%\scriptsize 
+{\scriptsize 
 
 \caption{TSTL Method Calls for Nondeterminism Detection}
 \label{tab:methods}
@@ -86,10 +86,9 @@ Name & Purpose \\
 {\tt P} & returns probability that a predicate holds for a test (with
           optional number of sample to use in estimate) \\
 \hline
-{\tt forceP} & wraps a predicate for test reduction (e.g. {\tt
-         nondeterministic}) with desired probability of holding,
-         sample size,\\
-&  and replications required \\
+{\tt forceP} & wraps a predicate for test reduction, checking that it
+               has desired probability of holding, using
+         sample size and replications parameters \\
 \hline
 \hline
 
@@ -100,7 +99,7 @@ Name & Purpose \\
 
 \begin{table*}
 \centering
-{%\scriptsize
+{\scriptsize
 \caption{TSTL Command Line Options for
   Nondeterminism Detection}
 \label{tab:options}
