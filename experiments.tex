@@ -135,7 +135,10 @@ average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
 algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
 showing an extremely simple input producing the issue, 
-required another 92 seconds.
+required another 92 seconds.  Interestingly, the way that {\tt
+  python-afl} is used in TSTL means that afl stability is 100\%,
+because the {\tt PYTHONHASHSEED} has already been chosen before the
+fork in afl executions.
 
 Removing the nondeterministic call, we can see that the cost of
 checking for process nondeterminism, with no delay between operations,
