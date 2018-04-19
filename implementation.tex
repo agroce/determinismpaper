@@ -215,7 +215,7 @@ vertical determinism by wrapping the action in a function that checks
 for failure and calls the code again.
 
 Unlike the other additions, explicitly designed for nondeterminism
-detection, the {\tt forceP} wrapper and {\tt --probability}, {\tt
+detection, the {\tt P} query, {\tt forceP} wrapper, and {\tt --probability}, {\tt
   --samples}, and {\tt --replications} reducer options are general
 tools for use with nondeterministic predicates in delta-debugging.  Of
 course, nondeterminism and flakyness are the most common probabilistic
@@ -223,9 +223,23 @@ test properties we are aware of, but in theory these tools can be used
 for other probabilistic debugging problems (e.g., if the property of
 interest is that a value is above a certain threshold in 90\% of test
 executions, these TSTL additions can be used to find a small test where this property
-fails to hold).
+fails to hold).  In addition to the basic probabilistic reduction
+issues discussed above, actual implementation of test reduction for
+nondeterminism introduces some subtle issues.  By default, for
+example, TSTL automatically removed non-enabled actions from tests
+during reduction, because these are never actually executed.  However,
+in timing based nondeterminism, such steps may be essential to
+causing the nondeterminism to appear (we had to turn off this feature
+in reducing the tests for the {\tt redis-py} example discussed below).
 
-Because TSTL has an interface to afl \cite{aflfuzz}, we can even use
+Because TSTL has a first-class interface to afl \cite{aflfuzz}, we can even use
 afl's sophisticated heuristics to perform very thorough, week-long
 checks for nondeterminism, using strategies built to find subtle
-security vulnerabilities in C programs.
+security vulnerabilities in C programs.  Equally importantly, since
+there is substantial overhead in nondeterminism detection, afl can be
+used to predict whether a program has potential nondeterminism; if the
+afl \emph{stability} statistic (see the afl documentation for details
+\cite{aflfuzz}) is lower than 100\%, it may indicate a problem.
+Because of the idiosyncracies of afl instrumentation and process
+behavior, this is not always a reliable guide, but it is a very low
+cost indicator produced as a by-product of fuzzing.
