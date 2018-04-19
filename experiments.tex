@@ -144,8 +144,7 @@ Removing the nondeterministic call, we can see that the cost of
 checking for process nondeterminism, with no delay between operations,
 is high, a 93\% slowdown.  This is due to the very high cost of
 using a new subprocess to re-run the test, and comparing values using
-text I/O on output pipes, rather than on values alone.
-
+text I/O on output pipes, rather than values in a Python dictionary.
 
 \begin{figure*}
 {\scriptsize
