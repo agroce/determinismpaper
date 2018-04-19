@@ -9,13 +9,18 @@ message broker \cite{redis}.
 Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
 itself can be tested; unfortunately, generating standalone
 high-coverage regression tests for {\tt redis-py} and Redis using TSTL
-was difficult, as numerous Redis commands introduce nondeterministic
-behavior.  Some of these are obvious (e.g., {\tt randomkey, srandmember}) by
-name.  Given an understanding of Redis semantics, that the various
+has proven difficult, as numerous Redis commands introduce nondeterministic
+behavior.   Using {\tt tstl\_afl\_fuzz}, we can see that the {\tt redis-py} has a 
+stability of only 56.26\%, a clear indicator of nondeterminism. Some
+of the problematic commands are obvious simply by inspection (e.g.,
+{\tt randomkey, srandmember}).  And, given an understanding of Redis
+semantics, it is also clear that the various
 commands producing data with a limited lifetime (e.g., {\tt expire,
-  pexpire}) also introduce timing-based nondeterminism is also clear.
+  pexpire}) also introduce timing-based nondeterminism.
+
+
 However, that a command such as {\tt restore} takes an expiration
-argument is not obvious on inspection, nor is the behavior of {\tt
+argument is not obvious to a non-expert, nor is the behavior of {\tt
   spop} which pops a random value from a set.  Moreover, it is
 difficult to guess whetehr the {\tt pipe} mechanism, which allows a
 large sequence of commands to be queued up in a pipe and executed all
