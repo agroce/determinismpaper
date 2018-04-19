@@ -2,6 +2,31 @@
 
 \subsection {Case Study: {\tt redis-py}}
 
+
+\begin{figure*}
+\centering 
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{redisddmin}
+\caption{Standard delta-debugging}
+\label{fig:r1}
+\end{subfigure}
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{redisddmin}
+\caption{P=0.5, 100 samples}
+\label{fig:r2}
+\end{subfigure}
+\begin{subfigure}{0.67\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{redisddmin}
+\caption{P=0.5, 10 samples, 10 replications}
+\label{fig:r3}
+\end{subfigure}
+\caption{Delta-debugging of the same test, with different ways of
+  handling nondeterministic in the reduction predicate.}
+\end{figure*}
+
 The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
 to the popular Redis in-memory database, cache, and
 message broker \cite{redis}.
@@ -35,20 +60,33 @@ test engineer is often chosen for expertise in test generation tools,
 not in the domain of the software under test (SUT), and is seldom the
 original developer of the code.
 
-Using the original TSTL harness, approxoimately \emph{over 20\%} of all {\tt redis-py}
+Using the original TSTL harness, approximately \emph{over 20\%} of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  Using the
 nondeterminism checker to reduce flaky tests to a minimal set allows
-an engineer to leave an overnight run that will, in 12 hours, produce
+us to simply set up an overnight run that will, in 12 hours, produce
 a set of minimal flaky tests exposing the sources of
 nondeterminism/flakiness.  In this case, the probability of flakiness
 is not important, just the possibility, so we let the delta-debugging
 create a minimal test with some non-zero (but possibly very small)
 observed probability of nondeterminism.  
 
+Figures \ref{fig:r1}-\ref{fig:r3} show delta-debugging of a typical
+{\tt redis-py} nondeterministic test, originally with 287 steps.  The initial test behave
+nondeterministically about half the time.  Figure \ref{fig:r1} shows
+that this is a non-monotonic reduction problem, where removing steps
+can either increase or decrease the probability of nondeterminism.  At
+first, unmodified delta-debugging actually improves the probability of
+failure, but eventually it produces a test of length 16 that only behaves
+nondeterministically 24\% of the time.  The reduction takes only 38
+seconds.  For the purpose of identifying commands leading to
+nondeterminism, this is acceptable.  However, if we were actually
+debugging a complex nondeterminism bug in Redis itself, we might want
+a more reliably nondeterministic test.  
+
 After removing all identified sources of nondeterminism (the {\tt random-} functions, all
 expiration-related functionality and {\tt restore} calls with non-zero
 lifetimes, and {\tt spop}), but leaving all other suspect funcitonality in
-place (e.g. pipes), no flakiness was observed in a sample of over 1,000 length
+place (e.g. pipes), no flakiness was observed in a sample of over 2,000 length
 200 tests.  Moreover, because the removals were limited to acutally
 observed sources of flakiness, the code coverage loss was minimal.
 Mean branch coverage, for regression tests of length 200 was reduced
