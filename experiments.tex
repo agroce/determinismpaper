@@ -16,23 +16,22 @@ delta-debugging for real nondeterministic predicates.
 \begin{subfigure}{0.67\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisddmin}
-\caption{Standard delta-debugging}
+\caption{Standard delta-debugging (runtime 38s)}
 \label{fig:r1}
 \end{subfigure}
 \begin{subfigure}{0.67\columnwidth}
 \centering
-\includegraphics[width=\columnwidth]{redisddmin}
-\caption{P=0.5, 100 samples}
+\includegraphics[width=\columnwidth]{redisforcep}
+\caption{P=0.5, 100 samples (runtime 2131s)}
 \label{fig:r2}
 \end{subfigure}
 \begin{subfigure}{0.67\columnwidth}
 \centering
-\includegraphics[width=\columnwidth]{redisddmin}
-\caption{P=0.5, 10 samples, 10 replications}
+\includegraphics[width=\columnwidth]{redisforceprep}
+\caption{P=0.5, 10 samples, 10 replications (runtime 617s)}
 \label{fig:r3}
 \end{subfigure}
-\caption{Delta-debugging of the same test, with different ways of
-  handling nondeterministic in the reduction predicate.}
+\caption{Delta-debugging of the same {\tt redis-py} nondeterministic test}
 \end{figure*}
 
 The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
