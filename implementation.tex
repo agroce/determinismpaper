@@ -41,7 +41,7 @@ per-process basis (a new salt chosen for each Python process),
 in order to mitigate hash-based denial of service attacks
 \cite{denial}.  Until version 3.6 this not only resulted in changes in
 exact hash values, but in the order of iteration on
-dictionaries\footnote{In version 3.6, the default dictionary
+dictionaries\footnote{In 3.6, the default dictionary
   implementation became an ordered dictionary with consistent
   iteration, though actual hashes remained nondeterministic.}.  While
 relatively few programs rely on exact hash values, many implicitly
@@ -74,7 +74,7 @@ Name & Purpose \\
 \hline
 \hline
 {\tt nondeterministic} & returns True if test exhibits final state nondeterminism in $k$
-  tries with delay $d$\\
+  tries with delay $d$, optionally only over pools in $\mathcal{P}$\\
 \hline
 {\tt stepNondeterministic} & as above, except checks all visible values
                        (compares state at every step)\\
@@ -154,10 +154,10 @@ compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
 nondeterminism detection can technically be implemented simply by
 declaring a system to be its own reference, using TSTL's notation for
-differential testing.  However, such an approach requires some effort
-on the part of the user to control which values are checked for
-equivalence, and does not easily support injecting timing differences,
-or using a new process, in checking the behavior.
+differential testing.  However, such an approach requires considerable effort
+on the part of the user to express which values are checked for
+equivalence, and does not (without a great deal of effort) support injecting timing differences,
+or re-executing in a new process, in checking for nondeterminism.
 
 We therefore instead made nondeterminism detection a first-class
 property in TSTL, using TSTL's existing notation for marking some
@@ -177,7 +177,8 @@ a parameter, or even due to a shared reference held by two values).
 TSTL omits comparison only of pools marked as {\tt OPAQUE} in the
 TSTL language test harness (and values that do not support equality
 checking).  \emph{Final State Determinism} simply performs the same
-comparison, but only on the final values of all pool variables after a test has
+comparison, but only on the final values of all pool variables (or a
+set of designated pools) after a test has
 finished executing.
 
  Tables \ref{tab:methods}

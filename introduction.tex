@@ -40,12 +40,7 @@ behavior (if we could perform the calculations in advance, ourselves,
 we would just do so).  As a consequence, in software, rather than
 defining determinism in terms of prediction, we usually therefore
 simply say that a system is deterministic if, given the same state and
-inputs, it always produces the same outputs\footnote{Of course, this
-  shift of definition is often adopted in arguments for physical or
-  human behavioral determinism, due to the even greater difficulties
-  of prediction in those arenas.}.  The change of
-definition, we will see, is central to our approach, and comes with a
-number of limitations.
+inputs, it always produces the same outputs.  
 
 Technically, many ``nondeterministic'' systems are not
 nondeterministic in a strong sense, at all.  Given the complete state
@@ -79,7 +74,7 @@ the programmer has not anticipated.  E.g.,  when it is believed that the
 behavior of a thread scheduler will not matter, but a race condition
 in the code means that it does matter, or when the order of items in
 an iterator on a hash table is important, and the hash values used are
-salted and thus not predictable.
+randomly salted.
 
 \subsection{The High Cost of Unexpected Nondeterminism}
 
@@ -127,7 +122,8 @@ is not actually incorrect.  Second, failures in flaky tests (for that
 reason) are often ignored, and therefore serious software faults may
 be missed.  Finally, to mitigate these problems, flaky tests are often
 run multiple times, wasting valuable computing resources and also
-delaying acceptance of code changes.  A canary in a coal mine is of
+delaying acceptance of code changes.  An analogy may make the extent
+of the problem in large-scale test automation clear:  a canary in a coal mine is of
 little use if canaries frequently become ill for reasons unrelated to
 the presence of toxic gases.  Mining may stop for no good reason, or
 miners may learn to ignore the canary, leading to tragedy; a third,
@@ -145,21 +141,16 @@ special case of various kinds of \emph{horizontal} nondeterminism described belo
 
 
 This paper proposes (1) a number of formal definitions of types of
-nondeterminism and (2) a number of techniques, based on these definitions, for detecting and debugging
-nondeterminism in property-based testing, particularly for library
-code.  The methods also work for testing at the system level, but are
-perhaps most effective for identifying the low-level sources of
-nondeterminism in libraries.  This enables a number of useful results:
+nondeterminism and (2) an implementation, based on these definitions, for detecting and debugging
+nondeterminism in property-based testing.  This enables a number of useful results:
  the automated production of
 nondeterminism-free regression tests even for libraries with some
-sources of nondeterminism, the documentation of library
-nondeterminism, and, most importantly, detection and effective debugging of
-unexpected nondeterminism that is, itself, a bug.  We first
-describe the types of nondeterminism we aim to detect, and the
-extension of a widely used debugging algorithm to better handle
-nondeterminism as a test property, then describe an implementation of
-these ideas in a Python testing tool that is used on real-world
+sources of nondeterminism, the documentation of
+nondeterminism, and, most importantly, detection and effective debugging for
+unexpected nondeterminism that is, itself, a bug.  We propose
+modifications to the widely used delta-debugging algorithm in order to better handle
+nondeterminism as a test property, and describe an implementation of
+our approach in a Python testing tool that is used on real-world
 projects.  Finally, we use a set
-of case studies of real-world Python libraries to demonstrate the
-utility of our ideas and understand the cost of adding nondeterminism
-detection to existing automated testing.
+of case studies of real, widely-used Python projects to demonstrate the
+utility of our ideas.

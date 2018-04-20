@@ -41,7 +41,7 @@ Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
 itself can be tested; unfortunately, generating stand-alone
 high-coverage regression tests for {\tt redis-py} and Redis using TSTL
 has proven difficult, as numerous Redis commands introduce nondeterministic
-behavior.   Using {\tt tstl\_afl\_fuzz}, we can see that the {\tt redis-py} has a 
+behavior:  thus the resulting tests are very often \emph{flaky}.   Using {\tt tstl\_afl\_fuzz}, we can see that the {\tt redis-py} has a 
 stability of only 56.26\%, a clear indicator of nondeterminism. Some
 of the problematic commands are obvious simply by inspection (e.g.,
 {\tt randomkey, srandmember}).  And, given an understanding of Redis
