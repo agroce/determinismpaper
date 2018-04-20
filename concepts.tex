@@ -393,7 +393,7 @@ replication still holds.
 Finally, we note that this problem is not limited to debugging
 nondeterminism/flakiness itself.  In some settings, we have observed
 delta-debugging taking a test that had such a high probability of
-failure we were unaware it was ``flaky'' (large runs showed there was
+failure we were unaware it was ``flaky'' (only hundreds of repeated executions showed there was
 indeed a small chance of the test passing) and transforming it into a
 test that only failed once in every 10 to 20 executions.
 Delta-debugging, without taking potential nondeterminism into account,
