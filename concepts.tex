@@ -134,7 +134,7 @@ In other words, failure determinism is a property stating that an API
 is \emph{transactional} with respect to failures (it may not be so
 with respect to non-failing calls).
 
-From a user's perspective, some behaviors of the macOS High Sierra
+From a user's perspective, some behaviors of the Mac OS High Sierra
 root exploit (CVE-2017-13872 \cite{applebug0}) exhibited failure
 nondeterminism.  Attempting to login with the root account with an
 empty password appeared to fail, then, on a repeated try, succeeded
@@ -214,6 +214,7 @@ holds (in a non-monotonic case where we aim to increase the probability
 of nondeterminism).
 
 \subsubsection{``Publication Bias'' in Delta-Debugging}
+\label{sec:pubbias}
 
 \begin{figure*}
 \centering 
@@ -296,13 +297,13 @@ In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to
 minimize the probability that a result is a fluke due to publication
 bias.  One way to produce this effect would be to allow
-delta-debugging to backtrack if the probabilties observed in predicate
-evaluations suddely exhibit a strong discontinuity, a kind of ``paper
+delta-debugging to backtrack if the probabilities observed in predicate
+evaluations suddenly exhibit a strong discontinuity, a kind of ``paper
 retraction'' based on near-replications.  However, this requires
 modifying the delta-debugging implementations, which is difficult and
 sometimes not really feasible (e.g., few users of afl-fuzz \cite{aflfuzz} will wish
 to change its C code for test reduction).  Ideally, the solution
-should be implementable simply by modifying the predictate that is
+should be implementable simply by modifying the predicate that is
 evaluated.  
 
 A costly but effective solution is to make $N$ large in comparison to
@@ -329,7 +330,7 @@ positive rate of about 3.7\%, yet requires almost 60\% fewer
 executions of the test.  The probability calculations for such comparisons
   are relatively simple, but in real testing are
   usually not very useful, since the true
-  probabilitiy distributions of test behaviors vary widely and
+  probability distributions of test behaviors vary widely and
   dynamically during the
   delta-debugging process, making exact calculation unwieldy, even if
   the changing probabilities were known; exact results would be based on fictional
@@ -369,7 +370,7 @@ The probability that this test behaves nondeterministically is
 0.84645, the result of the simple calculation $(1-0.01) \times
 (1-0.05) \times (1-0.10)$.  Figure \ref{fig:p1} shows one run of
 delta-debugging on a test of length 500.  The initial test is
-esentially guaranteed to behave nondeterministically; delta-debugging
+essentially guaranteed to behave nondeterministically; delta-debugging
 only checks that it \emph{can} behave nondeterministically, and so, in
 the course of reducing the test length to a test with only two
 operations, the delta-debugging algorithm also reduces the probability

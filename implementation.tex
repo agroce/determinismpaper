@@ -54,7 +54,7 @@ hashing.
 
 Other, less common, effects tied to process also exist.  A few tests
 may somehow depend on their actual PID (Process ID) or at least the
-parent process' ID.  Process change increases the likelyhood that on a multicore
+parent process' ID.  Process change increases the likelihood that on a multi-core
 system a test will execute on a different CPU than in the first
 execution, which can have many subtle effects, mostly related to
 changed timing.
@@ -217,7 +217,7 @@ Unlike the other additions, explicitly designed for nondeterminism
 detection, the {\tt P} query, {\tt forceP} wrapper, and {\tt --probability}, {\tt
   --samples}, and {\tt --replications} reducer options are general
 tools for use with nondeterministic predicates in delta-debugging.  Of
-course, nondeterminism and flakyness are the most common probabilistic
+course, nondeterminism and flakiness are the most common probabilistic
 test properties we are aware of, but in theory these tools can be used
 for other probabilistic debugging problems (e.g., if the property of
 interest is that a value is above a certain threshold in 90\% of test
@@ -239,6 +239,6 @@ there is substantial overhead in nondeterminism detection, afl can be
 used to predict whether a program has potential nondeterminism; if the
 afl \emph{stability} statistic (see the afl documentation for details
 \cite{aflfuzz}) is lower than 100\%, it may indicate a problem.
-Because of the idiosyncracies of afl instrumentation and process
+Because of the idiosyncrasies of afl instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing.

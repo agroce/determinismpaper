@@ -11,10 +11,10 @@ This paper proposes a formulation of types of nondeterminism, and a
 practical approach to using automated test generation to detect
 nondeterminism, especially in the library code that underlies most
 systems. In addition to traditional \emph{horizontal} nondeterminism
-(the phenonmenon behind Heisenbugs and flaky tests), we also discuss
+(the phenomenon behind Heisenbugs and flaky tests), we also discuss
 the related concept of \emph{vertical} nondeterminism, which is more
 frequently simply a software bug.  We implemented our approach in the
-TSTL automated test generation system for Python, and demonstated the
+TSTL automated test generation system for Python, and demonstrated the
 simplicity and basic utility of the approach on three real-world examples.
 
 As future work, we would like to make the automatic detection of
@@ -34,11 +34,11 @@ afl \cite{aflfuzz} to avoid high startup costs for test executions.
 More generally, we are interested in using test decomposition
 \cite{Composition} to more easily isolate, understand, and avoid
 nondeterminism is tests, and to mitigate the problem of flaky tests.
-Reliable detection of nondeterminism/flakiness is the first step to
-active solutions to eliminating nondeterministic/flaky test behavior.
+Reliable detection of nondeterminism is a first step towards
+evaluating such pro-active flaky test mitigations.
 
-{\scriptsize {\bf Acknowledgements:}  The authors would like to thank John Micco,
-Jeff Listfield, and Celal Ziftci, all at Google, for discussions of
-the problem of flaky tests, Andreas Zeller and David R. MacIver for discussion of the
-problem of delta-debugging of nondeterministic properties, and Chris
+{\scriptsize {\bf Acknowledgments:}  The authors would like to thank John Micco,
+Jeff Listfield, and Celal Ziftci at Google, for discussion of
+flaky tests, Andreas Zeller and David R. MacIver for discussion of the
+problem of probabilistic delta-debugging, and Chris
 Colohan for discussion of sources of process-based nondeterminism.}

@@ -2,10 +2,9 @@
 
 In order to evaluate our approach and implementation, we applied
 nondeterminism detection to three real world examples.  The primary
-points we wanted to explore were (1) whether lightweight, automatic,
-nondeterminism detection was able to reliably detect actual
-nondeterminism (2) whether the overhead of nondeterminism
-detection for real systems was acceptable and (3) the performance of
+points we wanted to explore were (1) whether our approach was able to reliably detect actual
+nondeterminism, (2) whether the overhead of nondeterminism
+detection for real systems was acceptable, and (3) the performance of
 delta-debugging for real nondeterministic predicates.
 
 \subsection {Case Study: {\tt redis-py}}
@@ -16,19 +15,19 @@ delta-debugging for real nondeterministic predicates.
 \begin{subfigure}{0.67\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisddmin}
-\caption{Standard delta-debugging (runtime 38s)}
+\caption{Standard delta-debugging (38s)}
 \label{fig:r1}
 \end{subfigure}
 \begin{subfigure}{0.67\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisforcep}
-\caption{P=0.5, 100 samples (runtime 2131s)}
+\caption{P=0.5, 100 samples (2131s)}
 \label{fig:r2}
 \end{subfigure}
 \begin{subfigure}{0.67\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisforceprep}
-\caption{P=0.5, 10 samples, 10 replications (runtime 617s)}
+\caption{P=0.5, 10 samples, 10 replications (617s)}
 \label{fig:r3}
 \end{subfigure}
 \caption{Delta-debugging of the same {\tt redis-py} nondeterministic test}
@@ -39,7 +38,7 @@ to the popular Redis in-memory database, cache, and
 message broker \cite{redis}.
 
 Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
-itself can be tested; unfortunately, generating standalone
+itself can be tested; unfortunately, generating stand-alone
 high-coverage regression tests for {\tt redis-py} and Redis using TSTL
 has proven difficult, as numerous Redis commands introduce nondeterministic
 behavior.   Using {\tt tstl\_afl\_fuzz}, we can see that the {\tt redis-py} has a 
@@ -54,13 +53,13 @@ commands producing data with a limited lifetime (e.g., {\tt expire,
 However, that a command such as {\tt restore} takes an expiration
 argument is not obvious to a non-expert, nor is the behavior of {\tt
   spop} which pops a random value from a set.  Moreover, it is
-difficult to guess whetehr the {\tt pipe} mechanism, which allows a
+difficult to guess whether the {\tt pipe} mechanism, which allows a
 large sequence of commands to be queued up in a pipe and executed all
 at once, introduced the potential for nondeterminism (does it execute
 sequentially before other command are handled, or is it in parallel
 with further commands).  Deep experience with Redis would make these
 issues clear, but tests using a library are often written by those not
-intimately familliar with the semantics of every used library (otherwise they would not have
+intimately familiar with the semantics of every used library (otherwise they would not have
 been as likely to introduce flaky tests in the first place).  This is
 even more true in the case of automated test generation, where the
 test engineer is often chosen for expertise in test generation tools,
@@ -88,13 +87,22 @@ nondeterministically 24\% of the time.  The reduction takes only 38
 seconds.  For the purpose of identifying commands leading to
 nondeterminism, this is acceptable.  However, if we were actually
 debugging a complex nondeterminism bug in Redis itself, we might want
-a more reliably nondeterministic test.  
+a more reliably nondeterministic test.  Using the same parameters as
+in Section \ref{sec:pubbias}, we see the same pattern.  Simply making
+a predicate that ``forces'' the probability to remain high, with a
+large number of samples, does not work (Figure \ref{fig:r3}) and
+requires over 2000 seconds to produce a test with an even worse
+probability of nondeterminism.  Using 10 samples and 10 replications,
+on the other hand, actually improves the probability of
+nondeterministic behavior, and
+(in this case) even produces a smaller test (only 14 steps) in just
+over 10 minutes.
 
 After removing all identified sources of nondeterminism (the {\tt random-} functions, all
 expiration-related functionality and {\tt restore} calls with non-zero
-lifetimes, and {\tt spop}), but leaving all other suspect funcitonality in
+lifetimes, and {\tt spop}), but leaving all other suspect functionality in
 place (e.g. pipes), no flakiness was observed in a sample of over 2,000 length
-200 tests.  Moreover, because the removals were limited to acutally
+200 tests.  Moreover, because the removals were limited to actually
 observed sources of flakiness, the code coverage loss was minimal.
 Mean branch coverage, for regression tests of length 200 was reduced
 by less than 5 branches (a less than 1\% decrease).  Obviously, it is
@@ -104,7 +112,7 @@ tests (for instance, wrapping the problematic calls in a way that does
 not check the values, or adding a delay after an expiration to allow
 the data to expire).  As a price to pay for the ability to produce
 fast-executing high-coverage full regression tests (not just tests for
-crashes and unexpected exceptions), this is a very acceptable price.
+crashes and unexpected exceptions), this seems acceptable.
 
 Moreover, turning off sources of expected nondeterminism makes
 it possible to aggressively test {\tt redis-py} and Redis for
@@ -141,9 +149,8 @@ fork in afl executions.
 
 Removing the nondeterministic call, we can see that the cost of
 checking for process nondeterminism, with no delay between operations,
-is high, a 93\% slowdown.  This is due to the very high cost of
-using a new subprocess to re-run the test, and comparing values using
-text I/O on output pipes, rather than values in a Python dictionary.
+is high, a 93\% slowdown.  This is due to the high cost of subprocess
+creation and communication.
 
 \begin{figure*}
 {\scriptsize
@@ -201,9 +208,9 @@ the existence of a reference file system implementation.  One purpose
 of failure nondeterminism is to make it somewhat easier to perform
 property-based testing of
 complex APIs like this even without a reference implementation, or in cases
-where (as is common, e.g. in file system development at NASA
-\cite{ICSEDiff,CFV08}) the implementations do not use the same error
-codes.
+where the implementations do not use the same error
+codes (as is common, e.g. in NASA flight software
+\cite{ICSEDiff,CFV08}).
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
@@ -225,5 +232,5 @@ less than 8\%.  Detecting the fault using a reference file system
 required 17\% more runtime before detection, and took over twice as
 long to reduce the failure to a
 slightly longer failing test, which did not have {\tt remove} as its
-final operation (since further file system interaction is required to
-expose the bad state).
+final operation (since further operations are required to 
+expose the problem).
