@@ -193,11 +193,11 @@ what happens when the predicate to be evaluated is not deterministic.
 In \emph{monotonic} probabilistic delta-debugging, removing a part of a test cannot
 increase the probability of the predicate holding.  This is fairly
 common.  In these cases, when we use a reduction algorithm to reduce $t$
-to $r$, $P(p(r) \leq P(p(t))$.  In \emph{non-monotonic} cases,
+to $r$, $P(pred(r)) \leq P(pred(t))$.  In \emph{non-monotonic} cases,
 however, there is no such upper bound.  Removing a step in $t$ may
 increase the probability that $t$ behaves nondeterministically.
 
-The probabilistic predicate of interest for determinism is always of
+The probabilistic predicate of interest for determinism is basically of
 the form:  {\bf the test will exhibit at least two different behaviors in $S$
 runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
