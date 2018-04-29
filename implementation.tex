@@ -232,14 +232,14 @@ in timing based nondeterminism, such steps may be essential to
 causing the nondeterminism to appear (we had to turn off this feature
 for the {\tt redis-py} example discussed below).
 
-Because TSTL has a first-class interface to afl \cite{aflfuzz}, we can even use
-afl's sophisticated heuristics to perform very thorough, week-long
+Because TSTL has a first-class interface to AFL \cite{aflfuzz}, we can even use
+AFL's sophisticated heuristics to perform very thorough, week-long
 checks for nondeterminism, using strategies built to find subtle
 security vulnerabilities in C programs.  Equally importantly, since
-there is substantial overhead in nondeterminism detection, afl can be
+there is substantial overhead in nondeterminism detection, AFL can be
 used to predict whether a program has potential nondeterminism; if the
-afl \emph{stability} statistic (see the afl documentation for details
+AFL \emph{stability} statistic (see the AFL documentation for details
 \cite{aflfuzz}) is lower than 100\%, it may indicate a problem.
-Because of the idiosyncrasies of afl instrumentation and process
+Because of the idiosyncrasies of AFL instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing.
