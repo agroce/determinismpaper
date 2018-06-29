@@ -1,0 +1,46 @@
+We would like to thank the anonymous reviewers for their helpful comments.
+
+R1:
+
+These are good additional citations!  We'll add a discussion of this related work, but the basic novelty is: 1) vertical/horizontal distinction for practical detection, and the equation of horizontal detection with reflexive differential testing that inspires our implementation 2) the probabilistic delta-debugging problem and solutoin, 3) focus on adding nondeterminism detection to an automated test generation framework, without heavyweight additional specification effort.
+
+Relatedly, our overall approach is:
+
+1.  Distinguish horizontal and vertical nondeterminism
+
+2.  Consider horizontal nondeterminism detection as a special case of differential testing
+3.  Identify major controllable factors in inducing horizontal nondeterminism (process, timing)
+
+4.  Vertical nondeterminism detection requires a notion of "failure"
+
+5.  Implement horizontal and vertical nondeterminism based on this, and provide a suitable probabilistic delta debugger
+
+Section IV observations:
+
+- need modified delta debugging algorithm to enable effective isolation of causes
+
+- cost of nondeterminism checking is high but problems can be found fairly quickly
+
+- using vertical nondeterminism can detect fault that, otherwise, would require availability of a reference implementation
+
+R2:
+
+We claim there is mostly synergy between the goals: if a test includes expected sources of nondeterminism, it is hard to distinguish their effects from those of _unexpected_ nondeterminism.  "Deterministic" testing is the best way to expose surprising nondeterminism, since if you knew to remove it, the nondeterminism was understood and expected.
+
+Thanks for improving our understanding of Heisenbug vs. Mandelbug!
+
+R3:
+
+Opaque is a way to mark values that are expected to vary nondeterministically: e.g. if you store a timestamp, on replay of the test it won't be the same, but you are annotating that you don't care; we expect fewer opaque than "visible" values in most testing.
+
+AFL probably needs its own section.  Basically, AFL runs tests many times, and reports when they take different code paths.  Such "instability" is often (but not always!) a sign of problematic nondeterminism.  Also, TSTL interfacing AFL means AFL's heuristics for test generation can be used to detect nondeterminism in Python code now.
+
+- redis: some API calls use a random number generator to choose a value (and are not named so this is obvious to a user); also timing-based nondeterminism even with a single client, due to the ability to set a key to expire in the future
+
+- datarray: the code is intended to be fully deterministic, but relied on the determinism of dictionary iteration in Python versions prior to 3.3; it became nondeterministic due to hash-based iteration order randomness
+
+- pyfakefs: failing operation changes state
+
+R4:
+
+The pyfakefs fault was based on real faults the authors have seen in POSIX filesystems.  You make a very good point:  it should be possible to apply mutations to pyfakefs, and report how many additional mutants can be detected using vertical determinism checking.  This should be fairly easy, and give a real idea of the additional specification value.
