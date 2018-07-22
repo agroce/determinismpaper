@@ -240,8 +240,30 @@ expose the problem).
 We ran 2,350 mutants of pyfakefs.  Using the failure determinism check
 in 60 second test runs let us kill 98 mutants that were not killed
 during 60 seconds of testing without a reference or the failure
-determinism check, using the same seed.  Of these, 71 could not even be killed by 120
-seconds of testing using complete differential testing with Mac OS X
-as a reference, a kill rate of only 27.6\%.  In contrast, the kill rate for the entire set of 1478
-mutants not killed when not using a reference, using 120 seconds of
-differential testing was...
+determinism check, using the exact same random seed (and thus same
+sequence of test operations, only changing the specification).  Of
+these additional mutants, 71 could not even be killed by 120
+seconds of testing using differential testing with the Mac OS X file system
+as a reference.  That is, more than 2/3 of the mutants killed by the
+failure determinism check could not be killed even with a much
+stronger specification that lacked a check for failure determinism,
+and was given more time to execute.  To put this in perspective, the
+mutation kill rate for the test harness with 60 seconds and no
+differential comparison was 37.1\%; for the full differential harness
+with 120 seconds it was 60\%.
+
+There is a price to be paid:  for mutants that could be killed both
+with and without the failure determinism check, the mean time to kill
+the mutant was 0.006 seconds larger when the failure determinism
+check was included, and this change was significant by Wilcoxon test
+at $p < 1 \times 10^{-15}$.  
+
+In order to further investigate the additional specification power
+provided by failure determinism checks, we inspected the mutants
+killed by the failure determinism check but not by full differential
+testing.  The largest category of mutants not killed (22 of the 71 mutants) was what we refer
+to as ``exception swallowing'' mutants, which transform a Python
+statement into the same statement, but wrapped in a {\tt try} block
+with a catch that ignores any raised exceptions.  It is easy to
+understand that such mutants introduce faults in the handling of
+errors, and thus would tend to cause failurel nondeterminism.
