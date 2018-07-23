@@ -13,7 +13,10 @@ can be unfortunate.  Developers using a test exhibiting nondeterminism
 to debug a system
 face a challenge in reasoning about causality, in that an event
 observed may not even take place the next time the test is run; this
-pernicious phenomenon has been dubbed the dreaded ``Heisenbug'' \cite{Heisenbug}.
+pernicious phenomenon has been sometimes referred to as the dreaded
+``Heisenbug'' \cite{Heisenbug}, though the more accurate usage is
+``Mandelbug'' \cite{GrottkeBugs,FaultTriggers}, since Heisenbugs, properly speaking, are bugs that disappear or
+alter behavior under instrumentation (especially in debugging).
 Automated test generation systems using test coverage results to drive
 the search for interesting inputs may be mislead when a run executes
 code only rarely.  And, most significantly, regression testing

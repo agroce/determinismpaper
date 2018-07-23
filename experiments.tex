@@ -203,7 +203,7 @@ Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
 inside and outside Google \cite{pyfakefs}.
 
 The TSTL harness for {\tt pyfakefs} has been used to detect (and
-correct) over 50 faults.  However, the testing completely relies on
+correct) over 80 faults.  However, the testing largely relies on
 the existence of a reference file system implementation.  One purpose
 of failure nondeterminism is to make it somewhat easier to perform
 property-based testing of
@@ -211,6 +211,8 @@ complex APIs like this even without a reference implementation, or in cases
 where the implementations do not use the same error
 codes (as is common, e.g. in NASA flight software
 \cite{ICSEDiff,CFV08}).
+
+\subsubsection{Manually Inserted Fault}
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
@@ -229,41 +231,75 @@ the failing test to 3 steps required less than a second.
 Moreover, the overhead for the check for failure determinism in a
 version of the code without the {\tt remove} error was
 less than 8\%.  Detecting the fault using a reference file system 
-required 17\% more runtime before detection, and took over twice as
+required 17\% more testing time before detection, and took over twice as
 long to reduce the failure to a
 slightly longer failing test, which did not have {\tt remove} as its
 final operation (since further operations are required to 
-expose the problem).
+expose the bad file system state the operation introduces).
 
-\subsubsection{Mutation analysis}
+\subsubsection{Mutation Analysis}
 
-We ran 2,350 mutants of pyfakefs.  Using the failure determinism check
-in 60 second test runs let us kill 98 mutants that were not killed
-during 60 seconds of testing without a reference or the failure
-determinism check, using the exact same random seed (and thus same
-sequence of test operations, only changing the specification).  Of
-these additional mutants, 71 could not even be killed by 120
-seconds of testing using differential testing with the Mac OS X file system
-as a reference.  That is, more than 2/3 of the mutants killed by the
-failure determinism check could not be killed even with a much
-stronger specification that lacked a check for failure determinism,
-and was given more time to execute.  To put this in perspective, the
-mutation kill rate for the test harness with 60 seconds and no
-differential comparison was 37.1\%; for the full differential harness
-with 120 seconds it was 60\%.
+We wanted to determine whether there were also simple faults that
+could be detected by failure nondeterminism, but \emph{not} detected
+by differential testing, and quantify the additional specification
+strength provided by failure determinism checks.  We therefore used
+{\tt universalmutator} \cite{RegExpMut} to produce 2,350 mutants of
+the {\tt pyfakefs} core file system code.   We restricted the generation
+to only mutate code covered during a 60 second run of the test
+harness, with differential testing turned off.  In this
+\emph{non-differential} mode, the harness will only detect a fault when it
+causes an unexpected exception to be raised, or results in a timeout
+due to, e.g., and infinite loop.
 
-There is a price to be paid:  for mutants that could be killed both
-with and without the failure determinism check, the mean time to kill
-the mutant was 0.006 seconds larger when the failure determinism
-check was included, and this change was significant by Wilcoxon test
-at $p < 1 \times 10^{-15}$.  
+We first analyzed the mutants using 60 seconds of non-differential
+testing, then with the full differential test plus
+an additional 60 seconds of testing (to account for the observed 17\%
+extra time to detect in the manually constructed example).   For both analyses, we tested
+the surviving mutants using the non-differential harness for 60
+seconds, but with failure nondeterminism checking.
+We used the same random seed for
+all runs, so that the only differences would be specification-based.
+
+Non-differential testing, without failure determinism checks, killed
+872 mutants, a 37.1\% kill rate.  Adding a failure determinism check
+allowed the testing to kill an additional 98 mutants.
+The differential harness, with an additional 60 seconds of testing
+time, improved the kill rate to 49.4\%.  Failure determinism added an
+additional 71 mutants to the total killed, even for this complete
+harness with a larger test budget.  The kill rates are generally low
+because {\tt universalmutator}, by design, includes many operations
+that can produce equivalent mutants, but can also produce hard-to-kill
+non-equivalent mutants not produced by other mutation tools, e.g. code
+that throws away exceptions raised by a function call, or code
+reversing a list.
 
 In order to further investigate the additional specification power
-provided by failure determinism checks, we inspected the mutants
-killed by the failure determinism check but not by full differential
+provided by failure nondeterminism detection, we inspected the mutants
+killed by the failure determinism check but not by differential
 testing.  The largest category of mutants not killed (22 of the 71 mutants) was what we refer
 to as ``exception swallowing'' mutants, which transform a Python
 statement into the same statement, but wrapped in a {\tt try} block
-with a catch that ignores any raised exceptions.  It is easy to
-understand that such mutants introduce faults in the handling of
-errors, and thus would tend to cause failurel nondeterminism.
+with a catch that ignores any raised exceptions, e.g., {\tt foo()} becomes:
+
+\begin{code}
+try: foo()
+except: pass
+\end{code}
+
+\noindent It is easy to
+see that such mutants may introduce faults in the handling of
+errors, and thus would tend to cause failure nondeterminism.  However,
+these are a minority of the mutations introducing failure
+nondeterminism.  Other mutation operators resulting in subtle flaws
+not (at least easily) detectable by differential testing compared to a
+correct file system include:  arithmetic operation changes, statement
+deletions, logical operator modifications, constant replacements
+(including replacement of a string with the empty string), and
+introducing a break into a loop.
+
+We also checked the cost of introducing failure determinism checking
+by analyzing mutants that could be killed by both methods.  Even
+though in some cases the failure determinism check allows a mutant to
+be detected sooner, the mean time to kill mutants was 0.006 seconds
+larger with failure determinism checking, and this change was significant by Wilcoxon test
+$(p < 1 \times 10^{-15})$.  
