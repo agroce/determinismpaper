@@ -262,10 +262,10 @@ all runs, so that the only differences would be specification-based.
 
 Non-differential testing, without failure determinism checks, killed
 872 mutants, a 37.1\% kill rate.  Adding a failure determinism check
-allowed the testing to kill an additional 98 mutants.
+allowed the testing to kill an additional 98 mutants, an 11\% improvement.
 The differential harness, with an additional 60 seconds of testing
-time, improved the kill rate to 49.4\%.  Failure determinism added an
-additional 71 mutants to the total killed, even for this complete
+time, killed 1148 mutants, improving the kill rate to 48.8\%.  Failure determinism added an
+additional 71 mutants to the total killed, a 6\% improvement even for this complete
 harness with a larger test budget.  The kill rates are generally low
 because {\tt universalmutator}, by design, includes many operations
 that can produce equivalent mutants, but can also produce hard-to-kill
