@@ -144,16 +144,22 @@ special case of various kinds of \emph{horizontal} nondeterminism described belo
 
 
 This paper proposes (1) a number of formal definitions of types of
-nondeterminism and (2) an implementation, based on these definitions, for detecting and debugging
-nondeterminism in property-based testing.  This enables a number of useful results:
+nondeterminism (\emph{horizontal} and \emph{vertical}) and (2) an implementation, based on these definitions, for detecting and debugging
+nondeterminism in property-based testing.  The implementation is based
+on an approach where (3) horizontal determinism is considered as a
+kind of \emph{reflexive differential testing} and (4) vertical
+determinism is specialized to the common case of \emph{failure determinsim}.
+We further propose modifications to the widely used delta-debugging algorithm in order to better handle
+nondeterminism as a test property
+
+This enables a number of useful results:
  the automated production of
 nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, the documentation of
 nondeterminism, and, most importantly, detection and effective debugging for
-unexpected nondeterminism that is, itself, a bug.  We propose
-modifications to the widely used delta-debugging algorithm in order to better handle
-nondeterminism as a test property, and describe an implementation of
-our approach in a Python testing tool that is used on real-world
-projects.  Finally, we use a set
-of case studies of real, widely-used Python projects to demonstrate the
-utility of our ideas.
+unexpected nondeterminism that is, itself, a bug.  We use a set
+of case studies of real-world, widely-used, Python libraries to demonstrate the
+utility of our ideas.  Failure determinism directly
+produces a more than 5\% improvement in mutation score for an already highly
+effective automated test generation tool for a file system, with no
+additional specification or test design burden.

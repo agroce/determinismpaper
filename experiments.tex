@@ -66,7 +66,7 @@ test engineer is often chosen for expertise in test generation tools,
 not in the domain of the software under test (SUT), and is seldom the
 original developer of the code.
 
-Using the original TSTL harness, approximately \emph{over 20\%} of all {\tt redis-py}
+Using the original TSTL harness, just over 20\% of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  Using the
 nondeterminism checker to reduce flaky tests to a minimal set allows
 us to simply set up an overnight run that will, in 12 hours, produce
@@ -123,6 +123,10 @@ This is because choosing the actions in a test (and determining which
 actions are enabled at each step) consumes a large part of the test
 generator's time; running the test again and checking equality is
 relatively inexpensive.  
+
+Finally, AFL stability was 94.32\% with the harness allowing
+nondeterminism, but rose to 98.32\% using the harness with
+nondeterministic operations removed.
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
