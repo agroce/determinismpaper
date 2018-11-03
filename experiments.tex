@@ -130,31 +130,6 @@ nondeterministic operations removed.
 
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
-The {\tt datarray} module \cite{datarray} is a prototype
-implementation for numpy arrays with named axes to improve data
-management, developed by the Berkeley Institute for Data Science.  As part of its code, it provides a set of algorithms for
-inference in
-Bayesian belief networks \cite{russell2016artificial}.  An earlier
-version of these algorithms produced nondeterministic (and in some
-cases incorrect) results due to dependence on the order of values in
-an iterator over a Python dictionary, on Python versions above 3.2, until 3.6 (see Section \ref{sec:pnondet}).
-
-Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
-  datarray} algorithms.  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
-  --checkProcessDeterminism} flag required less than 10 seconds on
-average to produce a test exhibiting process-level nondeterminism in
-the {\tt calc\_marginals\_sumproduct} function (the only broken
-algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
-showing an extremely simple input producing the issue, 
-required another 92 seconds.  Interestingly, the way that {\tt
-  python-afl} is used in TSTL means that AFL stability is 100\%,
-because the {\tt PYTHONHASHSEED} has already been chosen before the
-fork in AFL executions.
-
-Removing the nondeterministic call, we can see that the cost of
-checking for process nondeterminism, with no delay between operations,
-is high, a 93\% slowdown.  This is due to the high cost of subprocess
-creation and communication.
 
 \begin{figure*}
 {\scriptsize
@@ -195,6 +170,33 @@ pool: <event> 3
   inference algorithms.}
 \label{hashbug}
 \end{figure*}
+
+The {\tt datarray} module \cite{datarray} is a prototype
+implementation for numpy arrays with named axes to improve data
+management, developed by the Berkeley Institute for Data Science.  As part of its code, it provides a set of algorithms for
+inference in
+Bayesian belief networks \cite{russell2016artificial}.  An earlier
+version of these algorithms produced nondeterministic (and in some
+cases incorrect) results due to dependence on the order of values in
+an iterator over a Python dictionary, on Python versions above 3.2, until 3.6 (see Section \ref{sec:pnondet}).
+
+Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
+  datarray} algorithms.  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
+  --checkProcessDeterminism} flag required less than 10 seconds on
+average to produce a test exhibiting process-level nondeterminism in
+the {\tt calc\_marginals\_sumproduct} function (the only broken
+algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
+showing an extremely simple input producing the issue, 
+required another 92 seconds.  Interestingly, the way that {\tt
+  python-afl} is used in TSTL means that AFL stability is 100\%,
+because the {\tt PYTHONHASHSEED} has already been chosen before the
+fork in AFL executions.
+
+Removing the nondeterministic call, we can see that the cost of
+checking for process nondeterminism, with no delay between operations,
+is high, a 93\% slowdown.  This is due to the high cost of subprocess
+creation and communication.
+
 
 \subsection {Vertical Determinism Case Study: {\tt pyfakefs}}
 
@@ -261,13 +263,13 @@ causes an unexpected exception to be raised, or results in a timeout
 due to, e.g., an infinite loop.
 
 We first analyzed the mutants using 60 seconds of non-differential
-testing, then with the full differential test plus
-an additional 60 seconds of testing (to make sure we accounted for the observed 17\%
+testing \emph{without failure nondeterminism checks}, then with the
+full differential harness (also without failure nondeterminism checks)
+for 120 seconds; the additional 60 seconds is to make sure we accounted for the observed 17\%
 extra time to detect in the manually constructed example: we want to
-maximize the chance to detect a bug for the methods we compare
-against).   For both comparisons, we then tested
-the surviving mutants using the non-differential harness for 60
-seconds, but with failure nondeterminism checking turned on.
+maximize the chance to detect a bug using the strong version of the harness.   For both comparisons, we then tested
+all surviving mutants using the non-differential harness for 60
+seconds, this time with failure nondeterminism checking turned on.
 We used the same random seed for
 all runs, so that the only differences would be specification-based.
 
@@ -275,13 +277,16 @@ Non-differential testing, without failure determinism checks, killed
 872 mutants, a 37.1\% kill rate.  Adding a failure determinism check
 allowed the testing to kill an additional 98 mutants, an 11\% improvement.
 The differential harness, with an additional 60 seconds of testing
-time, killed 1148 mutants, improving the kill rate to 48.8\%.  Failure determinism added an
+time, killed 1148 mutants, improving the kill rate to 48.8\%.  Failure
+nondeterminism checking added an
 additional 71 mutants to the total killed, a 6\% improvement even for
-this strong differential harness with a larger test budget.  The kill rates are generally low
+this strong differential harness with a larger test budget.  Using
+failure nondeterminism was the only way to push the mutation score
+above 50\%.  The kill rates are generally low
 because {\tt universalmutator}, by design, includes many operations
 that can produce equivalent mutants, but can also produce hard-to-kill
 non-equivalent mutants not produced by other mutation tools, e.g. code
-that throws away exceptions raised by a function call, or code
+that throws away exceptions raised by a function call (see below), or code
 reversing a list.
 
 In order to further investigate the additional specification power
