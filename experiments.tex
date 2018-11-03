@@ -239,7 +239,12 @@ required 17\% more testing time before detection, and took over twice as
 long to reduce the failure to a
 slightly longer failing test, which did not have {\tt remove} as its
 final operation (since further operations are required to 
-expose the bad file system state the operation introduces).
+expose the bad file system state the operation introduces).  For this
+hypothetical subtle bug, failure determinism checks not only make it
+possible to detect the fault without a reference implementation, it
+improves on detection speed and ease of debugging even compared to a
+full-blown reference implementation (the MacOS file system, operating
+on a RAM disk) and strong, hand-tuned, differential testing.
 
 \subsubsection{Mutation Analysis}
 
@@ -253,14 +258,16 @@ to only mutate code covered during a 60 second run of the test
 harness, with differential testing turned off.  In this
 \emph{non-differential} mode, the harness will only detect a fault when it
 causes an unexpected exception to be raised, or results in a timeout
-due to, e.g., and infinite loop.
+due to, e.g., an infinite loop.
 
 We first analyzed the mutants using 60 seconds of non-differential
 testing, then with the full differential test plus
-an additional 60 seconds of testing (to account for the observed 17\%
-extra time to detect in the manually constructed example).   For both analyses, we tested
+an additional 60 seconds of testing (to make sure we accounted for the observed 17\%
+extra time to detect in the manually constructed example: we want to
+maximize the chance to detect a bug for the methods we compare
+against).   For both comparisons, we then tested
 the surviving mutants using the non-differential harness for 60
-seconds, but with failure nondeterminism checking.
+seconds, but with failure nondeterminism checking turned on.
 We used the same random seed for
 all runs, so that the only differences would be specification-based.
 
@@ -269,8 +276,8 @@ Non-differential testing, without failure determinism checks, killed
 allowed the testing to kill an additional 98 mutants, an 11\% improvement.
 The differential harness, with an additional 60 seconds of testing
 time, killed 1148 mutants, improving the kill rate to 48.8\%.  Failure determinism added an
-additional 71 mutants to the total killed, a 6\% improvement even for this complete
-harness with a larger test budget.  The kill rates are generally low
+additional 71 mutants to the total killed, a 6\% improvement even for
+this strong differential harness with a larger test budget.  The kill rates are generally low
 because {\tt universalmutator}, by design, includes many operations
 that can produce equivalent mutants, but can also produce hard-to-kill
 non-equivalent mutants not produced by other mutation tools, e.g. code
@@ -279,11 +286,12 @@ reversing a list.
 
 In order to further investigate the additional specification power
 provided by failure nondeterminism detection, we inspected the mutants
-killed by the failure determinism check but not by differential
-testing.  The largest category of mutants not killed (22 of the 71 mutants) was what we refer
-to as ``exception swallowing'' mutants, which transform a Python
-statement into the same statement, but wrapped in a {\tt try} block
-with a catch that ignores any raised exceptions, e.g., {\tt foo()} becomes:
+killed using the failure determinism check but not killed by the
+strong differential testing.  The largest category of mutants not
+killed (22 of the 71 mutants) was what we refer to as ``exception
+swallowing'' mutants, which transform a Python statement into the same
+statement, but wrapped in a {\tt try} block with a catch that ignores
+any raised exceptions, e.g., {\tt foo()} becomes:
 
 \begin{code}
 try: foo()
@@ -293,17 +301,22 @@ except: pass
 \noindent It is easy to
 see that such mutants may introduce faults in the handling of
 errors, and thus would tend to cause failure nondeterminism.  However,
-these are a minority of the mutations introducing failure
+these are a minority of the mutations introducing hard-to-detect but
+non-equivalent failure
 nondeterminism.  Other mutation operators resulting in subtle flaws
 not (at least easily) detectable by differential testing compared to a
 correct file system include:  arithmetic operation changes, statement
 deletions, logical operator modifications, constant replacements
 (including replacement of a string with the empty string), and
-introducing a break into a loop.
+introducing a break into a loop.  The variety of mutant types suggests
+that no more specifically tailored strategy such as checking for
+exception propagation, will work as well as introducing a notion of
+failure nondeterminism.
 
 We also checked the cost of introducing failure determinism checking
 by analyzing mutants that could be killed by both methods.  Even
 though in some cases the failure determinism check allows a mutant to
 be detected sooner, the mean time to kill mutants was 0.006 seconds
 larger with failure determinism checking, and this change was significant by Wilcoxon test
-$(p < 1 \times 10^{-15})$.  
+$(p < 1 \times 10^{-15})$.  While significant, this cost is probably
+too small to be of any real practical importance.

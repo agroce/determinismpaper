@@ -1,5 +1,6 @@
 \section{Implementation}
 
+
 \subsection{Sources of Nondeterminism in Practice}
 
 In order to implement a practical nondeterminism-detection tool, it is
@@ -145,6 +146,7 @@ Name &  Tool(s) & Purpose \\
 }
 \end{table*}
 
+\subsection{Implementing Horizontal Nondeterminism Detection}
 
 We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt} system, a
 language and tool for property-based testing \cite{Hypothesis,ClaessenH00} of Python code. TSTL has
@@ -159,7 +161,7 @@ on the part of the user to express which values are checked for
 equivalence, and does not (without a great deal of effort) support injecting timing differences,
 or re-executing in a new process, in checking for nondeterminism.
 
-We therefore instead made nondeterminism detection a first-class
+We therefore instead made horizontal nondeterminism detection a first-class
 property in TSTL, using TSTL's existing notation for marking some
 types of values as \emph{opaque} (not usefully compared for equality),
 used in automatic abstraction-based testing.  In TSTL, a test is a
@@ -173,7 +175,7 @@ value determinism} is based on comparing the values of \emph{all pool
 variables} after each test action (pool values other than the one
 assigned to must also be compared, since a common source of
 nondeterminism is when a call results in a change to a value passed as
-a parameter, or even due to a shared reference held by two values).
+a parameter, changes a shared reference held by two values).
 TSTL omits comparison only of pools marked as {\tt OPAQUE} in the
 TSTL language test harness (and values that do not support equality
 checking).  \emph{Final State Determinism} simply performs the same
@@ -205,6 +207,8 @@ property: not self.nondeterministic(self.test())
 \noindent to the harness; in fact, by removing the {\tt not}, a test harness can
 even specify that behavior should not be deterministic, a property of
 possible use in some security-related libraries.
+
+\subsection{Implementing Horizontal Nondeterminism Detection}
 
 First-class vertical nondeterminism checks are currently
 limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
