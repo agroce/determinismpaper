@@ -1,0 +1,114 @@
+============================================
+Associate Editor's Summary
+
+Reviewer #1 finds many questions unanswered in the proposed approach to detecting problematic nondeterminism.  The authors should review and address these queries.  The reviewer also recommends a nontrivial evaluation of the proposal.
+
+Reviewer #2 recommends more experimentation to evaluate the generalizability, more qualitative analyses to demonstrate the practical potential of the proposed approach, and a comparison of the proposal with a baseline.  They suggest more discussions about the complementarity between horizontal and vertical nondeterminism, as well as about the applicability of the proposed approach in practice.  They also find a number of questions unanswered.
+
+Reviewer #3 recommends an illustrative example that threads the paper, the actual use of formal definitions, and a section on threats to validity that consolidates the concerns.
+
+============================================
+Reviewers' Comments to Authors:
+
+Reviewer: 1
+
+Comments to the Authors
+
+This manuscript describes a model for nondeterministic behavior in programs, particularly for test generation. Nondeterministic behavior occurs when a program’s behavior can be affected by an uncontrolled source (e.g. thread scheduling, environmental dependencies), and can manifest in a variety of ways. Nondeterminism might be effectively unobservable (e.g. only resulting in minuscule cycle-level timing difference) or very visible (resulting in test cases that change between passing and failing, so called “flakey tests”). The manuscript divides non-determinism into the high level categories of horizontal (manifests when a process is executed, then stopped, then run again) and vertical non-determinism (manifests when a process is executed, but some steps are repeated during that execution). The authors discuss how non-determinism can be a challenge when applying delta debugging, as the debugging process may skew the probabilities of observing a failure.
+
+For horizontal non-determinism, the authors propose using differential testing, which is to say, re-executing a test multiple times and comparing its output and intermediate values to detect differences (be those differences be visible or non visible). How many times is the system re-executed, and how was this count decided on? When TSTL compares the values (intermediate program state) to detect non-determinism, how does it know to ignore irrelevant values? For instance: it’s very likely that a program has at least SOME non-deterministic state (at a bare minimum, some log messages may be buffered in memory, and these log messages almost surely show the current timestamp in them). These are the “opaque” values as described by the authors. How much effort is it for a developer to find and mark these opaque values? How many false positives occur if this step is skipped or done incorrectly?
+
+One kind of non-determinism discussed is from ASLR. How is ASLR a representative source of non-determinism? Aren’t these memory bugs VERY very easily checked (especially checking for reads of uninitialized memory)? The Python example sounds like it was a challenge in the Python world due to lack of tooling, but in other languages that already do not guarantee deterministic hash values (e.g. Java) we already have pretty good solutions to this problem, like NonDex, as described in the related work section. I would suggest some other examples here.
+
+How does TSTL know what the probabilities are of non-deterministic behavior, and moreover, where those sources of non-determinism are? Is it important that this be correctly estimated? It seems important for the delta debugging step to eventually remove the non-deterministic sources. There also seems to be an implicit assumption that each non-deterministic source is independent - this seems unlikely (for instance, there are some methods like random number generation that will be deterministic with regard to the starting seed and number of calls, so adding or removing a call will change the behavior but leaving it as-is will not).
+
+The paper evaluates the approach using three real-world case study examples. How representative are the case study bugs of all non-determistic bugs? I was hoping for an evaluation that was broader, considering many more bugs, rather than a case study based on the manuscript’s title “Practical Automatic Lightweight Nondeterminism and Flaky Test Detection and Debugging.” I would strongly encourage the authors to consider adding an empirical evaluation, specifically considering at least the following research questions (again, based on the title and paper to-this point):
+* How many flakey tests does TSTL detect, in comparison to state-of-the-art approaches?
+* What is the runtime overhead of detecting flakey tests using TSTL?
+* How many sources of nondeterminism does TSTL detect, in comparison with some straw man approach (no comparison systems come to mind here, although for detecting flakey tests the authors might do simple naive reruns)
+* What is the runtime overhead of detecting sources of nondeterminism using TSTL?
+* What is the developer burden for annotating code for TSTL to detect flakey tests or non-determinism?
+* How effective is TSTL at decreasing the time to debug test failures?
+
+Given the dichotomy of horizontal and vertical nondeterminism, I suppose it would further strengthen the contribution to break this evaluation down into vertical and horizontal nondeterministic sources.
+
+Ultimately, I found the idea of detecting nondeterminism very interesting and relevant, and may be convinced that the proposed approach/system can be used for this. However, I believe that a (non-trivial) evaluation is needed to cement the authors claims and demonstrate the strength of the proposed contributions.
+
+==============================================
+Reviewer: 2
+
+Comments to the Authors
+
+— Summary of the submission.
+Flaky tests are test cases that have a non-deterministic behavior, i.e., their outcome can differ from an execution to another. This paper focuses on the automatic detection and debugging of flaky tests: first, the authors propose the notions of horizontal and vertical determinism and then, on the basis of these definitions they implement a lightweight mechanism that allows to identify and debug flaky tests. Through a number of case studies, the authors conclude that the proposed mechanism can be useful in practice, as test cases can improve the mutation score of previously identified flaky tests by up to 6%.
+
+— Recommendation: 
+To me, this is a borderline paper. However, I tend, as explained below, to recommend a “Major Revision”.
+
+— Pros and Cons.
+
++ The paper treats a relevant problem that is highly important for IEEE Transactions on Reliability;
++ Interesting technique, whose description needs however some further details;
++ The paper is generally well-written and easy to follow.
+
+- Limited validation, both in terms of scale and breadth;
+- Some important details on how the technique works as well as several methodological details should be further reported/explained;
+- The tool implementing the approach is not publicly available and a replication package is not provided.
+
+— Assessment.
+Overall, the paper is well-written, treats an important problem and does it in a non-trivial way. Finding solutions to identify and solve test flakiness has an important practical impact for both practitioners and researchers. So, I am generally in favor of the acceptance of this paper. Nevertheless, I have some major and minor concerns with the current version of the paper that I would like to see addressed during a (long) major revision. These are mainly related to (i) the limited scale and breadth of the evaluation; (ii) the description and practical validity of the defined “horizontal” determinism; and (iii) the missing public availability of a tool implementing the proposed technique as well as the lack of a comprehensive replication package. My detailed comments are summarized below.
+
+— Detailed comments.
+
+1. My first and foremost concern is related to the small-scale empirical study conducted by the authors when assessing the capabilities of the proposed technique. More specifically, the authors conducted some case studies that are absolutely valid and worth to read, however it is unclear whether and how the achieved results can be generalized to a broader set of systems. The authors should elaborate more on this point and provide evidence or explanations of how and why the technique can be considered generalizable. Perhaps more important, it would be worth for the reader to understand the cases where the technique fails: this would highlight pros and cons of its usage in practice. In other words, I would recommend (i) the addition of more experiments showing the generalizability of the approach and (ii) more qualitative analyses aimed at showing the real potential of the approach, both in terms of pros and cons in a practical use case. 
+
+2. Still in the context of the evaluation of the technique, I would say that the logical connection among the case studies should be improved. It seems that the aspects treated in the three studies cope with different angles of the assessment, while it is a bit hard to understand the overall goals that the authors have in mind with respect to the evaluation of the proposed technique and how they are connected to each other. So, I would recommend a reformulation of Section IV that makes clearer the objectives of the assessment.
+
+3. Another weakness of the evaluation is related to the lack of a baseline with which compare the performance of the proposed technique. As the authors recognize in the related work section, several papers have been studying automated solutions to deal with nondeterminism (e.g., all the methods able to locate flaky tests): can those previous techniques be employed instead of the one proposed in the paper? If so, how can they be adapted and how do they work when compared to the technique proposed in the paper? If not, I would recommend the addition of a new section of discussion where the authors explain in detail how the technique is placed within the state of the art, what are the peculiarities that make it different from the others, and why the previous approaches cannot be compared. 
+
+4. In Section II.A.1, the authors discuss the similarity between determinism and differential testing. They explain that "for the special case of detecting nondeterminism, however, a system can serve as its own reference implementation". I obviously agree with the statement, however I have a major concern with the accuracy of this strategy. As explained by the authors, horizontal determinism is checked by looking at the values returned by functions and method calls. However, some non-deterministic tests manifest themselves after several executions. For example, a simple yet widely used detection technique is to execute a test a number of times (e.g., ten times) and see whether the outcome from these executions is different. This aspect of flakiness may mean that checking the output values by means of differential testing might be not enough for detecting them all. From the paper, I could not understand whether and how much the horizontal determinism is accurate in detecting actual non-deterministic tests. I would recommend to the authors to discuss better this point and possibly compare the detection accuracy with a “trivial” baseline method like the one reported above.
+
+5. It is also unclear whether and what is the complementarity between horizontal and vertical nondeterminism. The authors present them in sequence, but the way they are connected with each other is not reported. Are the two methods alternative or complement each other somehow? Can the authors explain more precisely what is the flaw of the technique and how the two methodologies are employed?
+
+6. While Section III is pretty detailed and contains several low-level details that would enable replicability, I would have liked to see a comprehensive replication package containing all data and scripts used in the paper. I think this would strongly enhance the credibility of the paper as well as making the relevance of the contribution much stronger. So, I recommend that the authors make an online replication package (e.g., on Figshare) with the details making the study replicable as much as possible. 
+
+7. Similarly to the previous comment, I was really surprised not to see a publicly available version of the tool implementing the approach. I would really encourage the authors to make an extra-effort that would substantially strengthen the contribution made by the paper. 
+
+8. The use case of the technique is a bit unclear. Reading the paper, the authors do not explain how it can be actually adopted by practitioners. For instance, is the technique a valid option for being adopted in a continuous integration pipeline? If so, why? If not, could you please specificate how and in which development moment a practitioners should use it? Once again, a discussion section touching this point could be worthwhile. 
+
+9. Some other methodological decisions are poorly motivated or not motivated at all. For instance, the authors use ‘universalmutator’ for mutation analysis: why this choice rather than more widely used tools like, e.g., Pitest? Which types of mutants can be identified by such a tool? Is the set of mutants generalizable? What is the percentage of equivalent mutants present in the case study (or at least an estimation - the authors cannot determine precisely this information)? The same lack of details is true when considering the selection of the systems used in the case studies (e.g., why are they suitable for the paper?).
+
+All in all, I see some potential behind the proposed technique, and this is why I recommend a new round of revision. At the same time, I also see some major issues that might have led to a reject recommendation. So, I would strongly recommend to the authors to reserve some time to substantially improve the description of the approach (especially the way horizontal and vertical are connected) and the empirical validation. 
+
+=============================================
+Reviewer: 3
+
+Comments to the Authors
+
+Summary: 
+The article describes an approach to testing systems that contain nondeterministic behavior which is a result of various mechanisms and not necessarily the intended behavior as specified by the requirements. This nondeterministic behavior can impact the outcome of automated regression testing thereby introducing potential false positives or false negatives in the results of the tests that were executed. The authors propose an approach to handling this problem by introducing a set of light weight nondeterministic properties that can be applied to two main classes of nondeterminism, horizontal and vertical. The approach builds on the delta-debugging algorithm and the notion of differential testing. Experiments were performed to illustrate the impact of the approach on three real world applications. Mutation testing was used in one of the experiments to show the impact of the approach.
+
+Evaluation
+The article tackles a very interesting and somewhat complex software testing problem, that of testing systems that introduce nondeterminism unexpectedly. The authors make a case for why the work is important and describes the impact this unexpected behavior can have on automated regression testing for large systems. The authors have been working in the area of software testing for some time, particularly test case reduction, delta-debugging, random test case generation and developing testing tools to support automated test generation, debugging, and test harness support. The work presented in this article builds on the previous work by authors and they have experience in working with the applications that are used in the experimental section of the article.
+
+One weakness of the paper was the need to chase down many of the references to get a grasp of the some of the underlying concepts of the paper. This would not necessarily be a problem for readers that closely follow the work of the authors, however for the readers from the broader testing and reliability community this could be a problem.  There are some changes that could be made to improve the readability of the article as mentioned in the subsequent paragraphs of the review.
+
+Major weaknesses
+One of the main weaknesses of the article is a lack of an illustrative example that threads the paper and helps the reader to visualize some of the concepts presented in the paper. This example can be used to motivate that problem by showing how nondeterminism can be introduced into the execution environment during testing and what would be needed to ameliorate such a problem. Such an example would also be very helpful in explaining the concepts of horizontal determinism and vertical determinism and how nondeterminism can be introduce into these two concepts. Note that the example does not have to be complicated to illustrate these features.
+
+The authors state in the contributions (Section I.C) that there would be formal definitions for the types of nondeterminism (horizontal and vertical), however these definitions were not evident. Including these formal definitions could support the definition of other key terms in the article, specifically how the probabilistic predicates are related to the types of nondeterminism described in the article. These definitions would be very helpful to improving the readability of Section II.C. 
+
+The experimental evaluation section should include and explicit section on threats to validity. One question that should be addressed in the threats to validity section is if the TSTL harness and test generator is side-effect free with respect to the application being executed. Maybe the support infrastructure used to rerun the test cases to check for nondeterminism impacts the accuracy of the results for the applications in the experimental section of the article. The authors addressed some of these concerns within the description provided, however it may be better to group these concerns in a threats to validity section.
+
+Minor weaknesses
+The authors can improve the distinction between systems that are designed to be nondeterministic based on the requirements of the system (e.g., concurrent of parallel systems), versus those systems that have unexpected nondeterminism introduce during the execution of the system. The systems designed to have nondeterminism in them may produce different outputs for the same input yet these outputs may be valid based on requirements for the possible sequence of valid events. It would be expected that for such systems a given input may provide several valid outputs, which could complicate checking different behaviors in S runs, with a probability P. Providing additional insights into this problem would be helpful to the reader.
+
+There should be a short overview of TSTL in Section III.B before the new features used to implement horizontal and vertical nondeterminism detection are introduced. This overview could include the testing of the illustrative example that would have been introduced early in the article. The new features can then be introduced using the example to show how the features improve the detection of the nondeterminism. It is noted that the space for the article is limited, however, these additions would improve the readability of the paper specifically for those readers not too familiar with the authors’ previous work.
+
+The authors cite several works they have done, however there is little if any comparison of any of these works in the related work section.  Possible candidates for this comparison may be reference [15] or [19].
+
+Other
+- Page 1, right column, second line: "..may be mislead .." may want to change this phrase.
+- Page 7, Section III B and C: labels appear to be the same.
+- Page 8, middle of the page: should "Figure 3c" be "Figure 3b"?
+============================================
