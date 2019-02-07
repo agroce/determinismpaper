@@ -144,13 +144,26 @@ Name &  Tool(s) & Purpose \\
 }
 \end{table*}
 
-\subsection{Implementing Horizontal Nondeterminism Detection}
+\subsection{A Brief Introduction to TSTL}
 
-We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt} system, a
-language and tool for property-based testing \cite{Hypothesis,ClaessenH00} of Python code. TSTL has
+We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt}
+system, an open-source
+language and tool for property-based testing
+\cite{Hypothesis,ClaessenH00} of Python code.   TSTL, including full
+support for our nondeterminism detection methods, is available at
+\url{https://github.com/agroce/tstl}, and the {\tt examples} directory
+contains the source code needed to duplicate all of our experiments;
+TSTL can also be installed using Python's {\tt pip} tool, by typing
+{\tt pip install tstl}; you will need to clone the github repository
+to have access to the case studies used in the paper, however.
+
+TSTL has
 been used to detect (and usually fix) errors in a number of widely
 used Python libraries, the Python implementation itself, the Solidity
 compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
+
+\subsection{Implementing Horizontal Nondeterminism Detection}
+
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
 nondeterminism detection can technically be implemented simply by
 declaring a system to be its own reference, using TSTL's notation for
@@ -206,7 +219,7 @@ property: not self.nondeterministic(self.test())
 even specify that behavior should not be deterministic, a property of
 possible use in some security-related libraries.
 
-\subsection{Implementing Horizontal Nondeterminism Detection}
+\subsection{Implementing Vertical Nondeterminism Detection}
 
 First-class vertical nondeterminism checks are currently
 limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
@@ -215,6 +228,8 @@ exception to be raised is repeated to ensure the same exception is
 still raised.  Users can also express that any action should exhibit
 vertical determinism by wrapping the action in a function that checks
 for failure and calls the code again.
+
+\subsection{Tools for Nondeterministic Delta-Debugging}
 
 Unlike the other additions, explicitly designed for nondeterminism
 detection, the {\tt P} query, {\tt forceP} wrapper, and {\tt --probability}, {\tt
@@ -234,6 +249,8 @@ in timing based nondeterminism, such steps may be essential to
 causing the nondeterminism to appear (we had to turn off this feature
 for the {\tt redis-py} example discussed below).
 
+\subsection{Nondeterminism and AFL Stability}
+
 Because TSTL has a first-class interface to AFL \cite{aflfuzz}, we can even use
 AFL's sophisticated heuristics to perform very thorough, week-long
 checks for nondeterminism, using strategies built to find subtle
@@ -245,3 +262,5 @@ AFL \emph{stability} statistic (see the AFL documentation for details
 Because of the idiosyncrasies of AFL instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing.
+
+\section{A Simple Example}
