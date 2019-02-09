@@ -100,7 +100,7 @@ security library should never change.  This is one aspect of
 cases are non-pure: a function depends on system state, but should
 always depend on it in the same way, and should not, itself, change
 system state in a way that would change its behavior on a subsequent
-run.
+call to that function.
 
 Many \emph{idempotent} operations fall into this category.
 Consider adding an element to an AVL tree implementing a set, not a
@@ -157,9 +157,76 @@ Haskell, and ML), failure determinism can be automatically checked.
 Moreover, the expected overhead should be even lower than the general
 overhead for vertical determinism, in that we can expect most failing
 operations to be fast (since in test generation, failure is usually
-due to invalid parameters).
+due to invalid parameters).  Checking equivalence of the full
+observable state, however, is still expensive, and requires defining
+the observable components of a state.  A more lightweight, but (as we
+will show) still quite powerful way of checking for failure nondeteterminism is to
+repeat the failing operation, and check if it still fails.  If not,
+this is a sign that the operation is not deterministic with respect to
+failure.  Note that this more restrictive notion of failure
+nondeterminism captures such issues as the Apple login bug.
 
 \subsection{Formal Definitions}
+
+We can formally distinguish the types of nondeterminism by using a
+variant of a labeled transition system (LTS) as our model:
+
+\begin{itemize}
+\item $S$ is a set of states.
+\item $V$ is a set of \emph{observable} states, where $|V| \leq |S|$.
+\item $v: S \rightarrow V$ is a total function that, given a state, maps it
+  into the set of observable states.  Every state has an observable
+  component, which may be the complete state, or only an aspect of the
+  full state; we even allow $V$ to contain a
+  single element, in which case no two states in $S$ can be
+  distinguished by an observer.
+\item $I \subseteq S$ is a set of initial states.
+\item $A$ is a set of \emph{actions}.
+\item $T \subseteq S \times A \times S$ is a transition relation.
+\end{itemize}
+
+We assume that the underlying behavior of a system may be
+deterministic, or nondeterministic, in the strict sense, by allowing
+for a transition relation that \emph{may} be a function of
+$S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
+\xrightarrow[]{\alpha_0} s_1 \xrightarrow[]{\alpha_1} \ldots
+\xrightarrow[]{\alpha_{n-1}} s_n$ where $s_0 \in I$ and $\forall n
+. (s_n, \alpha_n, s_{n+1}) \in T$.
+
+A pair of traces $(t_1, t_2)$ where $t_1 = s^1_0
+\xrightarrow[]{\alpha^1_0} s^1_1 \xrightarrow[]{\alpha^1_1} \ldots
+\xrightarrow[]{\alpha^1_{n-1}} s^1_n$ and $t_2 = s^2_0
+\xrightarrow[]{\alpha^2_0} s_1 \xrightarrow[]{\alpha^2_1} \ldots
+\xrightarrow[]{\alpha^2_{n-1}} s^2_n$ are said to show \emph{visible value
+  determinism} if $\exists i > 0$ such that: $\forall j < i . \alpha^1_j = \alpha^2_j \wedge
+v(s^1_j) = v(s^2_j)$ but $v(s^1_i) \neq v(s^2_i)$.  \emph{Final state
+  nondeterminism} is defined in the same way, except with the
+restriction that $i = n$.  A pair of traces may exhibit visible value
+nondeterminism but not final state nondeterminism, but any pair of
+traces exhibiting final state nondeterminism also demonstrate visible
+value nondeterminism.
+
+Vertical nondeterminism, in contrast, is demonstrated by a single trace
+$t$, not a pair of traces.  To define vertical nondeterminism with
+respect to idempotency, we can
+define $\mathcal{I} \subseteq A$, the set of \emph{idempotent}
+actions.  A trace $t s_0
+\xrightarrow[]{\alpha_0} s_1 \xrightarrow[]{\alpha_1} \ldots
+\xrightarrow[]{\alpha_{n-1}} s_n$ shows \emph{vertical nondeterminism
+  with respect to idempotent operations} if $\exists i < n$ such that
+$\alpha_i \in \mathcal{I} \wedge \alpha_i = \alpha_{i+1}$ and $v(s_i)
+\neq v(s_{i+2})$.
+
+To define failure nondeterminism, we extend the
+transition relation to include a notion of \emph{failure}: $T \subseteq S
+\times A \times S \times {\tt bool}$, where the boolean indicates
+whether the action \emph{failed}.  A trace $t = s_0
+\xrightarrow[]{\alpha_0} (s_1, F_0) \xrightarrow[]{\alpha_1} \ldots
+\xrightarrow[]{\alpha_{n-1}} (s_n, F_n)$ shows \emph{failure
+  nondeterminism} if $\exists i$ such that $F_{i+1}$ (that is,
+$\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$ or (2)
+$\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$.  The second possibility
+captures our more lightweight approach to checking for failure nondeterminism.
 
 \subsection{Nondeterminism and Delta-Debugging}
 
