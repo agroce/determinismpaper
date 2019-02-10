@@ -12,8 +12,44 @@ generator (perhaps in a stochastic algorithm), the value should be
 different on a second run.  Timing dependencies may change on a second
 execution, especially if a delay is added between steps of the test (a
 more principled version of the unfortunate tradition of testing
-concurrent code by adding ad-hoc {\tt sleep} statements).  However,
-simply running a test twice (possibly with a delay between steps) does
+concurrent code by adding ad-hoc {\tt sleep} statements).   Most
+nondeterministic behavior in tests is probably attributable to a such
+effects that can vary with a repeated execution, in the same
+(approximate) enviroment, of the same test.  The two broad classes of
+nondeterminism that can usually be detected (with some probability) by
+simply executing a test twice in succession are:
+
+\begin{itemize}
+\item {\bf External Environment:} This class of nondeterminism arises
+  when a test's behavior depends on factors outside the program under
+  test, which are subject to uncontrolled variance.  Calling {\tt
+    random()} in Python is an obvious example; the call is almost
+  guaranteed to return a different value each time it is called in a
+  test, unless we explicitly re-seed the random number generator at
+  the beginning of each test.  Similarly, calls to {\tt time}
+  functions  will usually return different values on different runs,
+  and even if only elapsed time, rather than absolute, is used to
+  influence behavior, subtle variances in timing are to be expected
+  due to system load, I/O, and other external factors.  Finally, in
+  distributed system testing, the environment is often remote servers
+  (or clients) that may be unavailable, slower than expected, or
+  subject to faulty behavior for reasons not under the control of the test.
+\item {\bf Concurrency:} Perhaps the second most common cause for
+  nondeterminism in tests is when an algorithm is implemented using
+  concurrency, in the (incorrect) beleif that the result of the
+  algorithm remains deterministic.  E.g., consider a multi-threaded
+  implementation of a search algorithm, that returns the location of
+  an item in an unsorted list.  If the list may contain duplicates,
+  and a developer has not accounted for this possibility, the
+  algorithm may return different locations of an item for the same list,
+  depending on the scheduling of threads.  Arguably, this can be
+  subsumed under the first class, with the behavior of the
+  processor/scheduler as the ``enviromental'' factor; relying on
+  scheduling is, in a sense, equivalent to calling {\tt random} or
+  {\tt time}.
+\end{itemize}
+
+However, simply running a test twice in the same process (possibly with a delay between steps) does
 not suffice in all cases.
 
 \subsubsection{Process-Based Nondeterminism}

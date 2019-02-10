@@ -1,5 +1,5 @@
 \section{Practical Lightweight Nondeterminism
-  Detection and Debugging}
+  Detection}
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{types}
@@ -226,9 +226,25 @@ whether the action \emph{failed}.  A trace $t = s_0
   nondeterminism} if $\exists i$ such that $F_{i+1}$ (that is,
 $\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$ or (2)
 $\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$.  The second possibility
-captures our more lightweight approach to checking for failure nondeterminism.  Note that unlike all of the other ways to demonstrate nondeterminism, this second type of failure nondeterminism does not require the use of $v$, or even the notion of observable components of a state, or (for that matter) any comparison of states.
+captures our more lightweight approach to checking for failure
+nondeterminism.  Note that unlike all of the other ways to demonstrate
+nondeterminism, this second type of failure nondeterminism does not
+require the use of $v$, or even the notion of observable components of
+a state, or (for that matter) any comparison of states.
 
-\subsection{Nondeterminism and Delta-Debugging}
+A further point to emphasize is that while horizontal determinism
+requires two traces, it does not require a test generation algorithm
+to produce pairs of traces, which would require substantial
+modification of most such tools (e.g., random testers or fuzzers, and
+even model checkers).  In general, testing tools do not produce
+\emph{traces}, they produce \emph{action sequences}.  The two traces
+used to show nondeterminism, by definition, have the same action
+sequences, which means that a testing tool only needs to search for an
+action sequence which, when executed twice, produces a $t_1$ and $t_2$
+meeting the requirements for showing nondeterminism ---
+non-equivalence of $v(s)$ for some $s$.
+
+\section{Nondeterminism and Delta-Debugging}
 
 Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
   all test reduction algorithms, even those \cite{CReduce,tstl} that do not use the exact
@@ -281,7 +297,7 @@ subset where a predicate that is very far from holding on the original test
 holds (in a non-monotonic case where we aim to increase the probability
 of nondeterminism).
 
-\subsubsection{``Publication Bias'' in Delta-Debugging}
+\subsection{``Publication Bias'' in Delta-Debugging}
 \label{sec:pubbias}
 
 \begin{figure*}
@@ -360,6 +376,8 @@ test operations introduce a small probability of nondeterminism, and
 only many repetitions of those operations make the probability large,
 small tests obviously, on average, have fewer instances of the
 problematic operations.
+
+\subsection{Using Replications to Mitigate ``Publication Bias''}
 
 In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to
