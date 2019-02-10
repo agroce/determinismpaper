@@ -190,8 +190,8 @@ deterministic, or nondeterministic, in the strict sense, by allowing
 for a transition relation that \emph{may} be a function of
 $S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
 \xrightarrow[]{\alpha_0} s_1 \xrightarrow[]{\alpha_1} \ldots
-\xrightarrow[]{\alpha_{n-1}} s_n$ where $s_0 \in I$ and $\forall n
-. (s_n, \alpha_n, s_{n+1}) \in T$.
+\xrightarrow[]{\alpha_{n-1}} s_n$ where $s_0 \in I$ and $\forall i
+. (s_i, \alpha_i, s_{i+1}) \in T$.
 
 A pair of traces $(t_1, t_2)$ where $t_1 = s^1_0
 \xrightarrow[]{\alpha^1_0} s^1_1 \xrightarrow[]{\alpha^1_1} \ldots
@@ -226,7 +226,7 @@ whether the action \emph{failed}.  A trace $t = s_0
   nondeterminism} if $\exists i$ such that $F_{i+1}$ (that is,
 $\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$ or (2)
 $\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$.  The second possibility
-captures our more lightweight approach to checking for failure nondeterminism.
+captures our more lightweight approach to checking for failure nondeterminism.  Note that unlike all of the other ways to demonstrate nondeterminism, this second type of failure nondeterminism does not require the use of $v$, or even the notion of observable components of a state, or (for that matter) any comparison of states.
 
 \subsection{Nondeterminism and Delta-Debugging}
 
