@@ -128,6 +128,31 @@ Finally, AFL stability was 94.32\% with the harness allowing
 nondeterminism, but rose to 98.32\% using the harness with
 nondeterministic operations removed.
 
+\subsubsection{Visible Value vs. Final State Nondeterminism}
+
+We also used {\tt redis-py} to investigate the tradeoff between
+overhead and ability to detect nondeterminism when using the two
+proposed approaches to horizontal determinism.  We produced 300 tests
+of length 100, using the known-nondeterministic version of the {\tt
+  redis-py} harness.  We then used {\tt nondeterministic} and {\tt
+  stepNondeterministic} calls, both with a delay of 0.005 seconds and
+a single additonal execution of the test, to
+check these tests for nondeterministic behavior.  Final state
+nondeterminism actually detected one instance of nondeterminism that
+visible value nondeterminism failed to detect; in general, final state
+nondeterminism is less able to detect nondeterminism, but in this
+instance the difference is less important than the nondeterminism of
+whether a particular test will exhibit nondeterministic behavior in a
+single run.  This difference is obviously not statistically
+significant; for the nondeterminism in {\tt redis-py}, with these
+parameters, the two approaches cannot be statistically distinguished
+as to effectiveness in detecting nondeterminism.
+
+Final state nondeterminism was also faster; visible value
+nondeterminism took, on average, 0.48\% longer to check for
+nondeterminism on the 300 tests.  The difference was significant, with
+$p$-value $< 1.19 \times 10^{-23}$ by a paired Wilcoxon test.
+
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
 
