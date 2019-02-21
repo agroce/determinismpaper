@@ -153,6 +153,37 @@ nondeterminism took, on average, 0.48\% longer to check for
 nondeterminism on the 300 tests, 1.199 mean seconds vs. 1.205 mean seconds.  The difference was significant, with
 $p$-value $< 1.19 \times 10^{-23}$ by a paired Wilcoxon test.
 
+These results, of course, depend on the parameters of the check for
+nondeterminism.  If we increase the delay to 0.01 seconds and the
+number of replays of a test used to check for nondeterminism, we
+almost double the number of nondeterministic tests discovered.  Both
+visible value and final state approaches find 40 nondeterministic
+tests, though the overlap of tests thus detected is not quite perfect
+--- each method detects two tests the other does not.  The difference
+in overhead, interestingly, is very similar:  0.48\%; however, under
+these parameters, visible value nondeterminism is actually cheaper on average
+than final state nondeterminism, due to early termination of the
+additional replays, when nondeterminism is detected (the difference is
+again significant by Wilcoxon test, with $p < 1.44 \times 10^{-10}$.
+
+In practice, visible value nondeterminism and final state
+nondeterminism will often be very similar in both ability to detect
+nondeterministic behavior and overhead.  However, under unusual
+conditions, the behavior of the approaches can be very different.  The
+additional overhead of visible value nondeterminism is usually low
+because re-executing a test, not comparing state values for equality, is
+the primary cost in nondeterminism detection; however, if there are a
+very large number of state components, or some state components have
+an expensive equality check (e.g., recursive structures with cycle
+detection or depth limits), the overhead can grow, proportional to the
+length of tests under consideration.  Similarly, final state
+nondeterminism in a setting such as {\tt redis-py}, where divergences
+in behavior tend to propagate to other state components, or at least
+persist until termination of a test, detects nondeterminism quite
+effectively.  However, in a setting where changes in behavior can
+easily by overwritten by future test behavior, and do not causally
+influence future computation, final state nondeterminism may be almost useless.
+
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
 

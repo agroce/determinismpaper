@@ -166,6 +166,36 @@ this is a sign that the operation is not deterministic with respect to
 failure.  Note that this more restrictive notion of failure
 nondeterminism captures such issues as the Apple login bug.
 
+\subsection{Nondeterminism vs. Flakiness}
+
+A key concept in this paper is that flaky tests (tests that sometimes
+pass and sometimes fail, recall) exist due to underlying
+nondeterministic behavior.  Our interest is in identifying such
+nondeterministic behavior, not in addressing flakiness \emph{per se}.
+Of course, the concepts are closely related.  We make ``did not behave
+nondeterministically'' an additional \emph{property} that a test can
+fail.  Due to the nature of (horizontal) nondeterminism, such failure
+is almost always going to be inherently flaky --- sometimes a test
+will behave nondeterministically, and sometimes it will not.  But the
+idea is a separate one from flakiness; in order to show horizontal
+nondeterminism, we need only see a change in values in a test, not in
+the disposition (failed/passed) of the test.  It may be that, without
+the additional property of determinism, the change cannot actually
+cause failure, and thus flakiness.  The real relationship between our
+nondeterminism and flakiness is that tests (automatically generated or
+manually constructued) that rely on code that can be shown to exhibit
+horizontal nondeterminism contain a potential source of flakiness.  If
+the code behaves nondeterministically, and the values that are
+observed to change can flow to influence the outcome of the test,
+flakiness may well result.
+
+Vertical nondeterminism, in fact, is potentially \emph{completely} unrelated
+to flakiness, in that some bugs (improper handling of hardware errors
+in a file system, for example) produce \emph{reliably}
+``nondeterministic'' (from a software library users' point of view)
+behavior.  Vertical nondeterminism may rely on ``real'' nondeterminism
+that could produce a flaky test, but it does not have to do so.
+
 \subsection{Formal Definitions}
 
 We can formally distinguish the types of nondeterminism by using a

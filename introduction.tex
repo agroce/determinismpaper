@@ -151,14 +151,42 @@ on an approach where (3) horizontal determinism is considered as a
 kind of \emph{reflexive differential testing} and (4) vertical
 determinism is specialized to the common case of \emph{failure determinsim}.
 We further propose modifications to the widely used delta-debugging algorithm in order to better handle
-nondeterminism as a test property
+nondeterminism as a test property.
+
+The underlying idea in this paper is that most approaches to
+nondeterminism/flaky test detection rely either on 1) identifying
+potential sources of nondeterminism such as test inter-dependence
+\cite{LamZE2015} or certain code smells \cite{palomba2017does}  or 2)
+used a heuristic approach, such as that taken by DeFlaker
+\cite{bell2018d}.  In the real world, people usually detect flaky
+tests by the most obvious heuristic of all:  they observe a test both
+fail and pass for the same code base.  In a sense, even DeFlaker
+relies on this method, but avoids having to observe a flaky test actually
+passing, by inferring that if a test was previously passing, and
+executes no changed code, its failure after a code change \emph{must}
+be due to flakiness/nondeterminism.  Our approach to the problem is
+essentially different, and largely orthogonal; we concentrate on the detection and avoidance of
+nondeterminism/flakiness using \emph{automated test generation},
+and make it possible for a developer or test engineer to detect when
+important values generated in automated testing differ without a
+change in the test itself or the code under test.  While some of these
+changes may be harmless, and unable to propagate to cause test
+failures, they are potential sources of flaky behavior.  To our
+knowledge, this is the first dynamic approach to the problem that
+allows detection of (potential) flakiness, based on real divergence in
+behavior, without having to observe a test actually fail due to nondeterminism.
 
 This enables a number of useful results:
  the automated production of
 nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, the documentation of
 nondeterminism, and, most importantly, detection and effective debugging for
-unexpected nondeterminism that is, itself, a bug.  We use a set
+unexpected nondeterminism that is, itself, a bug.  Moreover, by
+identifying (using automated testing) library behaviors that are
+nondeterministic, our approach should make it much easier to flag suspect
+statements in human-written flaky unit tests.
+
+We use a set
 of case studies of real-world, widely-used, Python libraries to demonstrate the
 utility of our ideas.  Failure determinism directly
 produces a more than 5\% improvement in mutation score for an already highly
