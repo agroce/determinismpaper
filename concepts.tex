@@ -194,9 +194,18 @@ to flakiness, in that some bugs (improper handling of hardware errors
 in a file system, for example) produce \emph{reliably}
 ``nondeterministic'' (from a software library users' point of view)
 behavior.  Vertical nondeterminism may rely on ``real'' nondeterminism
-that could produce a flaky test, but it does not have to do so.
+that could produce a flaky test, but it does not have to do so.  In
+other words, vertical nondeterminism is often not a problem for
+testing (flakiness), but simply a bug in the behavior of a software
+system, where an implicit specification on failed operations is
+consistently violated under certain conditions.  The behavior is
+``nondeterministic'' from a caller's point of view, however, in that
+there is an expectation that a call will always ``do the same thing,
+under the same circumstances'' which is the \emph{conceptual} common
+factor in all kinds of expected determinism.
 
 \subsection{Formal Definitions}
+\label{sec:formal}
 
 We can formally distinguish the types of nondeterminism by using a
 variant of a labeled transition system (LTS) as our model:

@@ -188,7 +188,10 @@ language and tool for property-based testing
 \cite{Hypothesis,ClaessenH00} of Python code.   TSTL, including full
 support for our nondeterminism detection methods, is available at
 \url{https://github.com/agroce/tstl}, and the {\tt examples} directory
-contains the source code needed to duplicate all of our experiments;
+contains the source code needed to duplicate all of our
+experiments\footnote{In some cases, you will also need to install an
+  appropriate version of the tested software, by doing, e.g., {\tt pip
+    install pyfakefs}.};
 TSTL can also be installed using Python's {\tt pip} tool, by typing
 {\tt pip install tstl}; you will need to clone the github repository
 to have access to the case studies used in the paper, however.
@@ -197,6 +200,103 @@ TSTL has
 been used to detect (and usually fix) errors in a number of widely
 used Python libraries, the Python implementation itself, the Solidity
 compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
+
+\begin{figure}
+\begin{code}
+pool: <int> 5
+pool: <l> 5
+pool: <s> 5
+\vspace{0.1in}
+<int> := <[1..20]>
+<l> := []
+<l> := list(<s>)
+<s> := set()
+<s> := set(<l>)
+\vspace{0.1in}
+<l>.append(<int>)
+\{ValueError\} <l>.remove(<int>)
+<s>.add(<int>)
+\{KeyError\} <s>.remove(<int>)
+\vspace{0.1in}
+property: len(<l>) >= len(set(<l,1>))
+property: len(<s>) == len(list(<s,1>))
+\end{code}
+\caption{Simple TSTL harness testing lists and sets}
+\label{fig:simple}
+\end{figure}
+
+In TSTL, a test consists of a sequence of
+\emph{actions}, where actions execute arbitrary Python code, but are
+expected to work by modifying the \emph{state} of a test, which is
+stored in a fixed set of \emph{pools} containing Python objects.  The
+TSTL actions defined by a test harness correspond to the set $A$ of
+actions in Section \ref{sec:formal}, and transitions between states of
+result from carrying out the Python code in an action.  Figure
+\ref{fig:simple} shows a very simple TSTL harness that tests Python's
+built-in {\tt set} and {\tt list} types.  The harness defines the
+(visible) state of a test as consisting of three named pools of Python
+objects, {\tt int}, {\tt l}, and {\tt s}.  These pools have no
+inherent associated type, though a type can be annotated as an
+additional constraint that TSTL will check holds during test
+execution.  Initially all the pools hold the special Python value {\tt
+  None} indicating they have not been initialized.  In terms of our formalism,
+$I = \{${\tt [<int> = [None, None, None, None, None]}, {\tt <l> =
+  [None, None, None, None, None]}, {\tt <s> = [None, None, None, None,
+  None]]}$\}$.  Actions with the {\tt :=} assignment operator
+initialize pools.  For example, the line of code {\tt l := []} defines a set of 5
+actions, each of which initializes a different member of the list pool
+{\tt l} to an empty list --- {\tt l0 = []} ... {\tt l4 = []}.  Actions
+without a {\tt :=} require that pools used in them already be
+initialized.  TSTL provides constructs like {\tt <[1..20]>} for
+choosing values in a range for use in a test, and allows a user to
+specify which exceptions an action may raise without causing the test
+to fail (as in {\tt \{KeyError\} <s>.remove(<int>)}).
+
+Compiling this harness using
+the TSTL compiler produces a Python module that allows test
+generation.  If we use the random testing tool provided by TSTL, {\tt
+  tstl\_rt}, it will randomly generate valid sequences of actions, and
+report no problems.  If we change the first property to read {\tt
+  property: len(<l>) == len(set(<l,1>))}, however, TSTL will report a
+failing test, shown in Figure \ref{fig:setlistfail}.
+
+\begin{figure}
+{\scriptsize
+\begin{code}
+int0 = 1                                                                 \# STEP 0
+ACTION: int0 = 1 
+int0 = None : <type 'NoneType'>
+=> int0 = 1 : <type 'int'>
+==================================================
+l0 = []                                                                  \# STEP 1
+ACTION: l0 = [] 
+l0 = None : <type 'NoneType'>
+=> l0 = [] : <type 'list'>
+==================================================
+l0.append(int0)                                                          \# STEP 2
+ACTION: l0.append(int0) 
+int0 = 1 : <type 'int'>
+l0 = [] : <type 'list'>
+=> l0 = [1] : <type 'list'>
+==================================================
+l0.append(int0)                                                          \# STEP 3
+ACTION: l0.append(int0) 
+int0 = 1 : <type 'int'>
+l0 = [1] : <type 'list'>
+=> l0 = [1, 1] : <type 'list'>
+==================================================
+ERROR: (<type 'exceptions.AssertionError'>,
+  AssertionError(), <traceback object at 0x1032b83f8>)
+TRACEBACK:
+  File "/Users/adg326/scratch/pyexample/sut.py",
+  line 13695, in check
+    assert len(self.p\_l[0]) == len(set(self.p\_l[0]))
+\end{code}
+}
+\caption{A failing test (showing that converting a list to a set may
+  not preserve the size of the object).}
+\label{fig:setlistfail}
+\end{figure}
 
 \subsection{Implementing Horizontal Nondeterminism Detection}
 
@@ -211,10 +311,8 @@ or re-executing in a new process, in checking for nondeterminism.
 We therefore instead made horizontal nondeterminism detection a first-class
 property in TSTL, using TSTL's existing notation for marking some
 types of values as \emph{opaque} (not usefully compared for equality),
-used in automatic abstraction-based testing.  In TSTL, a test is a
-sequence of \emph{actions}; parameter values to method and function
-calls of the Software Under Test (SUT) are stored in finite-sized variable \emph{pools}.  A
-TSTL test is (essentially) a sequence of assignments to pool values,
+used in automatic abstraction-based testing.  Recall that in TSTL, a
+test is (essentially) a sequence of assignments to pool values,
 and method/function calls using pool values (including method calls on
 pool objects).  This formalism is a widely used and efficient way to
 represent unit tests \cite{Pacheco,AndrewsTR}.  In TSTL, \emph{visible
@@ -222,10 +320,12 @@ value determinism} is based on comparing the values of \emph{all pool
 variables} after each test action (pool values other than the one
 assigned to must also be compared, since a common source of
 nondeterminism is when a call results in a change to a value passed as
-a parameter, changes a shared reference held by two values).
-TSTL omits comparison only of pools marked as {\tt OPAQUE} in the
+a parameter, changes a shared reference held by two values).  By
+default $V$ as defined in Section \ref{sec:formal} is just the set of all possible pool values, and $v$
+simply extracts the pool values from $S$.
+TSTL allows restriction of which state is visible by removing pools marked as {\tt OPAQUE} in the
 TSTL language test harness (and values that do not support equality
-checking).  \emph{Final State Determinism} simply performs the same
+checking) from $v(S)$.  \emph{Final State Determinism} simply performs the same
 comparison, but only on the final values of all pool variables (or a
 set of designated pools) after a test has
 finished executing.
