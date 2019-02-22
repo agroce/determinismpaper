@@ -119,7 +119,10 @@ degrade the utility of regression testing.  The essence of a flaky
 test is that, for the same snapshot of test code and code under test
 (CUT), it sometimes fails and sometimes passes: the pass/fail result (disposition) of the
 test is not a deterministic property of the test code, code under
-test, and environment running the test.  This produces three serious
+test, and environment in which the test is run\footnote{Again, in 
+  some sense the result \emph{is} clearly determined by the environment in
+  which the test is run, but from the point of view of a developer or
+  test engineer, the differences in environment are invisible and unknown.}.  This produces three serious
 problems: first, a flaky test often wastes developer time and delays
 software changes by forcing the investigation of code-under-test that
 is not actually incorrect.  Second, failures in flaky tests (for that
@@ -154,37 +157,39 @@ We further propose modifications to the widely used delta-debugging algorithm in
 nondeterminism as a test property.
 
 The underlying idea in this paper is that most approaches to
-nondeterminism/flaky test detection rely either on 1) identifying
+nondeterminism/flaky test detection and debugging rely either on 1) identifying
 potential sources of nondeterminism such as test inter-dependence
 \cite{LamZE2015} or certain code smells \cite{palomba2017does}  or 2)
-used a heuristic approach, such as that taken by DeFlaker
+use a heuristic approach to mark failures as likely flaky, such as that taken by DeFlaker
 \cite{bell2018d}.  In the real world, people usually detect flaky
 tests by the most obvious heuristic of all:  they observe a test both
-fail and pass for the same code base.  In a sense, even DeFlaker
+fail and pass for the same code version.  In a sense, even DeFlaker
 relies on this method, but avoids having to observe a flaky test actually
 passing, by inferring that if a test was previously passing, and
 executes no changed code, its failure after a code change \emph{must}
 be due to flakiness/nondeterminism.  Our approach to the problem is
-essentially different, and largely orthogonal; we concentrate on the detection and avoidance of
+fundamentally different, and essentially orthogonal; we concentrate on the detection and avoidance of
 nondeterminism/flakiness using \emph{automated test generation},
 and make it possible for a developer or test engineer to detect when
 important values generated in automated testing differ without a
 change in the test itself or the code under test.  While some of these
 changes may be harmless, and unable to propagate to cause test
 failures, they are potential sources of flaky behavior.  To our
-knowledge, this is the first dynamic approach to the problem that
-allows detection of (potential) flakiness, based on real divergence in
+knowledge, this is the first approach to the problem that
+allows detection of (potential sources of) flakiness, based on real divergence in
 behavior, without having to observe a test actually fail due to nondeterminism.
 
-This enables a number of useful results:
+This approach enables a number of useful results:
  the automated production of
 nondeterminism-free regression tests even for libraries with some
-sources of nondeterminism, the documentation of
-nondeterminism, and, most importantly, detection and effective debugging for
-unexpected nondeterminism that is, itself, a bug.  Moreover, by
+sources of nondeterminism, the documentation of sources of
+nondeterminism that might produce problems for manually-constructed tests, and, most importantly, detection and effective debugging for
+unexpected nondeterminism that is, itself, a bug.  Additonally, by
 identifying (using automated testing) library behaviors that are
-nondeterministic, our approach should make it much easier to flag suspect
-statements in human-written flaky unit tests.
+nondeterministic, our approach should make it much easier to flag
+statements in existing human-written unit tests that may produce flaky
+behavior:  simply scan the
+code for calls to functions identified as sources of nondeterminism.
 
 We use a set
 of case studies of real-world, widely-used, Python libraries to demonstrate the

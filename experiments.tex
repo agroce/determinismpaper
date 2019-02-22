@@ -74,7 +74,7 @@ a set of minimal flaky tests exposing the sources of
 nondeterminism/flakiness.  In this case, the probability of flakiness
 is not important, just the possibility, so we let the delta-debugging
 create a minimal test with some non-zero (but possibly very small)
-observed probability of nondeterminism.  
+observed probability of nondeterminism.
 
 Figures \ref{fig:r1}-\ref{fig:r3} show delta-debugging of a typical
 {\tt redis-py} nondeterministic test, originally with 287 steps.  The initial test behave
@@ -98,11 +98,38 @@ nondeterministic behavior, and
 (in this case) even produces a smaller test (only 14 steps) in just
 over 10 minutes.
 
-After removing all identified sources of nondeterminism (the {\tt random-} functions, all
-expiration-related functionality and {\tt restore} calls with non-zero
-lifetimes, and {\tt spop}), but leaving all other suspect functionality in
-place (e.g. pipes), no flakiness was observed in a sample of over 2,000 length
-200 tests.  Moreover, because the removals were limited to actually
+\begin{figure*}
+\begin{code}
+{\bf REMOVED:}    
+<key> := <r>.randomkey() 
+<r>.expire(<key>,<int>)
+<r>.pexpire(<key>,<int>)
+\{redis.exceptions.ResponseError\} <r>.spop(<key>)
+\{redis.exceptions.ResponseError\} <r>.srandmember(<key>)
+\{redis.exceptions.ResponseError\} <r>.srandmember(<key>,<int>)
+<pipe>.expire(<key>,<int>)
+<pipe>.pexpire(<key>,<int>)
+\{redis.exceptions.ResponseError\} <pipe>.spop(<key>)
+\{redis.exceptions.ResponseError\} <pipe>.srandmember(<key>)
+\{redis.exceptions.ResponseError\} <pipe>.srandmember(<key>,<int>)
+\vspace{0.1in}
+{\bf MODIFIED:}
+\{redis.exceptions.ResponseError\} <r>.restore(<key>,<int>,<dump>)
+{\bf $\Rightarrow$}
+\{redis.exceptions.ResponseError\} <r>.restore(<key>,0,<dump>)
+\vspace{0.07in}
+\{redis.exceptions.ResponseError\} <pipe>.restore(<key>,<int>,<dump>)
+{\bf $\Rightarrow$}
+\{redis.exceptions.ResponseError\} <pipe>.restore(<key>,0,<dump>)
+\end{code}
+\caption{{\tt redis-py} calls removed or changed to avoid
+  nondeterminism.}
+\label{fig:flakysource}
+\end{figure*}
+
+Figure \ref{fig:flakysource} shows all calls removed or modified after
+identification of sources of nondeterminism.  After making these changes, no flakiness was observed in a sample of over 2,000 length
+200 tests.   Moreover, because the removals were limited to actually
 observed sources of flakiness, the code coverage loss was minimal.
 Mean branch coverage, for regression tests of length 200 was reduced
 by less than 5 branches (a less than 1\% decrease).  Obviously, it is
