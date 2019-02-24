@@ -400,3 +400,39 @@ behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing.
 
 \section{A Simple Example}
+
+\begin{figure}
+\begin{code}
+@import random
+\vspace{0.1in}
+<@
+storage = []
+\vspace{0.1in}
+def init():
+    global storage
+    storage = []
+\vspace{0.1in}
+def store(n):
+    global storage
+    if n in storage:
+       raise KeyError
+    storage.append(n)
+    if n < 0:
+       raise ValueError
+@>
+\vspace{0.1in}
+init: init()
+\vspace{0.1in}
+pool: <int> 5
+\vspace{0.1in}
+<int> := <[-10..10]>
+<int> := random.randint(-100,100)
+{KeyError,ValueError} store(<int>)
+\end{code}
+\caption{A trivial example containing (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexample}
+\end{figure}
+
+Figure \ref{fig:simpleexample} shows a self-contained example of a
+Python program and test harness with both vertical and horizontal nondeterminism.
