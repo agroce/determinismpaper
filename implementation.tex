@@ -402,19 +402,21 @@ cost indicator produced as a by-product of fuzzing.
 \section{A Simple Example}
 
 \begin{figure}
+{\scriptsize
 \begin{code}
-@import storage
+@from storage import *
 \vspace{0.1in}
-init: storage.init()
+init: init()
 \vspace{0.1in}
 pool: <int> 5
 \vspace{0.1in}
 <int> := <[-10..10]>
-<int> := storage.getNewVal()
-\{KeyError,ValueError\} storage.store(<int>)
+<int> := getNewVal()
+\{KeyError,ValueError\} store(<int>)
 \vspace{0.1in}
-property: len(storage.contents()) == len(set(storage.contents()))
+property: len(contents()) == len(set(contents()))
 \end{code}
+}
 \caption{TSTL harness for Python library with (independent) vertical and
   horizonal nondeterminisms}
 \label{fig:simpleexample}
@@ -461,4 +463,182 @@ def getNewVal():
 \end{figure}
 
 Figures \ref{fig:simpleexample} and \ref{fig:simpleexamplecode} show a self-contained example of a
-Python library and test harness with both vertical and horizontal nondeterminism.
+Python library and test harness with both vertical and horizontal
+nondeterminism.  The example is not meant to be realistic, but to
+better concretely explain the detection and debugging of
+nondeterminism.  A few additional TSTL features need to be described.
+First, lines beginning with an {\tt @} indicate raw Python code, here
+used to import the module to be tested.  Second, {\tt init:} indicates
+code that is to be executed at the beginning of each test, in
+order to restore the system under test to its initial state.
+
+\subsection{Horizontal Nondeterminism}
+
+If we compile and test this code without using any of the
+nondeterminism-detection functionality, TSTL will not report any
+failing tests.  The property (avoidance of duplicate entries in
+storage) holds:
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl
+ ...
+ \$ tstl\_rt
+ Random testing using config=Config...
+ storage: TEST \#1396 STEP \#0 (0:00:30.000188) Mon Feb
+ 25 11:13:18 2019 [ 15 stmts 22 branches ] (no cov+ for
+ 1391 tests) 139500 TOTAL ACTIONS (4649.97/s) (test
+ 0.0/s) 2 cov+ tests
+\end{code}
+}
+
+TSTL reports information on the testing in a status line, here showing
+that it has performed 1,396 tests, with no failures, and two tests
+that increased code coverage.  TSTL can be run in a mode that stores
+minimized versions of the tests that obtained new coverage, for use
+as, e.g., regressions:
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl
+ ...
+ \$ tstl\_rt --quickTests
+\end{code}
+}
+
+\begin{figure}
+{\bf quick.0.test:}
+\begin{code}
+self.p\_int[0] = getNewVal() 
+store(self.p\_int[0]) 
+store(self.p\_int[0]) 
+self.p\_int[0] = -10 
+store(self.p\_int[0]) 
+\end{code}
+\vspace{0.1in}
+{\bf quick.1.test:}
+\begin{code}
+self.p\_int[0] = -8
+store(self.p\_int[0]) 
+self.p\_int[0] = getNewVal() 
+\end{code}
+\caption{Coverage maximizing tests for Python library with (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexampletests}
+\end{figure}
+
+This will result in generation of two\footnote{In some rare cases,
+  TSTL may generate one test that achieves complete code coverage, but
+  this will only happen rarely here.} files, {\tt quick.0.test} and
+{\tt quick.1.test}.  Sometimes, TSTL will fail at this point with an internal error
+({\tt REDUCED TEST DOES NOT PRESERVE COVERAGE}), due to the attempt to reduce one of the coverage-obtaining
+tests losing coverage, which is a consequence of horizontal
+nondeterminism.  However, TSTL will often produce
+test files such as those shown in Figure
+\ref{fig:simpleexampletests}.  TSTL lets us convert these tests, which
+are in TSTL's internal format, into standalone Python regression tests
+that check the properties in the test harness and ensure that the
+behavior (values of pools) are the same as in the recorded run:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_standalone quick.0.test quick0.py --regression
+ ...
+ \$ tstl\_standalone quick.1.test quick1.py --regression
+\end{code}
+}
+
+However, if we execute these Python tests, they will be very flaky;
+sometimes they will pass, but {\tt quick0.py} will almost always fail, and
+{\tt quick1.py} will fail about two thirds of the time.  The reason,
+of course, is a trivial case of horizontal nondeterminism, due to the
+use of the {\tt random.randint} function in {\tt getNewValue}.  The
+regression test will record whatever value {\tt getNewValue} returned
+the when the TSTL test file was executed in order to produce the
+Python standalone test.  The value in future executions will seldom
+match this value.  In this case, removing the nondeterminism is easy
+(simply add a fixed random seed to the {\tt init:} line in the
+harness, e.g., {\tt init: init(); random.seed(0)}).  However, in
+real-world testing, the source of the nondeterminism, may not be
+obvious, and only some regression tests may (infrequently) fail.
+However, if we ask the random tester to check for nondeterminism, it
+quickly shows us what the problem is:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_rt --checkDeterminism
+ ...
+ int2 = getNewVal()              \# STEP 50
+ MISMATCH IN REPLAY VALUE:
+    int2 : 7 VS. -5
+ TEST WAS NOT DETERMINISTIC!  WRITING FAILURE AS
+ ndfail.test
+\end{code}
+}
+
+We can use TSTL's test reduction tool to produce a small test showing
+the problem:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_reduce ndfail.test hnd.test --checkDeterminism
+ ...
+ NEW LENGTH 1
+ int0 = getNewVal()              \# STEP 0
+
+ TEST WRITTEN TO hnd.test
+\end{code}
+}
+
+Nothing is required to produce nondeterminism other than calling {\tt
+  getNewVal}, and this test is more frequently nondeterministic than
+the original, since it calls {\tt getNewVal} without any stored data
+to restrict the range of random values.
+
+\subsection{Vertical Nondeterminism}
+
+The {\tt storage.py} program also contains a (again, unrealistically
+simple) example of \emph{vertical} nondeterminism.  The {\tt store}
+method is supposed to 1) allow only a single copy of a value to be in
+the storage and 2) to disallow negative values.  Unfortunately, the
+check for negatives is \emph{after} the value is stored, which means
+that a second attempt to store the same negative value will result in
+a {\tt KeyError}, not a {\tt ValueError}.  TSTL can detect this
+problem if we compile the harness with {\tt
+  --checkFailureDeterminism}, which produces a version of the testing
+interface that ensures failing actions (ones that raise an expected
+exception) always fail again if performed again without any
+intervening actions, and always fail with the same exception.  Note
+that the check for the same exception is a slight extension of our formal
+definition of failure determinism, recording the last observed
+exception as an additional visible state element.
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl --checkFailureDeterminsim
+ ...
+ \$ tstl\_rt
+ ...
+ FINAL VERSION OF TEST, WITH LOGGED REPLAY:
+ int0 = -4                                   \# STEP 0
+ ACTION: int0 = -4 
+ int0 = None : <type 'NoneType'>
+ => int0 = -4 : <type 'int'>
+ ==================================================
+ store(int0)                                 \# STEP 1
+ ACTION: store(int0) 
+ int0 = -4 : <type 'int'>
+ RAISED EXPECTED EXCEPTION:
+   <type 'exceptions.ValueError'> 
+ RAISED EXCEPTION:
+   <type 'exceptions.KeyError'>  ON RETRY
+   ERROR: (<type 'exceptions.AssertionError'>,
+   AssertionError('Failure with different exception.',),
+ <traceback object at 0x105e9edd0>)
+\end{code}
+}
+
+With failure nondeterminism, we don't have to use TSTL's specialized reduction
+tool, since the failure does not require multiple replays of a test.
+The random tester itself can properly reduce the test case, since it
+is just a ``normal'' failure, exhibited by a single trace.
