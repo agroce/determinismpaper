@@ -411,7 +411,7 @@ pool: <int> 5
 \vspace{0.1in}
 <int> := <[-10..10]>
 <int> := storage.getNewVal()
-{KeyError,ValueError} storage.store(<int>)
+\{KeyError,ValueError\} storage.store(<int>)
 \vspace{0.1in}
 property: len(storage.contents()) == len(set(storage.contents()))
 \end{code}
@@ -457,8 +457,8 @@ def getNewVal():
 \end{code}
 \caption{Code for Python library with (independent) vertical and
   horizonal nondeterminisms}
-\label{fig:simpleexample}
+\label{fig:simpleexamplecode}
 \end{figure}
 
-Figure \ref{fig:simpleexample} shows a self-contained example of a
-Python program and test harness with both vertical and horizontal nondeterminism.
+Figures \ref{fig:simpleexample} and \ref{fig:simpleexamplecode} show a self-contained example of a
+Python library and test harness with both vertical and horizontal nondeterminism.
