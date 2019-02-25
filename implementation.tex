@@ -403,15 +403,37 @@ cost indicator produced as a by-product of fuzzing.
 
 \begin{figure}
 \begin{code}
-@import random
+@import storage
 \vspace{0.1in}
-<@
+init: storage.init()
+\vspace{0.1in}
+pool: <int> 5
+\vspace{0.1in}
+<int> := <[-10..10]>
+<int> := storage.getNewVal()
+{KeyError,ValueError} storage.store(<int>)
+\vspace{0.1in}
+property: len(storage.contents()) == len(set(storage.contents()))
+\end{code}
+\caption{TSTL harness for Python library with (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexample}
+\end{figure}
+
+\begin{figure}
+\begin{code}
+import random
+
 storage = []
-\vspace{0.1in}
+
+def contents():
+    global storage
+    return storage
+
 def init():
     global storage
     storage = []
-\vspace{0.1in}
+
 def store(n):
     global storage
     if n in storage:
@@ -419,17 +441,21 @@ def store(n):
     storage.append(n)
     if n < 0:
        raise ValueError
-@>
-\vspace{0.1in}
-init: init()
-\vspace{0.1in}
-pool: <int> 5
-\vspace{0.1in}
-<int> := <[-10..10]>
-<int> := random.randint(-100,100)
-{KeyError,ValueError} store(<int>)
+
+def getNewVal():
+    global storage
+    if len(storage) >= 1:
+        bot = min(storage)
+        top = max(storage)
+    else:
+        bot = -10
+        top = 10
+    v = random.randint(bot-1,top+1)
+    while v in storage:
+        v = random.randint(bot-1,top+1)
+    return v
 \end{code}
-\caption{A trivial example containing (independent) vertical and
+\caption{Code for Python library with (independent) vertical and
   horizonal nondeterminisms}
 \label{fig:simpleexample}
 \end{figure}
