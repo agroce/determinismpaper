@@ -33,7 +33,8 @@ simply executing a test twice in succession are:
   due to system load, I/O, and other external factors.  Finally, in
   distributed system testing, the environment is often remote servers
   (or clients) that may be unavailable, slower than expected, or
-  subject to faulty behavior for reasons not under the control of the test.
+  subject to faulty behavior for reasons not under the control of the
+  test.
 \item {\bf Concurrency:} Perhaps the second most common cause for
   nondeterminism in tests is when an algorithm is implemented using
   concurrency, in the (incorrect) beleif that the result of the
@@ -49,7 +50,11 @@ simply executing a test twice in succession are:
   {\tt time}.
 \end{itemize}
 
-However, simply running a test twice in the same process (possibly with a delay between steps) does
+Lam et al. \cite{idflakies} note that flaky tests not due to order
+dependence are generally due to ``concurrency, timeouts,
+network/IO, etc.'' a description that is well accounted for by our two
+primary sources, and most of which can be detected, at least in
+principle, by multiple runs of a test within the same testing process.  However, simply running a test twice in the same process (possibly with a delay between steps) does
 not suffice in all cases.
 
 \subsubsection{Process-Based Nondeterminism}
@@ -96,6 +101,25 @@ system a test will execute on a different CPU than in the first
 execution, which can have many subtle effects, mostly related to
 changed timing.
 
+One common cause of flaky tests is \emph{test order dependence} \cite{idflakies}.  This
+is less of a concern in our setting, since many problems due to test
+order are easily exposed in random testing, since the
+order-dependence-inducing operations will seldom usually happen in the
+same order in randomly generated tests.  For example, consider the
+case where a test usually run ``early'' initializes an uninitialized
+value in a system, and a later test will only fail if it somehow is
+run before the initializing test.  In random testing, the order of
+initialization/access is likely to be random, and some run of a random
+tester is likely to expose the problem as a (deterministic, not flaky) failure.
+
+However, for cases where
+there is an order dependence that is hard to translate into an
+actual bug, using a fresh
+process may expose such dependencies --- the ``environment'' of the
+parent process will have the, e.g., flag set or value initialized, but
+the new process will not.
+
+\subsection{A Brief Introduction to TSTL}
 
 \begin{table*}
 \centering
@@ -179,8 +203,6 @@ Name &  Tool(s) & Purpose \\
 \end{tabular}
 }
 \end{table*}
-
-\subsection{A Brief Introduction to TSTL}
 
 We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt}
 system, an open-source
