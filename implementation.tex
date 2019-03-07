@@ -119,6 +119,56 @@ process may expose such dependencies --- the ``environment'' of the
 parent process will have the, e.g., flag set or value initialized, but
 the new process will not.
 
+\subsection{Pools and Visible State}
+
+While the formal definitions of nondeterminism proposed in Section
+\ref{sec:formal} offer a framework for checking for nondeterministic
+behavior, they leave unspecified the key notions of \emph{state},
+\emph{visible state}, and \emph{actions}.  For example, we could
+identify the state and visible state of a system as identical with the
+full set of memory locations accessed by that system, and actions with the
+individual processor instructions executed.  However, this
+definition is highly impractical for two reasons.  First, it is
+extremely inefficient to compare multiple executions for
+full-memory-state equivalence at every instruction step.  Second, and
+even more importantly, as noted in the introduction, very few programs
+will behave deterministically when considered at this low level,
+unless the full state of the operating system, processor, hardware
+devices, etc. are all taken as controlled inputs.
+
+What is a practical level of granularity for (visible) states and actions that
+can be efficiently checked, and matches (for the most part) developer
+and tester intuitions about what should behave deterministically?
+
+Andrews et al. formalized a value-pool-based model of unit tests that is widely used in
+actual testing tools, including Randoop \cite{Pacheco}, showing that
+all Java unit tests (and, more generally, unit tests in similar
+languages) can be represented in a \emph{canonical} form, where
+a test consists of three parts:
+
+\begin{enumerate}
+\item A declaration of a set of array variables, referred to as
+  \emph{value pools}, e.g., {\tt int [] intVP = new int[3];}.
+  \item A set of assignments of constant values to elements of
+    primitive type value pools, e.g. {\tt intVP[2] = 1;}.
+    \item A part in which all statements are assignments of calls of a
+      method to a value pool, with all arguments to the method also
+      taken from a value pool, e.g. {\tt intVP[2] = fooObjectVP[2].bar(intVP[0],
+        intVP[1]);} (these are referred to as \emph{array-canonical} statements).
+    \end{enumerate}
+
+Given such a form for unit tests, there is an obvious mapping to
+states and actions in our formalism for nondeterminism:  the state is
+the full state of the system, but visible state is restricted to
+\emph{the values stored in the value pools}.  Actions are the
+array-canonical statements that call code under test to modify the pools.  We can ignore constant assignments and
+declarations, since (assuming the language implementation itself is
+basically deterministic) these cannot introduce nondeterminism.
+Because assertions of correctness and \emph{what a test actually does}
+depend on the values in value pools, it seems likely that developers
+and testers expect determinism in unit tests, at the granularity of
+value pool assignments.
+
 \subsection{A Brief Introduction to TSTL}
 
 \begin{table*}
@@ -250,10 +300,15 @@ property: len(<s>) == len(list(<s,1>))
 In TSTL, a test consists of a sequence of
 \emph{actions}, where actions execute arbitrary Python code, but are
 expected to work by modifying the \emph{state} of a test, which is
-stored in a fixed set of \emph{pools} containing Python objects.  The
+stored in a fixed set of pools containing Python objects.  TSTL's
+approach essentially follows the pool-based canonical form defined by
+Andrews et al., but relaxes many of its restrictions
+(e.g., a constant value can be used in a method call without first
+assigning it to a pool). The
 TSTL actions defined by a test harness correspond to the set $A$ of
-actions in Section \ref{sec:formal}, and transitions between states of
-result from carrying out the Python code in an action.  Figure
+actions in Section \ref{sec:formal}, and transitions between states
+result from executing out the Python code in an action; these actions
+are, roughly, the array-canonical statements of the value pool formalism.  Figure
 \ref{fig:simple} shows a very simple TSTL harness that tests Python's
 built-in {\tt set} and {\tt list} types.  The harness defines the
 (visible) state of a test as consisting of three named pools of Python

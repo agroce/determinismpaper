@@ -1,11 +1,79 @@
 \section{Experimental Evaluation}
 
 In order to evaluate our approach and implementation, we applied
-nondeterminism detection to three real world examples.  The primary
+nondeterminism detection to real Python code, including some widely
+used systems ({\tt redis-py} and {\tt pyfakefs} are well-maintained,
+widely-used libraries).  The primary
 points we wanted to explore were (1) whether our approach was able to reliably detect actual
 nondeterminism, (2) whether the overhead of nondeterminism
 detection for real systems was acceptable, and (3) the performance of
 delta-debugging for real nondeterministic predicates.
+
+\subsection{Case Study: Parallel Sorting}
+
+Our first case study is a simple implementation of a parallel merge
+sort in Python
+\url{https://gist.github.com/stephenmcd/39ded69946155930c347}.  The
+merge sort and harness can be found in the TSTL GitHub repository
+\cite{tstl}, under {\tt examples/parallelsorts}.  When a sorting
+algorithm is implemented using concurrency, a key question to ask is
+whether the ordering of elements that are equal under the comparison
+operator is consistent across sorts of the same original sequence.
+This is related to the question of whether a sort is a stable sort
+(preserving the original relative order of equal-by-comparison elements),
+but imposes a less strict requirement on the sort; a concurrent sort
+might not be stable, but might still produce the same (non-stable)
+ordering from the same provided sequence, every time.  This is a
+particular instance of a common expectation noted above:  while a parallel
+implementation of an algorithm will likely have internal
+nondeterminism (due to scheduling of work), it is often expected to
+behave deterministically, from the point of view of a caller.
+
+This case study has two purposes:  first, to show that the
+nondeterminism detection features of TSTL can be used to, with
+acceptable overhead, show that a parallel sort implementation provides
+a consistent, deterministic ordering, and second to show that the
+mechanism can also detect the nondeterminism in a parallel sort that
+does exhibit nondeterministic behavior.  For the second purpose, we
+implemented a very simple swap-based parallel sorting algorithm that
+repeatedly has multiple threads scan through a sequence and swap
+out-of-order neighbors, until the sequence is sorted (a kind of
+parallel bubble-sort with a simpler termination criteria).
+
+\begin{figure}
+{\scriptsize
+\begin{code}
+@import mergesort
+@import swapsort
+\vspace{0.1in}
+pool: <val> 10
+pool: <data> 10
+pool: <sorted> 10
+\vspace{0.1in}
+<val> := <[-10..10]>
+\vspace{0.1in}
+<data> := []
+<data>.append((<val>,<val>))
+len(<data,2>) < len(<data,1>) -> <data>.extend(<data>)
+\vspace{0.1in}
+<sorted> := mergesort.merge\_sort\_parallel(<data>)
+<sorted> := swapsort.swap\_sort\_parallel(<data>)
+<sorted>
+\vspace{0.1in}
+property: swapsort.is\_sorted(<sorted>)
+\end{code}
+}
+\caption {Complete TSTL harness for checking two parallel sorting
+  algorithms for nondeterminism.}
+\label{fig:parallelcode}
+\end{figure}
+
+Figure \ref{fig:parallelcode} shows the complete TSTL harness for
+checking the parallel sorts.  This harness produces sequences of
+integer pairs, where only the first integer is used in the comparison
+operator of the sorting algorithms, and checks that the results of
+{\tt sort\_parallel} calls are in fact sorted, using the {\tt
+  swapsort}'s function for checking if a sequence is sorted.
 
 \subsection {Case Study: {\tt redis-py}}
 
@@ -35,7 +103,8 @@ delta-debugging for real nondeterministic predicates.
 
 The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
 to the popular Redis in-memory database, cache, and
-message broker \cite{redis}.
+message broker \cite{redis}.  The TSTL {\tt redis-py} harnesses can be found in
+the {\tt examples/redis} directory in the TSTL GitHub repo \cite{tstl}.
 
 Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
 itself can be tested; unfortunately, generating stand-alone
@@ -59,7 +128,7 @@ at once, introduced the potential for nondeterminism (does it execute
 sequentially before other command are handled, or is it in parallel
 with further commands).  Deep experience with Redis would make these
 issues clear, but tests using a library are often written by those not
-intimately familiar with the semantics of every used library (otherwise they would not have
+intimately familiar with the semantics of every library call (otherwise they would not have
 been as likely to introduce flaky tests in the first place).  This is
 even more true in the case of automated test generation, where the
 test engineer is often chosen for expertise in test generation tools,
@@ -261,10 +330,12 @@ inference in
 Bayesian belief networks \cite{russell2016artificial}.  An earlier
 version of these algorithms produced nondeterministic (and in some
 cases incorrect) results due to dependence on the order of values in
-an iterator over a Python dictionary, on Python versions above 3.2, until 3.6 (see Section \ref{sec:pnondet}).
+an iterator over a Python dictionary, on Python versions above 3.2,
+until 3.6 (see Section \ref{sec:pnondet}).  
 
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
-  datarray} algorithms.  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
+  datarray} algorithms (it can be found in the {\tt
+  examples/datarray\_inference} directory in the TSTL repository \cite{tstl}).  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
   --checkProcessDeterminism} flag required less than 10 seconds on
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
@@ -292,11 +363,13 @@ Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
 inside and outside Google \cite{pyfakefs}.
 
 The TSTL harness for {\tt pyfakefs} has been used to detect (and
-correct) over 80 faults.  However, the testing largely relies on
+correct) over 80 faults.  The harness can be found in the TSTL GitHub repository
+in the {\tt examples/pyfakefs} directory, and the bugs discovered can
+be viewed at \url{https://github.com/jmcgeheeiv/pyfakefs/issues?q=label%3ATSTL}.  However, the testing largely relies on
 the existence of a reference file system implementation.  One purpose
-of failure nondeterminism is to make it somewhat easier to perform
+of failure nondeterminism is to make it somewhat easier to perform effective
 property-based testing of
-complex APIs like this even without a reference implementation, or in cases
+complex APIs like this even without a complete reference implementation, or in cases
 where the implementations do not use the same error
 codes (as is common, e.g. in NASA flight software
 \cite{ICSEDiff,CFV08}).
