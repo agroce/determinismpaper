@@ -75,6 +75,38 @@ operator of the sorting algorithms, and checks that the results of
 {\tt sort\_parallel} calls are in fact sorted, using the {\tt
   swapsort}'s function for checking if a sequence is sorted.
 
+Running TSTL's random tester without checking for determinism, we can
+see that both sorting algorithms always produce sorted output.  If we run with {\tt --checkDeterminism --determinismDelay 0}, however, a
+test case showing the {\tt swapsort} behaving nondeterministically is
+almost instantly produced (it takes less than 3 seconds).  If we comment out the call to {\tt
+  swap\_sort\_parallel} and only check the parallel merge sort, however, TSTL
+finds no nondeterministic behavior.  Running tests of the merge sort
+with nondeterminism detection turned on results in a slowdown of approximately
+40\%.
+
+Reducing a lengthy test showing nondeterminism of the swapsort to a
+short test case using delta-debugging usually takes less than two
+minutes.  If the number of attempts to produce nondeterminism is
+increased in the reducer using the {\tt --determinismTries 10} option,
+the resulting test will be usually be very compact, e.g.:
+
+{\scriptsize
+\begin{code}
+data0 = []    
+val0 = 3      
+val1 = -9    
+data0.append((val0,val1)) 
+val2 = -1                         
+data0.append((val1,val2))
+data0.append((val1,val1))  
+sorted0 = swapsort.swap\_sort\_parallel(data0)      
+\end{code}
+}
+
+For this simple example, more sophisticated delta-debugging strategies
+are not needed; we only want to see the code behaving
+nondeterministically, and do not care about preserving a higher probability of nondeterminism.
+
 \subsection {Case Study: {\tt redis-py}}
 
 

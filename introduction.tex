@@ -148,11 +148,14 @@ special case of various kinds of \emph{horizontal} nondeterminism described belo
 
 
 This paper proposes (1) a number of formal definitions of types of
-nondeterminism (\emph{horizontal} and \emph{vertical}) and (2) an implementation, based on these definitions, for detecting and debugging
+nondeterminism (\emph{horizontal} and \emph{vertical}) (see Section \ref{sec:formal}) and (2) an implementation, based on these definitions, for detecting and debugging
 nondeterminism in property-based testing.  The implementation is based
 on an approach where (3) horizontal determinism is considered as a
-kind of \emph{reflexive differential testing} and (4) vertical
-determinism is specialized to the common case of \emph{failure determinsim}.
+kind of \emph{reflexive differential testing} (4) vertical
+determinism is specialized to the common case of \emph{failure
+  determinism}, and (5)  in both cases the formalism is made practical
+by using the \emph{value pool} model of unit tests to define a useful
+granularity for nondeterminism detection (see Section \ref{sec:pools}).
 We further propose modifications to the widely used delta-debugging algorithm in order to better handle
 nondeterminism as a test property.
 
