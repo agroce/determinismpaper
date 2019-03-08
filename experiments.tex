@@ -515,3 +515,37 @@ $(p < 1 \times 10^{-15})$.  While significant, this cost is probably
 too small to be of any real practical importance.
 
 \section{Threats to Validity}
+
+There are several primary threats to validity:  first, our empirical
+results are limited to a small set of Python programs, ranging from
+relatively small and simple to large and complex libraries; the
+representative nature of these subjects is not clear.
+Furthermore, because
+no other tools implement the kind of approach taken here, based on
+automated generation of value pool based unit tests for a system
+(imperative property-based testing), to our knowledge, we were unable
+to perform a meaningful comparison with another nondeterminism
+detection tool.  Available tools, such as DeFlaker
+(\url{http://www.deflaker.org/}), perform a completely different task (DeFlaker
+is essentially a plugin for Maven regression tests, and cannot check
+nondeterminism at any smaller granularity than that of a whole tests's
+pass/fail result) and target the Java language.  However, the primary
+aim of our results is to show 1) that nondeterminism at the library
+level can exist in real Python programs, 2) that it can be detected
+by an implementation of the formalism proposed in this paper, and 3)
+that the overhead for such detection, and cost to delta-debug
+nondeterministic tests, is not prohibitive.  We believe that the case
+studies show that users testing Python libraries, and concerned about
+nondeterminism, would find the TSTL tools useful, and would be able to
+detect and debug nondeterministic behavior using our approach, a
+functionality that we believe to be unique in the automated test generation
+literature (and supported in no other tool).
+
+Another threat to validity is posed by implementation errors.
+TSTL and the mutation tool are tested for bugs by a set of Travis CI
+tests, and are (for academic research code) moderately well-used by
+external users, making this a lesser concern.  The nondeterminism
+detected by TSTL can be demonstrated with standalone tests TSTL
+generates that do not depend on any TSTL code.
+The source code for the tools and all case studies is
+available for inspection and replication in the TSTL repository.
