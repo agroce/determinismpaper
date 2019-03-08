@@ -525,11 +525,16 @@ no other tools implement the kind of approach taken here, based on
 automated generation of value pool based unit tests for a system
 (imperative property-based testing), to our knowledge, we were unable
 to perform a meaningful comparison with another nondeterminism
-detection tool.  Available tools, such as DeFlaker
+detection tool.  Available tools, such as DeFlaker \cite{bell2018d}
 (\url{http://www.deflaker.org/}), perform a completely different task (DeFlaker
 is essentially a plugin for Maven regression tests, and cannot check
 nondeterminism at any smaller granularity than that of a whole tests's
-pass/fail result) and target the Java language.  However, the primary
+pass/fail result) and target the Java language.  iDFlakies
+\cite{idflakies}, similarly, ``does not further classify the causes of
+the flaky tests'' beyond identifying them as likely related to test
+order, or not.
+
+However, the primary
 aim of our results is to show 1) that nondeterminism at the library
 level can exist in real Python programs, 2) that it can be detected
 by an implementation of the formalism proposed in this paper, and 3)
@@ -539,7 +544,10 @@ studies show that users testing Python libraries, and concerned about
 nondeterminism, would find the TSTL tools useful, and would be able to
 detect and debug nondeterministic behavior using our approach, a
 functionality that we believe to be unique in the automated test generation
-literature (and supported in no other tool).
+literature (and supported in no other tool).  Comparison with a
+competing tool is not required to validate the basic idea, since
+precise empirical measurements of overheads, or improvements on an
+existing approach, are not proposed for evaluation.
 
 Another threat to validity is posed by implementation errors.
 TSTL and the mutation tool are tested for bugs by a set of Travis CI
