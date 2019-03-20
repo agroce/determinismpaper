@@ -1,0 +1,91 @@
+Dear associate editor and reviewers,
+
+We would like to thank the reviewers for their helpful comments.  We have addressed the comments, and submit a (much extended) revised version of the paper.
+
+At the high-level, this revision provides the following major changes:
+
+- We generally, throughout the paper, clarified the (obviously not clear in the first version) goal of our work, and how it relates to existing work on flaky-test detection.  In particular, we explain why comparison to all existing tools in the literature we are aware of is difficult or impossible due to fundamentally different purposes of the tools.
+
+- We added a full formal definition of our concepts in II.D, and used this to clarify a large number of points, including the details and motivation of our implementation and key challenges
+
+- We added sections IV.B and IV.C on the connection between TSTL's pool approach to test generation and the formalisms, and a short introduction to the TSTL language and tools
+
+- We added Section V, a simple complete example of both horizontal and vertical determinism that should make the concepts and implementation of the approach much more clear to readers
+
+- We added one additional case study, showing a parallel sort implementation that preserves output determinism and comparing to one that does not
+
+- We added further detail and experimental results to the existing redis-py case study
+
+- We added a section on threats to validity
+
+- We provided more complete information on replicating the results: TSTL and the nondeterminism tools, and the case studies, were all open source and hosted on GitHub as of the first submission (TSTL itself has been on GitHub since 2015, the nondeterminsm tools were added to the public code and the pip release before the paper was submitted); however the paper did not make this clear at all.  How to install and use the nondeterminism detection tools should now be clear.
+
+- We expanded related work to further clarify the position of this work, and compare to recent work/tools on flaky tests
+
+These changes are mostly motivated by reviewer comments.  We also answer specific reviewer questions below.
+
+Sincerely,
+Alex Groce and Josie Holmes,
+Northern Arizona University
+
+=================================================================
+
+Reviewer 1:
+
+"How many times is the system re-executed, and how was this count decided on? When TSTL compares the values (intermediate program state) to detect non-determinism, how does it know to ignore irrelevant values?"
+
+The default is to execute only one additional time, but this is fully under the control of the user, specified using the command line interface to tools, or using the API when programmed checking for nondeterminism is needed.  Adding OPAQUE annotations is probably easiest done in a simple feedback-driven manner:  initially run without any such annotations, produce (and delta-debug, if needed) tests showing nondeterminism, and mark pools as OPAQUE as needed.  Many cases, such as timestamps, will probably be obvious to users up front when developing a test harness.
+
+"How much effort is it for a developer to find and mark these opaque values? How many false positives occur if this step is skipped or done incorrectly?"
+
+The answer will greatly depend on the example.  In our experience, most harnesses do not have a huge number of pools, so that limits effort in general.  Many libraries will have no pools needing an OPAQUE label; even if there are logs, they may well not be stored in a pool for automated test generation.
+
+"How is ASLR a representative source of non-determinism? Aren’t these memory bugs VERY very easily checked (especially checking for reads of uninitialized memory)?"
+
+Valgrind etc. (or compiling with sanitizers if that's possible) often make this easy; ASLR is simply an example of process-level nondeterminism.  That said, in Python, such memory-nondeterminism often takes place at the level of C-implemented libraries, where recompiling may be difficult, and the overhead of running with Valgrind etc. may be prohibitive for automated test generation (Valgrind overhead is much larger than our overhead, though of course the detection is better!)  We believe the section on sources of nondeterminism is now somewhat more clear.
+
+"How does TSTL know what the probabilities are of non-deterministic behavior, and moreover, where those sources of non-determinism are? Is it important that this be correctly estimated?"
+
+TSTL knows nothing about nondeterminism other than what the formalism of differing pool values on re-execution tells it.  There is no need for estimating probabilties in detection -- either values are the same, or they are not.  There may be some need for users to know if nondeterminism is highly unlikely, and they need to re-run tests a large number of times, but this is outside the scope of TSTL, and really reflects the user's "tolerance" for possibly missing nondeterminism.  Delta-debugging automatically will retain the operations that produce (or are required for) nondeterminism, without any knowledge; it simply finds a subset of a test that retains the property of interest (exhibiting nondeterminism).
+
+"How representative are the case study bugs of all non-determistic bugs?"
+
+We think these capture major categories of nondeterminism, but in some sense each instance is idiosyncratic.  Performing a large-scale empirical study is difficult because only some libraries have a potential problem with nondeterminism, and a user must develop a TSTL test harness (to check for correctness, not nondeterminism) for each library.
+
+The evaluation-related questions are not all answered, but we believe the paper now makes clear why we focused on the questions we did, and what the purpose of this work is.
+
+=================================================================
+
+Reviewer 2:
+
+"As the authors recognize in the related work section, several papers have been studying automated solutions to deal with nondeterminism (e.g., all the methods able to locate flaky tests): can those previous techniques be employed instead of the one proposed in the paper? If so, how can they be adapted and how do they work when compared to the technique proposed in the paper?"
+
+We believe the place of our work in the larger context of flaky-test work should now be clear, and how it differs fundamentally from, e.g. DeFlaker etc.
+
+"For example, a simple yet widely used detection technique is to execute a test a number of times (e.g., ten times) and see whether the outcome from these executions is different. This aspect of flakiness may mean that checking the output values by means of differential testing might be not enough for detecting them all."
+
+In a way, this is exactly what our implementation is doing, with the number of re-executions controlled by the user, except the process of fine-grained comparison (vs. pass/fail which may need many more runs) is automated.
+
+As noted above, the tool is available on github at https://github.com/agroce/tstl; every example is found in the TSTL examples directory, and replicating our results should be a very simple matter of running the tool on these examples.
+
+"For instance, is the technique a valid option for being adopted in a continuous integration pipeline? If so, why? If not, could you please specificate how and in which development moment a practitioners should use it?"
+
+If you are using TSTL random testing in CI (which TSTL itself does, for example), then this is trivial to add to CI.  In general, the approach is simply another aspect of development, test execution, and debugging for applying automated test generation to Python libraries with TSTL.
+
+"For instance, the authors use ‘universalmutator’ for mutation analysis: why this choice rather than more widely used tools like, e.g., Pitest?"
+
+Pitest doesn't handle Python code.  To our knowledge, universalmutator is the best-supported mutation tool for Python available right now that supports scripted examination of the produced mutants.  The cosmic-ray project has become increasingly popular since we started this project, but seems to focus on running deterministic tests using a Python unit test framework, not interacting with TSTL or other command-line tools.
+
+"Is the set of mutants generalizable? What is the percentage of equivalent mutants present in the case study (or at least an estimation - the authors cannot determine precisely this information)?"
+
+The mutants will differ by mutation operator, but we expect the percent change in detected mutants to be similar.  The percentage of equivalent mutants is not known, though we used Trivial Compiler Equivalence on Python bytecode to throw out some of these.  The interest here is in additional mutants detected, so the absolute numbers of not percentages, should be independent of the equivalent mutant numbers.
+
+"The same lack of details is true when considering the selection of the systems used in the case studies (e.g., why are they suitable for the paper?)."
+
+They were chosen because redis-py is an example of a complex test harness that involves a system with limited nondeterminism that must be removed to produce regression tests, and pyfakefs is a good example of the kind of actual complex system where vertical nondeterminism is relevant. The other examples were more chosen to show particular kinds of nondeterminism.
+
+=================================================================
+
+Reviewer 3:
+
+No specific questions here, but the issues about readability and references directed out general re-write and reorganization.

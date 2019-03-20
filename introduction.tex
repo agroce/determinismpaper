@@ -142,7 +142,10 @@ Flaky tests are, for us, simply a special case of general test
 nondeterminism, where the nondeterminism of test values is sufficient
 to cause the pass/fail result of the test to vary.  The definitions
 and techniques proposed in this paper all apply to flaky tests, as a
-special case of various kinds of \emph{horizontal} nondeterminism described below.
+special case of various kinds of \emph{horizontal} nondeterminism
+described below.  Our focus, however, unlike all other tools and
+approaches we are aware of, is on detecting the \emph{sources} of
+flaky-ness \emph{before} they propagate to cause actual test failure.
 
 \subsection{Contributions:  Detecting and Debugging Nondeterminism}
 
