@@ -277,6 +277,7 @@ used Python libraries, the Python implementation itself, the Solidity
 compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
 
 \begin{figure}
+  {\scriptsize
 \begin{code}
 pool: <int> 5
 pool: <l> 5
@@ -296,6 +297,7 @@ pool: <s> 5
 property: len(<l>) >= len(set(<l,1>))
 property: len(<s>) == len(list(<s,1>))
 \end{code}
+}
 \caption{Simple TSTL harness testing lists and sets}
 \label{fig:simple}
 \end{figure}
@@ -502,7 +504,8 @@ property: len(contents()) == len(set(contents()))
 \label{fig:simpleexample}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
+  {\scriptsize
 \begin{code}
 import random
 
@@ -536,7 +539,8 @@ def getNewVal():
     while v in storage:
         v = random.randint(bot-1,top+1)
     return v
-\end{code}
+  \end{code}
+  }
 \caption{Code for Python library with (independent) vertical and
   horizonal nondeterminisms}
 \label{fig:simpleexamplecode}
@@ -587,6 +591,7 @@ as, e.g., regressions:
 }
 
 \begin{figure}
+ {\scriptsize
 {\bf quick.0.test:}
 \begin{code}
 self.p\_int[0] = getNewVal() 
@@ -602,6 +607,7 @@ self.p\_int[0] = -8
 store(self.p\_int[0]) 
 self.p\_int[0] = getNewVal() 
 \end{code}
+}
 \caption{Coverage maximizing tests for Python library with (independent) vertical and
   horizonal nondeterminisms}
 \label{fig:simpleexampletests}
@@ -677,7 +683,7 @@ to restrict the range of random values.
 
 \subsection{Vertical Nondeterminism}
 
-The {\tt storage.py} program also contains a (again, unrealistically
+The {\tt storage.py} program also contains an (again, unrealistically
 simple) example of \emph{vertical} nondeterminism.  The {\tt store}
 method is supposed to 1) allow only a single copy of a value to be in
 the storage and 2) to disallow negative values.  Unfortunately, the

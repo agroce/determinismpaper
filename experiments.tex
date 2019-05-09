@@ -317,7 +317,7 @@ influence future computation, final state nondeterminism may be almost useless.
 \subsection{Case Study: {\tt datarray} Inference Algorithms}
 
 
-\begin{figure*}
+\begin{figure}[t]
 {\scriptsize
 \begin{code}
 @import inference\_algs
@@ -341,21 +341,25 @@ pool: <event> 3
 <P> := 0.01 * <[0..100]>
 <ename> := "E" + str(<[1..5]>)
 \{Exception\} <event> := datarray.DataArray(psplit(<P>), axes = [<ename>])
-\{Exception\} <ename,1>!=<ename,2> -> <event> := [datarray.DataArray([[psplit(<P>)],psplit(<P>)],[<ename>,<ename>])]
+\{Exception\} <ename,1>!=<ename,2> -> <event> := [datarray.DataArray([[psplit(<P>)],
+   psplit(<P>)],[<ename>,<ename>])]
 <cpts> := []
 ~<cpts>.append(<event>)
 <evidence> := \{\}
 ~<evidence>.update([(<ename>,0)])
 \vspace{0.1in}
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,<evidence>)))
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,<evidence>)))
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_jtree(<cpts>,<evidence>)))
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,
+   <evidence>)))
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,
+   <evidence>)))
+\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_jtree(<cpts>,
+   <evidence>)))
 \end{code}
 }
 \caption {Complete TSTL harness for finding the hash-order bug in the datarray
   inference algorithms.}
 \label{hashbug}
-\end{figure*}
+\end{figure}
 
 The {\tt datarray} module \cite{datarray} is a prototype
 implementation for numpy arrays with named axes to improve data
