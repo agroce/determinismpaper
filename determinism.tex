@@ -6,7 +6,11 @@
 % 
 %\documentclass[format=sigconf]{acmart}
 %\documentclass[conference]{IEEEtran}
-\documentclass[10pt,conference]{IEEEtran}
+%\documentclass[elsarticle]
+%\documentclass[preprint,12pt,authoryear]{elsarticle}
+\documentclass[preprint,12pt]{elsarticle}
+
+
 
 % \documentclass[pldi-cameraready]{sigplanconf-pldi16}
 
@@ -63,21 +67,26 @@
 
 \begin{document}
 
+\begin{frontmatter}
+
 \title{Does It Always Do That?  Practical Automatic Lightweight Nondeterminism
   and Flaky Test
   Detection and Debugging for Python Libraries}
 
 
-\author{
-\IEEEauthorblockN{Alex Groce}
-\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
-Northern Arizona University\\
-Email: agroce@gmail.com}
-\and
-\IEEEauthorblockN{Josie Holmes}
-\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
-Northern Arizona University\\
-Email: josie.holmes@nau.edu}}
+%\author{
+%\IEEEauthorblockN{Alex Groce}
+%\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
+%Northern Arizona University\\
+%Email: agroce@gmail.com}
+%\and
+%\IEEEauthorblockN{Josie Holmes}
+%\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
+%Northern Arizona University\\
+%Email: josie.holmes@nau.edu}}
+
+\author{Alex Groce}
+\author{Josie Holmes}
 
 %
 % any author declaration will be ignored  when using 'pldi' option (for double blind review)
@@ -109,13 +118,18 @@ Email: josie.holmes@nau.edu}}
 
 %\keywords{mutants, distance metrics, fault identification/localization}
 
-\maketitle
+%\maketitle
 
 
 \begin{abstract}
 \input{abstract}
 \end{abstract}
 
+\begin{keyword}
+determinism, flaky tests, library testing, specification mechanisms
+\end{keyword}
+
+\end{frontmatter}
 
 \input{introduction}
 \input{concepts}

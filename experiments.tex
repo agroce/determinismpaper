@@ -112,19 +112,19 @@ nondeterministically, and do not care about preserving a higher probability of n
 
 \begin{figure*}
 \centering 
-\begin{subfigure}{0.67\columnwidth}
+\begin{subfigure}{0.3\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisddmin}
 \caption{Standard delta-debugging (38s)}
 \label{fig:r1}
 \end{subfigure}
-\begin{subfigure}{0.67\columnwidth}
+\begin{subfigure}{0.3\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisforcep}
 \caption{P=0.5, 100 samples (2131s)}
 \label{fig:r2}
 \end{subfigure}
-\begin{subfigure}{0.67\columnwidth}
+\begin{subfigure}{0.3\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{redisforceprep}
 \caption{P=0.5, 10 samples, 10 replications (617s)}
@@ -200,6 +200,7 @@ nondeterministic behavior, and
 over 10 minutes.
 
 \begin{figure*}
+{\scriptsize
 \begin{code}
 {\bf REMOVED:}    
 <key> := <r>.randomkey() 
@@ -223,6 +224,7 @@ over 10 minutes.
 {\bf $\Rightarrow$}
 \{redis.exceptions.ResponseError\} <pipe>.restore(<key>,0,<dump>)
 \end{code}
+}
 \caption{{\tt redis-py} calls removed or changed to avoid
   nondeterminism.}
 \label{fig:flakysource}
