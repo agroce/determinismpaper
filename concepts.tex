@@ -237,7 +237,7 @@ A pair of traces $(t_1, t_2)$ where $t_1 = s^1_0
 \xrightarrow[]{\alpha^1_{n-1}} s^1_n$ and $t_2 = s^2_0
 \xrightarrow[]{\alpha^2_0} s_1 \xrightarrow[]{\alpha^2_1} \ldots
 \xrightarrow[]{\alpha^2_{n-1}} s^2_n$ are said to show \emph{visible value
-  determinism} if $\exists i > 0$ such that: $\forall j < i . \alpha^1_j = \alpha^2_j \wedge
+  nondeterminism} if $\exists i > 0$ such that: $\forall j < i . \alpha^1_j = \alpha^2_j \wedge
 v(s^1_j) = v(s^2_j)$ but $v(s^1_i) \neq v(s^2_i)$.  \emph{Final state
   nondeterminism} is defined in the same way, except with the
 restriction that $i = n$.  A pair of traces may exhibit visible value
@@ -254,7 +254,11 @@ actions.  A trace $t s_0
 \xrightarrow[]{\alpha_{n-1}} s_n$ shows \emph{vertical nondeterminism
   with respect to idempotent operations} if $\exists i < n$ such that
 $\alpha_i \in \mathcal{I} \wedge \alpha_i = \alpha_{i+1}$ and $v(s_{i+1})
-\neq v(s_{i+2})$.
+\neq v(s_{i+2})$.  Note that vertical nondeterminism may exhibit only
+after a sequence of more than two successive applications of a (supposedly)
+idempotent operation; the definition only requires that after \emph{some}
+sequence of actions, possibly with $\alpha_{i-1} = \alpha_i$, the
+visible state changes.
 
 To define failure nondeterminism, we extend the
 transition relation to include a notion of \emph{failure}: $T \subseteq S
@@ -263,13 +267,16 @@ whether the action \emph{failed}.  A trace $t = s_0
 \xrightarrow[]{\alpha_0} (s_1, F_0) \xrightarrow[]{\alpha_1} \ldots
 \xrightarrow[]{\alpha_{n-1}} (s_n, F_n)$ shows \emph{failure
   nondeterminism} if $\exists i$ such that $F_{i+1}$ (that is,
-$\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$ or (2)
-$\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$.  The second possibility
-captures our more lightweight approach to checking for failure
-nondeterminism.  Note that unlike all of the other ways to demonstrate
-nondeterminism, this second type of failure nondeterminism does not
+$\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$
+(the visible state changes) or (2)
+$\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$ (the same action is
+repeated, but this time does not fail).  The second possibility
+offers a \emph{lightweight} approach to checking for failure
+nondeterminism.  Unlike all of the other ways to demonstrate
+nondeterminism we consider, this second type of failure nondeterminism does not
 require the use of $v$, or even the notion of observable components of
-a state, or (for that matter) any comparison of states.
+a state, or (for that matter) any comparison of states.  It only
+requires that we be able to say whether an operation failed.
 
 A further point to emphasize is that while horizontal determinism
 requires two traces, it does not require a test generation algorithm
@@ -290,6 +297,15 @@ Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
   binary-search that distinguishes delta-debugging \emph{per se}; the
   differences are immaterial for our purposes.}  is a widely used method for reducing the
 size of failing tests, making them easier to understand and debug.
+The core idea of delta-debugging is to take a test that satisfies some
+property (usually the property is ``it fails in a particular way'')
+and produce a smaller test that satisfies the same property.
+Delta-debugging, as proposed by Zeller and Hildebrandt, relies on a
+modified binary search to produce this smaller test, though the
+following discussion relies only on the general structure of
+delta-debugging, and also applies to the greedy algorithms used to
+reduce failing tests in some work \cite{CReduce,onetest}.
+
 Delta-debugging in the context of detecting nondeterminism has two
 purposes.  One is simply the usual goal of reducing the size of a
 test.  Identifying the cause of nondeterminism may be very easy in a
