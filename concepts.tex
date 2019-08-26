@@ -304,7 +304,30 @@ Delta-debugging, as proposed by Zeller and Hildebrandt, relies on a
 modified binary search to produce this smaller test, though the
 following discussion relies only on the general structure of
 delta-debugging, and also applies to the greedy algorithms used to
-reduce failing tests in some work \cite{CReduce,onetest}.
+reduce failing tests in some work \cite{CReduce,onetest}.  At a high
+level delta-debugging and other test reduction/shrinking algorithms
+can be seen as following a general algorithmic structure.  Given a
+test case, $T_{\mathit{INIT}} : \mathit{test}$ and a predicate $\mathit{PRED}: \mathit{test} \rightarrow \mathit{bool}$
+
+\begin{enumerate}
+\item $T_{\mathit{CURR}} = T_{\mathit{INIT}}$
+\item Let $T_{\mathit{NEXT}} =$ a variation of $T_{\mathit{CURR}}$
+  that has not yet been tried.  If there are no further variations of
+  $T_{\mathit{CURR}}$, stop and return $T_{\mathit{CURR}}$ as the
+  reduced test.
+\item Add $T_{\mathit{NEXT}}$ to the set of variations that have been
+  tried.
+\item If $\mathit{PRED}(T_{\mathit{NEXT}})$, set $T_{\mathit{CURR}} =
+  T_{\mathit{NEXT}}$.
+\item Go to 2.
+\end{enumerate}
+
+The behavior of a particular algorithm for reducing a test can usually
+be specified simply be elaborating the construction and ordering of
+the variations considered.  For our purposes, the essential point is
+to note that any such algorithm will apply $\mathit{PRED}$ to a
+potentially very large number of tests.
+
 
 Delta-debugging in the context of detecting nondeterminism has two
 purposes.  One is simply the usual goal of reducing the size of a
