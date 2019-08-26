@@ -1,0 +1,159 @@
+Ms. Ref. No.:  JSS-D-19-00422
+Title: Does It Always Do That?  Practical Automatic Lightweight Nondeterminism and Flaky Test Detection and Debugging for Python Libraries
+Journal of Systems and Software
+
+Dear Professor Alex Groce,
+
+Reviewers have now commented on your paper. You will see that they are advising that you revise your manuscript. If you are prepared to undertake the work required, I would be pleased to reconsider my decision.  Please submit the revised version of your manuscript by Sep 16, 2019. If you want more time for revising, please don't hesitate to contact me.
+
+In your revision, take special care to improve section 6, as both reviewers identified substantial problems in its organization and presentation.
+
+For your guidance, reviewers' comments are appended below.
+
+If you decide to revise the work, please submit a list of changes or a rebuttal against each point which is being raised when you submit the revised manuscript.
+
+To submit a revision, please go to https://ees.elsevier.com/jss/ and login as an Author. 
+Your username is: agroce@gmail.com 
+If you need to retrieve password details, please go to: 
+http://ees.elsevier.com/jss/automail_query.asp
+
+NOTE: Upon submitting your revised manuscript, please upload the source files for your article. For additional details regarding acceptable file formats, please refer to the Guide for Authors at: http://www.elsevier.com/journals/the-journal-of-systems-&-software/0164-1212/guide-for-authors
+
+When submitting your revised paper, we ask that you include the following items:
+
+Manuscript and Figure Source Files (mandatory)
+
+We cannot accommodate PDF manuscript files for production purposes. We also ask that when submitting your revision you follow the journal formatting guidelines.  Figures and tables may be embedded within the source file for the submission as long as they are of sufficient resolution for Production.For any figure that cannot be embedded within the source file (such as *.PSD Photoshop files), the original figure needs to be uploaded separately. Refer to the Guide for Authors for additional information.
+http://www.elsevier.com/journals/the-journal-of-systems-&-software/0164-1212/guide-for-authors
+
+Highlights (mandatory)
+
+Highlights consist of a short collection of bullet points that convey the core findings of the article and should be submitted in a separate file in the online submission system. Please use 'Highlights' in the file name and include 3 to 5 bullet points (maximum 85 characters, including spaces, per bullet point). See the following website for more information 
+http://www.elsevier.com/highlights
+
+Graphical Abstract (optional)
+
+Graphical Abstracts should summarize the contents of the article in a concise, pictorial form designed to capture the attention of a wide readership online. Refer to the following website for more information: http://www.elsevier.com/graphicalabstracts
+
+On your Main Menu page is a folder entitled "Submissions Needing Revision". You will find your submission record there. 
+
+Please note that this journal offers a new, free service called AudioSlides: brief, webcast-style presentations that are shown next to published articles on ScienceDirect (see also http://www.elsevier.com/audioslides). If your paper is accepted for publication, you will automatically receive an invitation to create an AudioSlides presentation.
+
+Journal of Systems and Software features the Interactive Plot Viewer, see: http://www.elsevier.com/interactiveplots. Interactive Plots provide easy access to the data behind plots. To include one with your article, please prepare a .csv file with your plot data and test it online at http://authortools.elsevier.com/interactiveplots/verification before submission as supplementary material.
+Data in Brief (optional) 
+
+We invite you to convert your supplementary data (or a part of it) into a Data in Brief article. Data in Brief articles are descriptions of the data and associated metadata which are normally buried in supplementary material. They are actively reviewed, curated, formatted, indexed, given a DOI and freely available to all upon publication. Data in Brief should be uploaded with your revised manuscript directly to Journal of Systems and Software. If your Journal of Systems and Software research article is accepted, your Data in Brief article will automatically be transferred over to our new, fully Open Access journal, Data in Brief, where it will be editorially reviewed and published as a separate data article upon acceptance. The Open Access fee for Data in Brief is $500. 
+
+Please just fill in the template found here: https://www.elsevier.com/__data/assets/word_doc/0004/215779/Datainbrief_template.docx. Then, place all Data in Brief files (whichever supplementary files you would like to include as well as your completed Data in Brief template) into a .zip file and upload this as a Data in Brief item alongside your Journal of Systems and Software revised manuscript. Note that only this Data in Brief item will be transferred over to Data in Brief, so ensure all of your relevant Data in Brief documents are zipped into a single file. Also, make sure you change references to supplementary material in your Journal of Systems and Software manuscript to reference the Data in Brief article where appropriate.
+
+Questions? Please send your inquiries to dib@elsevier.com. Example Data in Brief can be found here: http://www.sciencedirect.com/science/journal/23523409
+MethodsX file (optional)
+
+If you have customized (a) research method(s) for the project presented in your Journal of Systems and Software article, you are invited to submit this part of your work as MethodsX article alongside your revised research article. MethodsX is an independent journal that publishes the work you have done to develop research methods to your specific needs or setting. This is an opportunity to get full credit for the time and money you may have spent on developing research methods, and to increase the visibility and impact of your work. 
+
+How does it work?
+1)      Fill in the MethodsX article template: https://www.elsevier.com/MethodsX-template
+2)      Place all MethodsX files (including graphical abstract, figures and other relevant files) into a .zip file and upload this as a 'Method Details (MethodsX) ' item alongside your revised Journal of Systems and Software manuscript. Please ensure all of your relevant MethodsX documents are zipped into a single file. 
+3)       If your Journal of Systems and Software research article is accepted, your MethodsX article will automatically be transferred to MethodsX, where it will be reviewed and published as a separate article upon acceptance.  MethodsX is a fully Open Access journal, the publication fee is only 520 US$. 
+
+Questions?  Please contact the MethodsX team at methodsx@elsevier.com.  Example MethodsX articles can be found here: http://www.sciencedirect.com/science/journal/22150161
+
+Include interactive data visualizations in your publication and let your readers interact and engage more closely with your research. Follow the instructions here: https://www.elsevier.com/authors/author-services/data-visualization to find out about available data visualization options and how to include them with your article.
+
+MethodsX file (optional)
+We invite you to submit a method article alongside your research article. This is an opportunity to get full credit for the time and money you have spent on developing research methods, and to increase the visibility and impact of your work. If your research article is accepted, your method article will be automatically transferred over to the open access journal, MethodsX, where it will be editorially reviewed and published as a separate method article upon acceptance. Both articles will be linked on ScienceDirect. Please use the MethodsX template available here when preparing your article: https://www.elsevier.com/MethodsX-template. Open access fees apply.
+
+
+Yours sincerely,
+
+Earl Barr
+Area Editor
+Journal of Systems and Software
+
+Reviewers' comments:
+
+
+Reviewer #1: The paper addresses the problem of flaky tests due to nondeterministic behaviours in the software under test.
+Authors mainly focused their work "on detecting the sources of flaky-ness before they propagate to cause actual test failure. "
+The paper presents an in depth description about determinism and a set of formal definitions of two types of nondeterminism i.e. horizontal and vertical. Exploiting these formal definitions authors present a practical lightweight technique aimed to detect nondeterminism in the system under test. The technique was implemented in the TSTL system, that is an open-source language and a tool for property-based testing of Python code. 
+The approach and the tool were evaluated in an experiment.
+
+In the following I will describe the strengths and weaknesses of the paper.
+
+Strengths:
+
+*       The paper addresses a very interesting topic that is relevant to the readers of the journal.
+
+*       The paper well explains the concepts of horizontal and vertical nondeterminism. Sections 1 and 2 are clear and well written, only some minor changes are needed.
+
+*       The implemented TSTL system can be downloaded and authors presents a brief description on how it can be used.
+
+Weaknesses:
+
+1.      I think that the second part of the section presenting the Formalism should be improved. 
+
+a.      Page 12 second line visible value determinism, probably it is visible value nondeterminism.
+
+b.      Please improve the formal definition of failure nondeterminism.
+
+c.      In vertical determinism why do you not consider multiple consecutive execution of the same step? Could be a limitation of the approach the fact that you consider only two consecutive executions of a step?
+
+2.      I think that section 3 should be improved since many sentences are not clear and many terms are not explained at all. As a consequence this section is very difficult to be read and understood differently from previous sections that are very clear.
+
+3.      In my opinion Section 4 should be restructured and improved substantially. It now reports many low level technical details but it does not show the design choices you made for implementing the technique. You should show the problems you faced with and the solutions you adopted for solving them, along with the limitation of the tool. Like section 3, this section is very difficult to be read and understood, since it does not describe how the technique was implemented in the tool.
+
+4.      I would suggest the authors to improve the organization of section 6. It is not clear whether it is an evaluation or a case study. It seems a bit confusing. Please consider the papers of Runeson (Runeson P, Host M, Rainer A, Regnell B. Case Study Research in Software Engineering: Guidelines and Examples, 1st ed. Hoboken, NJ, USA: Wiley Publishing; 2012, Claes Wohlin, Per Runeson, Martin Hst, Magnus C. Ohlsson, Bjrn Regnell, and Anders Wessln, Experimentation in Software Engineering. Springer Publishing Company, Incorporated.) to organize the evaluation section. More precisely, you should define the goal of the experiment before you present the research questions. Then, the metrics you intend to measure for answering the research questions should be introduced along with the inclusion and exclusion criteria you exploited to select the objects and the subjects (if any). After, the experimental procedure you followed has to be described and the analysis of the collected data
+has to be discussed. At the end, a precise answer for each research question should be reported on the basis of the data analysis.
+
+
+
+
+
+Reviewer #2: The paper presents a technique extending an existing testing system, TSTL (a language and tool for property-based testing of Python code), to check for and detect non-deterministic behaviours, in order to reduce flaky tests and, more generally, non-deterministic failures. The authors aim at detecting and (support the) debugging of the source of nondeterminism before it causes failure. They first defines the  concepts  of horizontal and vertical non-determinism, which are interesting, and then use these concepts as support for their implementation and analysis. They also modify delta-debugging for test reduction in order to support debugging of non-determinstic behaviour. The approach  is tested in on some Python libraries. 
+
+Strength
+
+The approach is a new way of dealing with the problem, different from recent literature (e.g., DeFlaker) and on code/test smells literature, although less general. 
+
+The implementaiton of horizontal nondeterminism detection, based on changes of the values generated by automated testing not implying a change in the test or the code under test (tagged as source of potential flakiness), is actually different from simply repeating the test and form the DeFlaker approach too. Vertical nondeterminism is less original, as it repeats the step expected to raise an exception, but such level of granularity seems to be not treated in the literature, and identifying such a statement corresponds to directly find the source of non-determinism (unlike the case of repeating an entire test twice). 
+
+I also like the framing of the flaky tests problem in a wider scope (including bug reproducibility studies) and support the vertical vs horizontal non-determinism with the consequent formal definition. These not only help the explanation of the approach presented in the subsequent sections, but can be a good reference for future works in this area. 
+
+The tool is available and this is important too. 
+
+Thus, from the originality and the contribution point of view, this is a good piece of work in my opinion. 
+
+
+Weaknesses 
+
+The presentation in some points can be improved especially in the core part, especially for the length of the paper. For instante, Sections 4.4, 4.5. 4.6 e 4.7 would benefit from an overview as these are the actual mechanisms implemented.   
+Delta debugging should be briefly introduced before discussing it in your context. 
+
+But the most important improvements are required in the experimental evaluation section. 
+
+There is a lot of material but presented in a confusing way. 
+After the overall goal of the evaluation (beginning of Section 6), I miss a clear explanation of the experimental procedure (possibly, applicable to all the case studies) and of the considered evaluation metrics. 
+
+Within the subsections, there is not homogeneity in presenting the results, namely not all of them present the same information in the same way; metrics, e.g., accuracy, possible coverage reduction, time overhead, scalability are mentioned in the various case studies, but in a spotted and unstructured way, making a bit hard to follow the overall rationale. 
+There is no Table and Figure to support the data visualisation, which could help catching the results. 
+
+It should be explained why mutation analysis is used for vertical non-detemrinsm only. 
+
+A drawback is that there is no comparison with competing approaches mentioned at the beginning of the paper (e.g., DeFlaker). This should be motivated. 
+
+Sensitivity analysis for investigating the sensitivity of the results (accuracy vs cost) with respect to configuration options, although not necessary, would be appreciated. 
+
+Some more detail is required in Section 6.2: 12 hours for generating the flaky tests could be not a little amount, as it of course depends on the duration of the original test suite. In general, it is not possible to say if the result is good compared to repeating *n* times the same test without indication on the test duration (the latter would support the claim made at the end "The overhead for such determinism checks, with no delay between operations, is only 20%, much lower than the expected cost of running each test twice").
+
+A final overview of results obtained with respect to initial claims is needed. 
+
+
+
+
+
+
+
+
+
+
+For further assistance, please visit our customer support site at http://help.elsevier.com/app/answers/list/p/7923. Here you can search for solutions on a range of topics, find answers to frequently asked questions and learn more about EES via interactive tutorials. You will also find our 24/7 support contact details should you need any further assistance from one of our customer support representatives.
