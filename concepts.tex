@@ -329,7 +329,9 @@ delta-debugging, and also applies to the greedy algorithms used to
 reduce failing tests in some work \cite{CReduce,onetest}.  At a high
 level delta-debugging and other test reduction/shrinking algorithms
 can be seen as following a general algorithmic structure.  Given a
-test case, $T_{\mathit{INIT}} : \mathit{test}$ and a predicate $\mathit{PRED}: \mathit{test} \rightarrow \mathit{bool}$
+test case, $T_{\mathit{INIT}} : \mathit{test}$ and a predicate
+$\mathit{PRED}: \mathit{test} \rightarrow \mathit{bool}$, we
+\emph{reduce $T_{\mathit{INIT}}$ with respect to $\mathit{PRED}$} as follows:
 
 \begin{enumerate}
 \item $T_{\mathit{CURR}} = T_{\mathit{INIT}}$
@@ -362,27 +364,27 @@ delta-debugging also tends to \emph{change the probability of
   nondeterministic behavior}; this can be both harmful and
 beneficial.  The behavior is part of a more general (and, to our
 knowledge, not previously investigated) issue:  using delta-debugging
-to minimize a test with respect to a predicate that only holds with a
+to minimize a test with respect to a predicate $\mathit{PRED}$ that only holds with a
 certain probability (the predicate itself is nondeterministic).  Note
 that while most descriptions of delta-debugging discuss reducing a
 test with respect to \emph{test failure} (hence the term
 ``delta-\emph{debugging}'') we adopt the wider view of delta-debugging
 as reducing the length of a test while maintaining that an arbitrary
 predicate remains true of the shorter versions of the test.  The
-traditional predicate is ``the test fails'' but other predicates,
+most common $\mathit{PRED}$ is still ``the test fails'' but other predicates,
 especially those related to code-coverage, can also be useful
 \cite{icst2014,stvrcausereduce,NonAdeq}.  Our contribution here is to consider
-what happens when the predicate to be evaluated is not deterministic.
-``The test behaves flakily'' is a simple, important, example of such a predicate.
+what happens when $\mathit{PRED}$ not deterministic.
+``The test behaves flakily'' is a simple, important, example of such a $\mathit{PRED}$.
 
 In \emph{monotonic} probabilistic delta-debugging, removing a part of a test cannot
 increase the probability of the predicate holding.  This is fairly
 common.  In these cases, when we use a reduction algorithm to reduce $t$
-to $r$, $P(pred(r)) \leq P(pred(t))$.  In \emph{non-monotonic} cases,
+to $r$, $P(\mathit{PRED}(r)) \leq P(\mathit{PRED}(t))$.  In \emph{non-monotonic} cases,
 however, there is no such upper bound.  Removing a step in $t$ may
 increase the probability that $t$ behaves nondeterministically.
 
-The probabilistic predicate of interest for determinism is basically of
+The $\mathit{PRED}$ of interest for horizontal determinism is basically of
 the form:  {\bf the test will exhibit at least two different behaviors in $S$
 runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
@@ -391,7 +393,7 @@ The only absolutely necessary changes required to use standard
 delta-debugging implementations in nondeterminism detection
 are simply removal of some ``sanity checks'' in the code:  many
 implementations (including the Python code provided by Zeller) assert
-that the predicate holds on the original test.  In probabilistic
+that $\mathit{PRED}$ holds on the original test.  In probabilistic
 settings, this may not be true, and we may even be trying to find a
 subset where a predicate that is very far from holding on the original test
 holds (in a non-monotonic case where we aim to increase the probability
@@ -423,23 +425,27 @@ of nondeterminism).
 \caption{Delta-debugging of the same simple test}
 \end{figure*}
 
-However, simply using delta-debugging off the shelf with a predicate
-like $P(fail) > 0.3 \wedge P(fail) < 1.0$, to force a test to be flaky, and force it to fail
+However, simply using delta-debugging off the shelf with a $\mathit{PRED}$
+such as $P(fail) > 0.3 \wedge P(fail) < 1.0$, to force a test to be flaky, and force it to fail
 sufficiently often to be used in debugging, will often produce
 surprising and unfortunate results.  In many cases,
 delta-debugging will indeed reduce the large test to a small subset.
 And, in a technical sense, delta-debugging will work:  it will never
 convert a nondeterministic test to a completely deterministic test,
-because the reduced test that delta-debugging returns is always one
-where the predicate of interest has been seen to evaluate to true.
+because the reduced test $r$ that delta-debugging returns is always one
+such that $\mathit{PRED}(r)$ has evaluated to true at least once.
 However, if you run the resulting test, it will, in many cases, have a
 $P(fail)$ that is much, much smaller than
 0.3, perhaps as low as 0.01.  Why?
 
 The problem is analogous to the problem of publication bias in
-scientific fields \cite{ahmed2012assessment}.  A predicate like
+scientific fields \cite{ahmed2012assessment}.  We can think of each
+application of $\mathit{PRED}$ to a candidate variant
+$T_{\mathit{NEW}}$ as a scientific experiment.  A predicate like
 $P(fail) > 0.3 \wedge P(fail) < 1.0$ cannot be evaluated by
-determining the true probability of failure; rather, the test must be
+determining the true probability of failure, we have no more direct access to
+this value than a medical researcher has access to the true effect
+size and direction of a proposed treatment; rather, the test must be
 run some concrete number of times, and the number of failures counted.
 However, even if the number of samples $N$ is large, there is some
 probability (based on the sample size) of a result that diverges
@@ -449,16 +455,49 @@ large, this would not matter.  However, by their nature,
 delta-debugging and other test reduction algorithms explore a search
 space that often contains hundreds or even thousands or millions of
 candidate tests.  The predicate is evaluated on each of these, and so
-even with large $N$, it is extremely likely that some evaluation will
+even with large $N$, it is extremely likely that \emph{some} evaluation will
 produce a very poor estimate of $P(fail)$.  If such an evaluation
 causes the predicate to appear to hold for a test, delta-debugging is
 ``stuck'' with the error, because (to our knowledge) no test reduction
-algorithms allow backtracking.  After such a mistake, finding further
+algorithms allow backtracking (in normal, non-probabilistic settings,
+backtracking would not usually be useful).  After such a ``mistake,'' finding further
 reductions will become harder, but may still be possible due to the
-same source of errors:  the number of experiments run is far larger
-than the probability of an incorrect result.
+same source of errors:  \emph{the number of experiments run is far larger
+  than the probability of an incorrect result for a single
+  experiment}.  We define a \emph{false positive} in probabilistic
+delta debugging as a case where $\mathit{PRED}$ evaluates to true, but
+the actual probabilities required by $\mathit{PRED}$ do not hold, and
+a false negative to be the reverse, where ``bad luck'' makes it appear
+that the test does not satisfy $\mathit{PRED}$, but it does in fact do
+so.  A false negative's consequences are limited, since there will
+likely be another similar variation for which  $\mathit{PRED}$ will
+evaluated to true, but a false positive changes $T_{\mathit{CURR}}$.
 
-
+The analogy to publication bias is simple.  Assume that a paper in,
+e.g., a medical journal will only be published if it shows that a
+treatment is effective, with the statistical requirement that $p <
+0.05$ (that is, roughly, by some statistical test, the probability
+that the result is due to chance rather than reflecting reality, is
+less than 5\%).  Even if no researchers are dishonest, 5 of every 100 papers published
+in the journal will be report an effect with the wrong effect size or
+even effect direction!  Now consider a ``hot'' topic, a kind of
+treatment many research teams may investigate.  Major journals tend
+not to publish papers that say ``this new treatment, which is not
+established, may not work,'' (especially if the result is not ``the
+treatment certainly does not work'' but only ``the experiment did not
+establish $p < 0.05$''), but they  are very likely to publish a paper
+that says ``this exciting new treatment works!''  In addition to
+sometimes producing excitement about treatments that do not work, this
+bias tends to magnify the expected effect size of treatments, since
+the chance of getting a ``passing'' $p$-value is higher when an
+experiment finds a larger effect size, due to how most statistical
+tests work.
+The \emph{bias} in
+favor of positive results is shared by delta-debugging;
+delta-debugging's behavior is much more influenced by cases where
+$\mathit{PRED}$ holds than cases where it does not.  Looking at the
+literature, the unpublished papers are invisible, magnifying the
+effect on scientific opinion of the published experiments.
 
 It is the combination of
 a one-way bias on faulty evaluations (the consequences of a false
@@ -481,7 +520,7 @@ problematic operations.
 
 In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to
-minimize the probability that a result is a fluke due to publication
+minimize the probability that a direction or effect size is a fluke due to publication
 bias.  One way to produce this effect would be to allow
 delta-debugging to backtrack if the probabilities observed in predicate
 evaluations suddenly exhibit a strong discontinuity, a kind of ``paper
@@ -494,21 +533,32 @@ evaluated.
 
 A costly but effective solution is to make $N$ large in comparison to
 the number of expected predicate evaluations performed during
-delta-debugging.  If the error rate is low enough, the problem
-disappears.  However, given the large number of evaluations performed,
+delta-debugging.  However, given the large number of evaluations performed,
 this will tend to make delta-debugging extremely slow.  We propose
 using a dynamic sampling approach, where $N$ is small, but if the
 predicate evaluates to true, $M$ repeated true evaluations
 (``replications'', where the first true evaluation is counted as 1 replication) are
 required before the predicate returns ``true'' to the delta-debugging
-algorithm.  A set of $M$ repeated false positives with
+algorithm.  To evaluate the predicate $\mathit{PRED}$ given $N$,
+$M$, and desired probability threshold $p$, the algorithm is simple:
+
+\begin{enumerate}
+  \item  $i = 0$
+  \item Evaluate $\mathit{PRED}$ $N$ times.  If the number of cases
+  where $\mathit{PRED}$ was true is less than $p$, return false.
+  \item  $i = i + 1$
+  \item If $i < M$ go to step 1.
+  \item  Return true.
+\end{enumerate}
+
+A set of $M$ repeated false positives with
 $\frac{N}{M}$ samples each is much less likely than a false positive
 with $N$ samples; so long as we accept the resulting bias in favor of
 false negatives, we can therefore produce a reduced test with a
 desired $P(fail)$ much more cheaply:  the use of replications not only
 means we only pay the full sampling price on rare occasions, but a
 desired accuracy for $P$ can be obtained with a much smaller value $M
-\times N$ than a non-dynamically-sampled $N$.  For example, if we the predicate
+\times N$ than a non-dynamically-sampled $N$.  For example, if $\mathit{PRED}$
 is $P(fail) \geq 0.5$, and the true probability for a candidate test
 is 0.25, using $N=8$ will give a false positive rate of over 10\%.
 Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
@@ -530,8 +580,6 @@ probabilities, and the speed and effectiveness of delta-debugging.
 Because increasing $M$ makes false negatives more likely, larger $M$
 will usually result in less-than-optimal reduction of the original
 test.
-
-
 
 To make the basic concepts, more clear, Figures
 \ref{fig:p1}-\ref{fig:p3} graphically show the interplay of
