@@ -126,9 +126,8 @@ can automatically identify a limited kind of idempotent behavior?
 A specialized case of vertical determinism is failure determinism.
 Failure determinism is the following restriction on an API:
 
-{\bf If a call fails, and indicates this to the caller, it should not modify system
-  state in any way.  Changes made before the failure should be rolled
-  back.} 
+{\bf If a call \emph{fails}, and indicates this to the caller, it should not modify system
+  state in any way; changes should be ``rolled back.''} 
 
 In other words, failure determinism is a property stating that an API
 is \emph{transactional} with respect to failures (it may not be so
@@ -153,8 +152,9 @@ written, and does not set a failure code.
 
 In languages with a clear mechanism for expressing failure of a call
 (e.g., exceptions in Python and Java, or Option/Result types in Rust,
-Haskell, and ML), failure determinism can be automatically checked.
-Moreover, the expected overhead should be even lower than the general
+Haskell, and ML), failure determinism can be automatically checked,
+given a notion of general vertical determinism.
+Moreover, the expected overhead should be even lower than the usual
 overhead for vertical determinism, in that we can expect most failing
 operations to be fast (since in test generation, failure is usually
 due to invalid parameters).  Checking equivalence of the full
@@ -164,7 +164,9 @@ will show) still quite powerful way of checking for failure nondeteterminism is 
 repeat the failing operation, and check if it still fails.  If not,
 this is a sign that the operation is not deterministic with respect to
 failure.  Note that this more restrictive notion of failure
-nondeterminism captures such issues as the Apple login bug.
+nondeterminism captures such issues as the Apple login bug.  The
+changes to visible or hidden state we are most concerned with are
+usually those related to the failure itself.
 
 \subsection{Nondeterminism vs. Flakiness}
 
@@ -232,6 +234,13 @@ $S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
 \xrightarrow[]{\alpha_{n-1}} s_n$ where $s_0 \in I$ and $\forall i < n
 . (s_i, \alpha_i, s_{i+1}) \in T$.
 
+The concept of an action does not restrict this approach to reactive
+systems; it can be generalized to consider the only action that varies
+to be the selection of an input, $\alpha_0$, with the remainder of the
+actions being internal $\tau$ actions, in the usual fashion.
+
+\subsubsection{Horizontal Determinism}
+
 A pair of traces $(t_1, t_2)$ where $t_1 = s^1_0
 \xrightarrow[]{\alpha^1_0} s^1_1 \xrightarrow[]{\alpha^1_1} \ldots
 \xrightarrow[]{\alpha^1_{n-1}} s^1_n$ and $t_2 = s^2_0
@@ -245,6 +254,20 @@ nondeterminism but not final state nondeterminism, but any pair of
 traces exhibiting final state nondeterminism also demonstrate visible
 value nondeterminism.
 
+A point to emphasize is that while horizontal determinism
+requires two traces, it does not require a test generation algorithm
+to \emph{produce} pairs of traces, which would require substantial
+modification of most such tools (e.g., random testers or fuzzers, and
+even model checkers).  In general, testing tools do not produce
+\emph{traces}, they produce \emph{action sequences} or \emph{inputs}.  The two traces
+used to show nondeterminism, by definition, have the same action
+sequences, which means that a testing tool only needs to search for an
+action sequence or input which, when executed twice, produces a $t_1$ and $t_2$
+meeting the requirements for showing nondeterminism ---
+non-equivalence of $v(s)$ for some $s$.
+
+\subsubsection{Vertical Determinism}
+
 Vertical nondeterminism, in contrast, is demonstrated by a single trace
 $t$, not a pair of traces.  To define vertical nondeterminism with
 respect to idempotency, we can
@@ -254,41 +277,40 @@ actions.  A trace $t s_0
 \xrightarrow[]{\alpha_{n-1}} s_n$ shows \emph{vertical nondeterminism
   with respect to idempotent operations} if $\exists i < n$ such that
 $\alpha_i \in \mathcal{I} \wedge \alpha_i = \alpha_{i+1}$ and $v(s_{i+1})
-\neq v(s_{i+2})$.  Note that vertical nondeterminism may exhibit only
+\neq v(s_{i+2})$.
+
+Note that vertical nondeterminism may, in theory, exhibit only
 after a sequence of more than two successive applications of a (supposedly)
 idempotent operation; the definition only requires that after \emph{some}
 sequence of actions, possibly with $\alpha_{i-1} = \alpha_i$, the
-visible state changes.
+visible state changes.  In an implementation, we would usually restrict the
+search to a finite number of repetitions; for many faults, two
+``copies'' will suffice, since an operation is either truly idempotent or
+not idempotent.  Only the existence of \emph{non-visible} state changes that
+can eventually produce visible state changes \emph{after a succession of the
+same action} require more repetitions.
+
+\subsubsection{Failure Determinism}
 
 To define failure nondeterminism, we extend the
 transition relation to include a notion of \emph{failure}: $T \subseteq S
-\times A \times S \times {\tt bool}$, where the boolean indicates
-whether the action \emph{failed}.  A trace $t = s_0
+\times A \times S \times {\tt F: bool}$, where the boolean $F$ indicates
+whether the action $A$ \emph{failed}.  
+
+A trace $t = s_0
 \xrightarrow[]{\alpha_0} (s_1, F_0) \xrightarrow[]{\alpha_1} \ldots
-\xrightarrow[]{\alpha_{n-1}} (s_n, F_n)$ shows \emph{failure
-  nondeterminism} if $\exists i$ such that $F_{i+1}$ (that is,
+\xrightarrow[]{\alpha_{n-1}} (s_n, F_{n-1})$ shows \emph{failure
+  nondeterminism} if $\exists i$ such that $F_{i}$ (that is,
 $\alpha_i$ \emph{fails}) and either (1) $v(s_{i}) \neq v(s_{i+1})$
 (the visible state changes) or (2)
-$\alpha_i = \alpha_{i+1} \wedge \neg F_{i+2}$ (the same action is
+$\alpha_i = \alpha_{i+1} \wedge \neg F_{i+1}$ (the same action is
 repeated, but this time does not fail).  The second possibility
 offers a \emph{lightweight} approach to checking for failure
 nondeterminism.  Unlike all of the other ways to demonstrate
 nondeterminism we consider, this second type of failure nondeterminism does not
-require the use of $v$, or even the notion of observable components of
-a state, or (for that matter) any comparison of states.  It only
+require the use of $v$, the notion of observable components of
+a state, or any comparison of states.  It only
 requires that we be able to say whether an operation failed.
-
-A further point to emphasize is that while horizontal determinism
-requires two traces, it does not require a test generation algorithm
-to produce pairs of traces, which would require substantial
-modification of most such tools (e.g., random testers or fuzzers, and
-even model checkers).  In general, testing tools do not produce
-\emph{traces}, they produce \emph{action sequences}.  The two traces
-used to show nondeterminism, by definition, have the same action
-sequences, which means that a testing tool only needs to search for an
-action sequence which, when executed twice, produces a $t_1$ and $t_2$
-meeting the requirements for showing nondeterminism ---
-non-equivalence of $v(s)$ for some $s$.
 
 \section{Nondeterminism and Delta-Debugging}
 
