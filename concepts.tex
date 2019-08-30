@@ -312,6 +312,133 @@ require the use of $v$, the notion of observable components of
 a state, or any comparison of states.  It only
 requires that we be able to say whether an operation failed.
 
+
+
+
+\section{Sources of Nondeterminism in Practice}
+\label{sec:sources}
+
+In order to implement a practical nondeterminism-detection tool, it is
+important to consider the real-world sources of nondeterminism.  Most of these
+sources can, in principle, be detected simply by re-running a test
+twice and comparing results, either at all visible values or at the
+final state.  For example, if some library call uses a random number
+generator (perhaps in a stochastic algorithm), the returned value should be
+different on a second run.  Timing dependencies may change on a second
+execution, especially if a delay is added between steps of the test (a
+more principled version of the unfortunate tradition of testing
+concurrent code by adding ad-hoc {\tt sleep} statements).   Most
+nondeterministic behavior in tests is probably attributable to such
+effects that can vary with a repeated execution, in the same
+(approximate) enviroment, of the same test.  The two broad classes of
+nondeterminism that can usually be detected (with some probability) by
+simply executing the same test twice in succession, without attempting
+to control any other factors, are:
+
+\begin{itemize}
+\item {\bf External Environment:} This class of nondeterminism arises
+  when a test's behavior depends on factors outside the program under
+  test, which are subject to uncontrolled variance.  Calling {\tt
+    random()} in Python is an obvious example; the call is almost
+  guaranteed to return a different value each time it is called in a
+  test, unless we explicitly re-seed the random number generator at
+  the beginning of each test.  Similarly, calls to {\tt time}
+  functions  will usually return different values on different runs,
+  and even if only elapsed time, rather than absolute, is used to
+  influence behavior, subtle variances in timing are to be expected
+  due to system load, I/O, and other external factors.  Finally, in
+  distributed system testing, the environment is often remote servers
+  (or clients) that may be unavailable, slower than expected, or
+  subject to faulty behavior for reasons not under the control of the
+  test.
+\item {\bf Concurrency:} Perhaps the second most common cause for
+  nondeterminism in tests is when an algorithm is implemented using
+  concurrency, in the (incorrect) belief that the result of the
+  algorithm remains deterministic.  E.g., consider a multi-threaded
+  implementation of a search algorithm, that returns the location of
+  an item in an unsorted list.  If the list may contain duplicates,
+  and a developer has not accounted for this possibility, the
+  algorithm may return different locations of an item for the same list,
+  depending on the scheduling of threads.  Arguably, this can be
+  subsumed under the first class, with the behavior of the
+  processor/scheduler as the ``enviromental'' factor; relying on
+  scheduling is, in a sense, equivalent to calling {\tt random} or
+  {\tt time}.
+\end{itemize}
+
+Lam et al. \cite{idflakies} note that flaky tests not due to order
+dependence are generally due to ``concurrency, timeouts,
+network/IO, etc.'' a description that is well accounted for by these two
+primary sources, and most of which can be detected, at least in
+principle, by multiple runs of a test within the same testing process.  However, simply running a test twice in the same process (possibly with a delay between steps) does
+not suffice in all cases.
+
+\subsection{Process-Based Nondeterminism}
+
+\label{sec:pnondet}
+
+Some sources of nondeterminism unfortunately require executing a test in a new
+process environment, because the source is inherently tied to the
+process in which code runs; simply re-executing a test in the same
+process will not reveal the problem.  In terms of our formalism, an
+action needs to be introduced that indicates the generation of a fresh
+process identity.
+
+Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
+important source of nondeterminism that arises (only) from change in
+process.  ASLR scrambles the layout of memory of the process in which
+an executable runs in order to make it harder to exploit memory-safety
+vulnerabilities in code.  As a side effect, it
+means that a test that, in some circumstances, causes a crash, may at
+other times not fail at all.  Even if no inputs produce a crash,
+however, memory errors may produce variation in values that are
+overwritten or arise from uninitialized memory, and thus be detectable
+as nondeterminism.
+
+Another example of process-based nondeterminism was discovered by numerous Python developers when Python
+version 3.3 introduced automatic random salting of hashes on a
+per-process basis (a new salt chosen for each Python process),
+in order to mitigate hash-based denial of service attacks
+\cite{denial}.  Until version 3.6 this not only resulted in changes in
+exact hash values, but in the order of iteration on
+dictionaries\footnote{In 3.6, the default dictionary
+  implementation became an ordered dictionary with consistent
+  iteration, though actual hashes remained nondeterministic.}.  While
+relatively few programs rely on exact hash values, many implicitly
+relied on them in that they only functioned correctly with a
+predictable order for dictionary iteration.  Testing
+Python code for nondeterminism based on this hash seed requires
+running in a new process:  Python does not allow changing the salt, since changing hash values on-the-fly would
+break all existing dictionaries and other structures relying on
+hashing.
+
+Other, less common, effects tied to process also exist.  A few tests
+may somehow depend on their actual PID (Process ID) or at least the
+parent process' ID.  Process change increases the likelihood that on a multi-core
+system a test will execute on a different CPU than in the first
+execution, which can have many subtle effects, mostly related to
+changed timing.
+
+One common cause of flaky tests is \emph{test order dependence} \cite{idflakies}.  This
+is less of a concern in our setting, since many problems due to test
+order are easily exposed in random testing, since the
+order-dependence-inducing operations will seldom usually happen in the
+same order in randomly generated tests.  For example, consider the
+case where a test usually run ``early'' initializes an uninitialized
+value in a system, and a later test will only fail if it somehow is
+run before the initializing test.  In random testing, the order of
+initialization/access is likely to be random, and some run of a random
+tester is likely to expose the problem as a (deterministic, not flaky) failure.
+
+However, for cases where
+there is an order dependence that is hard to translate into an
+actual bug, using a fresh
+process may expose such dependencies --- the ``environment'' of the
+parent process will have the, e.g., flag set or value initialized, but
+the new process will not.
+
+
+
 \section{Nondeterminism and Delta-Debugging}
 
 Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
@@ -544,7 +671,7 @@ $M$, and desired probability threshold $p$, the algorithm is simple:
 
 \begin{enumerate}
   \item  $i = 0$
-  \item Evaluate $\mathit{PRED}$ $N$ times.  If the number of cases
+  \item Evaluate $\mathit{PRED}$ $N$ times.  If the proportion of cases
   where $\mathit{PRED}$ was true is less than $p$, return false.
   \item  $i = i + 1$
   \item If $i < M$ go to step 1.
@@ -552,8 +679,8 @@ $M$, and desired probability threshold $p$, the algorithm is simple:
 \end{enumerate}
 
 A set of $M$ repeated false positives with
-$\frac{N}{M}$ samples each is much less likely than a false positive
-with $N$ samples; so long as we accept the resulting bias in favor of
+$N = \frac{K}{M}$ samples each is much less likely than a false positive
+with $K$ samples; so long as we accept the resulting bias in favor of
 false negatives, we can therefore produce a reduced test with a
 desired $P(fail)$ much more cheaply:  the use of replications not only
 means we only pay the full sampling price on rare occasions, but a
