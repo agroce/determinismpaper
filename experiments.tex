@@ -21,15 +21,15 @@ nondeterminism.  The overhead on testing imposed by nondeterminism
 checks varied considerably, but in the worst case did not double the
 average cost of each action, and thus never halved the amount of
 testing performed.  Test reduction always reduced the size of
-generated tests by 90\% or more, thus showing that effective reduction
-has a large payoff.
+generated tests by 85\% or more, in less than 15 minutes, thus showing that effective reduction
+has a large payoff at an acceptable price.
 
 \begin{table}
 \centering
 \begin{tabular}{l|l|r|r|l}
 Subject & Detection & Overhead & Reduction & Reduction time \\
 \hline
-Parallel Sort & Yes (see below) & $\sim$40\% & & $\sim$2 minutes\\
+Parallel Sort & Yes (see below) & $\sim$40\% & $\sim$85\% & $\sim$2 minutes\\
 {\tt redis-py} & Yes (see below) & $\sim$20\% & $\sim$95\% & $\sim$10 minutes\\
 {\tt datarray} & Yes (see below) & $\sim$93\% & $\sim$90\% & $\sim$92
   seconds\\
