@@ -7,13 +7,42 @@ widely-used libraries).  The primary
 points we wanted to explore were (1) whether our approach was able to reliably detect actual
 nondeterminism, (2) whether the overhead of nondeterminism
 detection for real systems was acceptable, and (3) the performance of
-delta-debugging for real nondeterministic predicates.
+delta-debugging for real nondeterministic predicates.  We chose two of
+the subjects, {\tt redis-py} and {\tt pyfakefs}, based on the fact that they were previously-existing large
+examples of TSTL harnesses, and therefore serve to show how easily our
+approach can be integrated into an existing large-scale test
+generation effort.  The other two subjects were chosen, and harnesses
+written, specifically to demonstrate specific, important sources of
+nondeterminism in Python code: concurrency and hash salting.
 
-\subsection{Case Study: Parallel Sorting}
+Table \ref{tab:overviewexp} shows a summary of our experimental
+results.  In all cases, our approach was able to detect interesting
+nondeterminism.  The overhead on testing imposed by nondeterminism
+checks varied considerably, but in the worst case did not double the
+average cost of each action, and thus never halved the amount of
+testing performed.  Test reduction always reduced the size of
+generated tests by 90\% or more, thus showing that effective reduction
+has a large payoff.
 
-Our first case study is a simple implementation of a parallel merge
-sort in Python
-\url{https://gist.github.com/stephenmcd/39ded69946155930c347}.  The
+\begin{table}
+\centering
+\begin{tabular}{l|l|r|r|l}
+Subject & Detection & Overhead & Reduction & Reduction time \\
+\hline
+Parallel Sort & Yes (see below) & $\sim$40\% & & $\sim$2 minutes\\
+{\tt redis-py} & Yes (see below) & $\sim$20\% & $\sim$95\% & $\sim$10 minutes\\
+{\tt datarray} & Yes (see below) & $\sim$93\% & $\sim$90\% & $\sim$92
+  seconds\\
+{\tt pyfakefs} & Yes (see below) & $\sim$8\% & $\sim$99\% & $\sim$1 second  \\
+\end{tabular}
+\caption{Overview of experimental results}
+\label{tab:overviewexp}
+\end{table}
+
+\subsection{Parallel Sorting}
+
+Our first subject is a simple implementation of a parallel merge
+sort\footnote{\url{https://gist.github.com/stephenmcd/39ded69946155930c347}}.  The
 merge sort and harness can be found in the TSTL GitHub repository
 \cite{tstl}, under {\tt examples/parallelsorts}.  When a sorting
 algorithm is implemented using concurrency, a key question to ask is
@@ -29,7 +58,7 @@ implementation of an algorithm will likely have internal
 nondeterminism (due to scheduling of work), it is often expected to
 behave deterministically, from the point of view of a caller.
 
-This case study has two purposes:  first, to show that the
+This experimental subject serves two purposes:  first, to show that the
 nondeterminism detection features of TSTL can be used to, with
 acceptable overhead, show that a parallel sort implementation provides
 a consistent, deterministic ordering, and second to show that the
@@ -107,7 +136,7 @@ For this simple example, more sophisticated delta-debugging strategies
 are not needed; we only want to see the code behaving
 nondeterministically, and do not care about preserving a higher probability of nondeterminism.
 
-\subsection {Case Study: {\tt redis-py}}
+\subsection {The {\tt redis-py} Library}
 
 
 \begin{figure*}
@@ -325,7 +354,7 @@ effectively.  However, in a setting where changes in behavior can
 easily by overwritten by future test behavior, and do not causally
 influence future computation, final state nondeterminism may be almost useless.
 
-\subsection{Case Study: {\tt datarray} Inference Algorithms}
+\subsection{Berkeley {\tt datarray} Inference Algorithms}
 
 
 \begin{figure}[t]
@@ -401,7 +430,7 @@ is high, a 93\% slowdown.  This is due to the high cost of subprocess
 creation and communication.
 
 
-\subsection {Vertical Determinism Case Study: {\tt pyfakefs}}
+\subsection {Vertical Determinism: {\tt pyfakefs}}
 
 The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
 system that mocks the Python file system modules, to allow Python
@@ -531,6 +560,8 @@ larger with failure determinism checking, and this change was significant by Wil
 $(p < 1 \times 10^{-15})$.  While significant, this cost is probably
 too small to be of any real practical importance.
 
+\subsection{Summary of Results}
+
 \section{Threats to Validity}
 
 There are several primary threats to validity:  first, our empirical
@@ -572,5 +603,5 @@ tests, and are (for academic research code) moderately well-used by
 external users, making this a lesser concern.  The nondeterminism
 detected by TSTL can be demonstrated with standalone tests TSTL
 generates that do not depend on any TSTL code.
-The source code for the tools and all case studies is
+The source code for the tools and all experimental subjects is
 available for inspection and replication in the TSTL repository.
