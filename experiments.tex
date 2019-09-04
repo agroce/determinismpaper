@@ -171,11 +171,22 @@ Using the original TSTL harness, just over 20\% of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  Using the
 nondeterminism checker to reduce flaky tests to a minimal set allows
 us to simply set up an overnight run that will, in 12 hours, produce
-a set of minimal flaky tests exposing the sources of
-nondeterminism/flakiness.  In this case, the probability of flakiness
+a set of minimal nondeterministic tests exposing the sources of
+nondeterminism/flakiness.  This process is unlikely to require 12
+hours, of course; our point is that it is completely automated,
+including generation of a set of minimal, distinct, tests showing
+different kinds of nondeterminism using test normalization~\cite{onetest}.  The actual amount of time given
+may be smaller, or, for that matter, larger (leaving an important
+library to self-document nondeterminism over a weekend is hardly a bad
+practice).  In this case, the probability of flakiness
 is not important, just the possibility, so we let the delta-debugging
 create a minimal test with some non-zero (but possibly very small)
-observed probability of nondeterminism.
+observed probability of nondeterminism.  Our 12 hour run identified
+all sources of nondeterminism successfully, according to a series of
+48 hour runs performed on the version of the harness we modified to
+remove nondeterminism.  We determined that the mean time to find all
+the sources of nondeterminism and produce minimal tests 3.2
+hours, which is not trivial, but also, for this purpose, not excessive.
 
 Figures \ref{fig:r1}-\ref{fig:r3} show delta-debugging of a typical
 {\tt redis-py} nondeterministic test, originally with 287 steps.  The initial test behave
