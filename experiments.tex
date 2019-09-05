@@ -2,26 +2,28 @@
 
 In order to evaluate our approach and implementation, we applied
 nondeterminism detection to real Python code, including some widely
-used systems ({\tt redis-py} and {\tt pyfakefs} are well-maintained,
-widely-used libraries).  The primary
-points we wanted to explore were (1) whether our approach was able to reliably detect actual
-nondeterminism, (2) whether the overhead of nondeterminism
-detection for real systems was acceptable, and (3) the performance of
-delta-debugging for real nondeterministic predicates.  We chose two of
+used libraries (according to GitHub, {\tt pyfakefs} is used by at least
+338 other projects, and {\tt redis-py} is used by at least 50,000).  The primary
+points we wanted to explore were {\bf RQ1:} whether our approach was able to reliably detect actual
+nondeterminism, {\bf RQ2:} whether the overhead of nondeterminism
+detection for real systems was acceptable, and {\bf RQ3:} whether the performance of
+delta-debugging in this setting was acceptable, in terms of both time
+and results (amount of reduction in test size).  We chose two of
 the subjects, {\tt redis-py} and {\tt pyfakefs}, based on the fact that they were previously-existing large
 examples of TSTL harnesses, and therefore serve to show how easily our
 approach can be integrated into an existing large-scale test
-generation effort.  The other two subjects were chosen, and harnesses
+generation effort.  The other two subjects were chosen, and new harnesses
 written, specifically to demonstrate specific, important sources of
 nondeterminism in Python code: concurrency and hash salting.
 
 Table \ref{tab:overviewexp} shows a summary of our experimental
 results.  In all cases, our approach was able to detect interesting
-nondeterminism.  The overhead on testing imposed by nondeterminism
+nondeterminism (in fact, all nondeterminism of which we are aware).  The overhead on testing imposed by nondeterminism
 checks varied considerably, but in the worst case did not double the
-average cost of each action, and thus never halved the amount of
+average cost of each action (the expected overhead, since we
+essentially execute each test twice), and thus never halved the amount of
 testing performed.  Test reduction always reduced the size of
-generated tests by 85\% or more, in less than 15 minutes, thus showing that effective reduction
+generated tests by 85\% or more, in less than 15 minutes, thus showing that reduction
 has a large payoff at an acceptable price.
 
 \begin{table}
@@ -107,17 +109,19 @@ operator of the sorting algorithms, and checks that the results of
 Running TSTL's random tester without checking for determinism, we can
 see that both sorting algorithms always produce sorted output.  If we run with {\tt --checkDeterminism --determinismDelay 0}, however, a
 test case showing the {\tt swapsort} behaving nondeterministically is
-almost instantly produced (it takes less than 3 seconds).  If we comment out the call to {\tt
+almost instantly produced (it takes less than 3 seconds), thus
+answering yes to {\bf  RQ1}.  If we comment out the call to {\tt
   swap\_sort\_parallel} and only check the parallel merge sort, however, TSTL
 finds no nondeterministic behavior.  Running tests of the merge sort
 with nondeterminism detection turned on results in a slowdown of approximately
-40\%.
+40\% ({\bf RQ2}.
 
 Reducing a lengthy test showing nondeterminism of the swapsort to a
 short test case using delta-debugging usually takes less than two
 minutes.  If the number of attempts to produce nondeterminism is
 increased in the reducer using the {\tt --determinismTries 10} option,
-the resulting test will be usually be very compact, e.g.:
+the resulting test will be usually be very compact, in this case
+reducing the original test from 56 to 8 steps.
 
 {\scriptsize
 \begin{code}
@@ -162,7 +166,7 @@ nondeterministically, and do not care about preserving a higher probability of n
 \caption{Delta-debugging of the same {\tt redis-py} nondeterministic test}
 \end{figure*}
 
-The {\tt redis-py} \cite{redispy} module implements a widely-used Python interface
+The {\tt redis-py} \cite{redispy} module implements a (very) widely-used Python interface
 to the popular Redis in-memory database, cache, and
 message broker \cite{redis}.  The TSTL {\tt redis-py} harnesses can be found in
 the {\tt examples/redis} directory in the TSTL GitHub repo \cite{tstl}.
@@ -172,17 +176,16 @@ itself can be tested; unfortunately, generating stand-alone
 high-coverage regression tests for {\tt redis-py} and Redis using TSTL
 has proven difficult, as numerous Redis commands introduce nondeterministic
 behavior:  thus the resulting tests are very often \emph{flaky}.   Using {\tt tstl\_afl\_fuzz}, we can see that {\tt redis-py} has a 
-stability of only 56.26\%, a clear indicator of nondeterminism. Some
+stability of only 56.26\%, a clear indicator of significant nondeterminism. Some
 of the problematic commands are obvious simply by inspection (e.g.,
 {\tt randomkey, srandmember}).  And, given an understanding of Redis
 semantics, it is also clear that the various
 commands producing data with a limited lifetime (e.g., {\tt expire,
-  pexpire}) also introduce timing-based nondeterminism.
-
+  pexpire}) introduce timing-based nondeterminism.
 
 However, that a command such as {\tt restore} takes an expiration
 argument is not obvious to a non-expert, nor is the behavior of {\tt
-  spop} which pops a random value from a set.  Moreover, it is
+  spop}, which pops a random value from a set.  Moreover, it is
 difficult to guess whether the {\tt pipe} mechanism, which allows a
 large sequence of commands to be queued up in a pipe and executed all
 at once, introduced the potential for nondeterminism (does it execute
@@ -200,44 +203,34 @@ Using the original TSTL harness, just over 20\% of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  Using the
 nondeterminism checker to reduce flaky tests to a minimal set allows
 us to simply set up an overnight run that will, in 12 hours, produce
-a set of minimal nondeterministic tests exposing the sources of
-nondeterminism/flakiness.  This process is unlikely to require 12
-hours, of course; our point is that it is completely automated,
-including generation of a set of minimal, distinct, tests showing
-different kinds of nondeterminism using test normalization~\cite{onetest}.  The actual amount of time given
+a set of minimal nondeterministic tests exposing the root sources of
+nondeterminism/flakiness: we set the harness to repeatedly run, then
+produce a regression test.  If the test is flaky (exhibits
+nondeterminism in result, over a set of 3 runs), we use the TSTL reducer to shrink it to a
+normaliized \cite{onetest} test.  At the end of the testing period,
+all distinct tests exhibiting nondeterminism are reported to the
+user.  The process reduces the large number of different tests
+exhibiting flakiness to a small set of tests, each short, showing a
+different cause of nondeterminism.  The set produced is not perfect,
+there is some duplication of causes, but it is sufficient for
+identifying causes of nondeterminism.
+
+This process is unlikely to truly require 12
+hours, of course; our point is that it is completely automated and
+can be given time proportional to the need to find even
+low-probability sources of nondeterminism.  The actual amount of time given
 may be smaller, or, for that matter, larger (leaving an important
 library to self-document nondeterminism over a weekend is hardly a bad
 practice).  In this case, the probability of flakiness
-is not important, just the possibility, so we let the delta-debugging
+is not important, just the possibility, so we let the reducer
 create a minimal test with some non-zero (but possibly very small)
 observed probability of nondeterminism.  Our 12 hour run identified
 all sources of nondeterminism successfully, according to a series of
 48 hour runs performed on the version of the harness we modified to
-remove nondeterminism.  We determined that the mean time to find all
+remove nondeterminism, which produced no flaky tests.  We determined that the mean time to find all
 the sources of nondeterminism and produce minimal tests 3.2
-hours, which is not trivial, but also, for this purpose, not excessive.
-
-Figures \ref{fig:r1}-\ref{fig:r3} show delta-debugging of a typical
-{\tt redis-py} nondeterministic test, originally with 287 steps.  The initial test behave
-nondeterministically about half the time.  Figure \ref{fig:r1} shows
-that this is a non-monotonic reduction problem, where removing steps
-can either increase or decrease the probability of nondeterminism.  At
-first, unmodified delta-debugging actually improves the probability of
-failure, but eventually it produces a test of length 16 that only behaves
-nondeterministically 24\% of the time.  The reduction takes only 38
-seconds.  For the purpose of identifying commands leading to
-nondeterminism, this is acceptable.  However, if we were actually
-debugging a complex nondeterminism bug in Redis itself, we might want
-a more reliably nondeterministic test.  Using the same parameters as
-in Section \ref{sec:pubbias}, we see the same pattern.  Simply making
-a predicate that ``forces'' the probability to remain high, with a
-large number of samples, does not work (Figure \ref{fig:r3}) and
-requires over 2000 seconds to produce a test with an even worse
-probability of nondeterminism.  Using 10 samples and 10 replications,
-on the other hand, actually improves the probability of
-nondeterministic behavior, and
-(in this case) even produces a smaller test (only 14 steps) in just
-over 10 minutes.
+hours, which is not trivial, but also, for this purpose, not
+excessive.  Our answer to {\bf RQ1} is thus a strong affirmative.
 
 \begin{figure*}
 {\scriptsize
@@ -274,7 +267,7 @@ Figure \ref{fig:flakysource} shows all calls removed or modified after
 identification of sources of nondeterminism.  After making these changes, no flakiness was observed in a sample of over 2,000 length
 200 tests.   Moreover, because the removals were limited to actually
 observed sources of flakiness, the code coverage loss was minimal.
-Mean branch coverage, for regression tests of length 200 was reduced
+Mean branch coverage, for regression tests of length 200, was reduced
 by less than 5 branches (a less than 1\% decrease).  Obviously, it is
 impossible to test the removed calls, but the overall coverage loss is
 both minimal and known, and can be made up for using specially-crafted
@@ -282,21 +275,40 @@ tests (for instance, wrapping the problematic calls in a way that does
 not check the values, or adding a delay after an expiration to allow
 the data to expire).  As a price to pay for the ability to produce
 fast-executing high-coverage full regression tests (not just tests for
-crashes and unexpected exceptions), this seems acceptable.
+crashes and unexpected exceptions), this seems acceptable.  AFL stability was 56.26\% with the harness allowing 
+nondeterminism, but rose to 98.32\% using the harness with 
+nondeterministic operations removed.
 
-Moreover, turning off sources of expected nondeterminism makes
+Removing sources of expected nondeterminism also makes
 it possible to aggressively test {\tt redis-py} and Redis for
 unexpected nondeterminism arising from actual bugs.  The overhead for such
 determinism checks, with no delay between operations, is only
-20\%, much lower than the expected cost of running each test twice.
-This is because choosing the actions in a test (and determining which
+20\%, much lower than the expected cost of running each test twice,
+answering {\bf RQ2} also in the affirmative.  This is because choosing the actions in a test (and determining which
 actions are enabled at each step) consumes a large part of the test
-generator's time; running the test again and checking equality is
-relatively inexpensive.  
+generator's time with a complex library like {\tt redis-py}; running the test again and checking equality is
+relatively inexpensive.   
 
-Finally, AFL stability was 94.32\% with the harness allowing
-nondeterminism, but rose to 98.32\% using the harness with
-nondeterministic operations removed.
+As to {\bf RQ3}, Figures \ref{fig:r1}-\ref{fig:r3} show delta-debugging of a typical
+{\tt redis-py} nondeterministic test, originally with 287 steps.  The initial test behaves
+nondeterministically about half the time.  Figure \ref{fig:r1} shows
+that this is a non-monotonic reduction problem, where removing steps
+can either increase or decrease the probability of nondeterminism.  At
+first, unmodified delta-debugging actually improves the probability of
+failure, but eventually it produces a test of length 16 that only behaves
+nondeterministically 24\% of the time.  The reduction takes only 38
+seconds.  For the purpose of identifying commands leading to
+nondeterminism, this is acceptable.  However, if we were actually
+debugging a complex nondeterminism bug in Redis itself, we might want
+a more reliably nondeterministic test.  Using the same parameters as
+in Section \ref{sec:pubbias}, we see the same pattern.  Simply making
+a predicate that ``forces'' the probability to remain high, with a
+large number of samples, does not work (Figure \ref{fig:r3}) and
+requires over 2000 seconds to produce a test with an even worse
+probability of nondeterminism.  Using 10 samples and 10 replications,
+on the other hand, actually improves the probability of
+nondeterministic behavior, and (in this case) even produces a smaller test (only 14 steps) in just
+over 10 minutes.
 
 \subsubsection{Visible Value vs. Final State Nondeterminism}
 
@@ -308,8 +320,9 @@ of length 100, using the known-nondeterministic version of the {\tt
   stepNondeterministic} calls, both with a delay of 0.005 seconds and
 a single additonal execution of the test, to
 check these tests for nondeterministic behavior.  Final state
-nondeterminism actually detected one instance of nondeterminism that
-visible value nondeterminism failed to detect (21 detections vs. 20); in general, final state
+nondeterminism actually detected one instance (but not root cause) of nondeterminism that
+visible value nondeterminism failed to detect (21 detections
+vs. 20). In general, final state
 nondeterminism is less able to detect nondeterminism, but in this
 instance the difference is less important than the nondeterminism of
 whether a particular test will exhibit nondeterministic behavior in a
@@ -334,9 +347,9 @@ in overhead, interestingly, is very similar:  0.48\%; however, under
 these parameters, visible value nondeterminism is actually cheaper on average
 than final state nondeterminism, due to early termination of the
 additional replays, when nondeterminism is detected (the difference is
-again significant by Wilcoxon test, with $p < 1.44 \times 10^{-10}$.
+again significant by Wilcoxon test, with $p < 1.44 \times 10^{-10}$).
 
-In practice, visible value nondeterminism and final state
+In practice, we expect that visible value nondeterminism and final state
 nondeterminism will often be very similar in both ability to detect
 nondeterministic behavior and overhead.  However, under unusual
 conditions, the behavior of the approaches can be very different.  The
@@ -417,18 +430,20 @@ Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
   --checkProcessDeterminism} flag required less than 10 seconds on
 average to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
-algorithm).  Reducing this 60 step test to a minimal test of only 6 steps,
+algorithm), answering {\bf RQ1} again in the affirmative.  Reducing this 60 step test to a minimal test of only 6 steps,
 showing an extremely simple input producing the issue, 
-required another 92 seconds.  Interestingly, the way that {\tt
-  python-afl} is used in TSTL means that AFL stability is 100\%,
+required another 92 seconds ({\bf RQ3}).  Interestingly, the way that {\tt
+  python-afl} is used in TSTL means that AFL stability is 100\% even
+for the original, broken, code,
 because the {\tt PYTHONHASHSEED} has already been chosen before the
 fork in AFL executions.
 
 Removing the nondeterministic call, we can see that the cost of
 checking for process nondeterminism, with no delay between operations,
-is high, a 93\% slowdown.  This is due to the high cost of subprocess
-creation and communication.
-
+is high, a 93\% slowdown({\bf RQ2}.  This is due to the high cost of subprocess
+creation and communication. However, even with this essentially worst
+case behavior (where test runtime is very low compared to process overheads),
+we sacrifice less than half of the test executions for a given time budget.
 
 \subsection {Vertical Determinism: {\tt pyfakefs}}
 
@@ -462,22 +477,23 @@ invariants, but violates the Python {\tt os} specification (and,
 indirectly, the usual POSIX implementation behavior where {\tt unlink}
 does not work for directories).  Detecting this bug using the TSTL
 {\tt pyfakefs} harness is normally impossible without using another
-file system as a reference.  However, the fault was detected
+file system as a reference.  However, the fault was detected  essentially
 immediately, even without using a reference, when we compiled the harness
-with the {\tt --checkFailureDeterminism} flag.  Because vertical
-reduction does not require running complete tests multiple times, and
-does not affect the delta-debugging algorithm's performance, reducing
-the failing test to 3 steps required less than a second.
-Moreover, the overhead for the check for failure determinism in a
+with the {\tt --checkFailureDeterminism} flag (an affirmative answer
+to {\bf RQ1}).  Moreover, the overhead for the check for failure determinism in a
 version of the code without the {\tt remove} error was
-less than 8\%.  Detecting the fault using a reference file system 
+less than 8\%  ({\bf RQ2}).  Detecting the fault using a reference file system 
 required 17\% more testing time before detection, and took over twice as
 long to reduce the failure to a
 slightly longer failing test, which did not have {\tt remove} as its
 final operation (since further operations are required to 
-expose the bad file system state the operation introduces).  For this
-hypothetical subtle bug, failure determinism checks not only make it
-possible to detect the fault without a reference implementation, it
+expose the bad file system state the operation introduces).
+Because vertical
+reduction does not require running complete tests multiple times, and
+does not affect the delta-debugging algorithm's performance, reducing
+the failing test to 3 steps required less than a second ({\bf RQ3}).
+For this hypothetical subtle bug, failure determinism checks not only make it
+possible to detect the fault without a reference implementation, they
 improves on detection speed and ease of debugging even compared to a
 full-blown reference implementation (the MacOS file system, operating
 on a RAM disk) and strong, hand-tuned, differential testing.
@@ -487,14 +503,20 @@ on a RAM disk) and strong, hand-tuned, differential testing.
 We wanted to determine whether there were also simple faults that
 could be detected by failure nondeterminism, but \emph{not} detected
 by differential testing, and quantify the additional specification
-strength provided by failure determinism checks.  We therefore used
+strength provided by failure determinism checks, to further answer
+{\bf RQ1} in the special case of failure determinism.  We therefore used
 {\tt universalmutator} \cite{RegExpMut} to produce 2,350 mutants of
 the {\tt pyfakefs} core file system code.   We restricted the generation
 to only mutate code covered during a 60 second run of the test
 harness, with differential testing turned off.  In this
 \emph{non-differential} mode, the harness will only detect a fault when it
 causes an unexpected exception to be raised, or results in a timeout
-due to, e.g., an infinite loop.
+due to, e.g., an infinite loop.  We could have applied mutation
+testing to {\tt redis-py}, but we are dubious of the value of such an
+analysis without a strong differential harness to compare to; the {\tt
+  redis-py} testing is limited in strength, and largely useful for
+producing high-coverage operation sequences from which to construct
+manual unit tests.
 
 We first analyzed the mutants using 60 seconds of non-differential
 testing \emph{without failure nondeterminism checks}, then with the
@@ -550,17 +572,39 @@ deletions, logical operator modifications, constant replacements
 introducing a break into a loop.  The variety of mutant types suggests
 that no more specifically tailored strategy such as checking for
 exception propagation, will work as well as introducing a notion of
-failure nondeterminism.
+failure nondeterminism.  This is a strong affirmative answer to {\bf
+  RQ1} at least for a large set of hypothetical bugs.
 
 We also checked the cost of introducing failure determinism checking
-by analyzing mutants that could be killed by both methods.  Even
+by analyzing mutants that could be killed by both methods ({\bf RQ2}).  Even
 though in some cases the failure determinism check allows a mutant to
 be detected sooner, the mean time to kill mutants was 0.006 seconds
 larger with failure determinism checking, and this change was significant by Wilcoxon test
-$(p < 1 \times 10^{-15})$.  While significant, this cost is probably
+$(p < 1 \times 10^{-15})$.  While \emph{statistically} significant,
+this cost is almost certainly
 too small to be of any real practical importance.
 
 \subsection{Summary of Results}
+
+\begin{itemize}
+\item {\bf RQ1: Is our approach able to reliably detect
+  nondeterminism?}  For all of our subjects, all nondeterminism we are
+aware of was detected.  The {\tt pyfakefs} experiments also show,
+using mutation testing, an additional ability to detect bugs over a
+strong differential test.
+\item {\bf RQ2: Is the overhead of nondeterminims detection
+    acceptable?} This depends on the criteria for acceptability, but
+  given the fault-detection and flaky-test avoidance capabilities
+  demonstrated, we think that so long as the testing is still able to
+  execute at least half as many tests, for the same time budget, the
+  answer is yes.  All subjects, even when using expensive
+  process-based checks, satisfied this constraint.  Failure
+  nondeterminism detection was particularly inexpensive, as expected.
+\item {\bf RQ3: Is the performance of delta-debugging/test reduction
+    acceptable?}  In all cases, reduction was relatively quick (a
+  little over 10 minutes in the worst case) and the amount of
+  reduction produced was large (85\% or better).
+  \end{itemize}
 
 \section{Threats to Validity}
 

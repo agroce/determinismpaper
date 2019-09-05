@@ -38,6 +38,18 @@ nondeterminism is tests, and to mitigate the problem of flaky tests.
 Reliable detection of nondeterminism is a first step towards
 evaluating such pro-active flaky test mitigations.
 
+Finally, it would be useful to implement versions of our formalisms in
+test generation tools for other languages with a suitable notion of
+action.  For example, the DeepState
+\cite{DeepState,DeepStateTutorial,deepstaterepo} tool for
+property-based fuzzing and symbolic-execution of C and C++ code defines
+actions that are choices between C++ lambdas in a test harness,
+produced by a nondeterminism operator, {\tt OneOf}.
+Adding annotations of visible state (perhaps simply in the form of
+blocks of address ranges in memory, a method often suitable for C and
+C++ code) would make it possible to search for unexpected nondeterminism in
+critical C and C++ libraries.
+
 {\scriptsize {\bf Acknowledgments:}  The authors would like to thank John Micco,
 Jeff Listfield, and Celal Ziftci at Google, for discussion of
 flaky tests, Andreas Zeller and David R. MacIver for discussion of the
