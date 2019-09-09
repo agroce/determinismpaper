@@ -2,7 +2,7 @@
 
 The implementation of the above ideas is conceptually straightforward,
 and should be easy to apply in other automated test generation
-settings with a natural notion of actions.  We present out
+settings with a natural notion of actions.  We present our
 implementation by first sketching a mapping from the formalism to one
 particular popular way to represent automatically generated unit
 tests, in Section \ref{sec:pools}.  The particular implementations of
@@ -243,7 +243,7 @@ Name & Purpose \\
                           values \\
 \hline
 {\tt P} & returns probability that a predicate holds for a test (with
-          optional number of sample to use in estimate) \\
+          optional number of samples to use in estimate) \\
 \hline
 {\tt forceP} & wraps a predicate for test reduction, checking that it
                has desired probability of holding, using
@@ -406,7 +406,14 @@ in timing based nondeterminism, such steps may be essential to
 causing the nondeterminism to appear (we had to turn off this feature
 for the {\tt redis-py} example discussed below).
 
-
+\subsection{Key Challenges}
+The key challenge in all of these implementations was choosing
+appropriate default values.  In particular, how many times to retry
+tests (horizontal determinism) or actions (vertical/failure determinism), what delays to use, and numbers of replications
+required in nondeterministic delta-debugging.  Because our confidence
+that these defaults are ideal is low, we made it easy to change the
+values used, as shown by the presence of command line options and
+optional function parameters in Tables \ref{tab:methods} and \ref{tab:options}.
 
 \section{A Simple Example}
 

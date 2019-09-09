@@ -32,7 +32,11 @@ has a large payoff at an acceptable price.
 \begin{table}
 \centering
 \begin{tabular}{l|l|r|r|l}
-Subject & Detection & Overhead & Reduction & Reduction time \\
+& \multicolumn{1}{c}{\bf RQ1} & \multicolumn{1}{|c|}{\bf RQ2} &
+                                                              \multicolumn{2}{c}{\bf RQ3}\\
+  \hline
+Subject & Detection & Overhead & Reduction \%
+                                                        & Reduction time\\
 \hline
 Parallel Sort & Yes (see below) & $\sim$40\% & $\sim$85\% & $\sim$2 minutes\\
 {\tt redis-py} & Yes (see below) & $\sim$20\% & $\sim$95\% & $\sim$10 minutes\\
