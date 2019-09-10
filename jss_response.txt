@@ -1,4 +1,4 @@
-We would like to thank the anonymous reviewers for their help in significantly improving the paper.  Based on the comments, we corrected errors in the formalism, re-organized the paper by moving the sources of determinism discussion to earlier in the paper and providing more overview of implementation choices, and re-formulated the experimental section in terms of explicit research questions and answers to those questions, including a summary table.
+We would like to thank the anonymous reviewers for their help in significantly improving the paper.  Based on the comments, we corrected errors in the formalism, re-organized the paper by moving the sources of determinism discussion to earlier in the paper and providing more overview of implementation choices, including key challenges, and re-formulated the experimental section in terms of explicit research questions and answers to those questions, including a summary table.
 
 Below are our detailed responses to the reviewer comments. 
 
@@ -16,7 +16,7 @@ R2:
 
 We now much more thoroughly introduce delta debugging.  We explained our motivation in using mutation for vertical determinism only (it relates to an actual high-quality specification of a different kind to compare to; for redis-py, the "spec" is largely either failure or nondeterminism represented by flaky tests, so the comparison with mutants would have very little value and be difficult to interpret.  Comparison with a strong differential specification is easy to understand, and is certainly meaningful.
 
-We discuss in threats and related work why we did not compare to, e.g., DeFlaker:  the settings and uses are almost completely different.
+We discuss in threats and related work why we did not compare to, e.g., DeFlaker:  the settings and uses are almost completely different.  We were unable to devise a reasonable experiment that would compare the tools, since essentially they are orthogonal.
 
 The 12 hours mentioned is rather misleading, we now elaborate what this meant, in a way that should make it possible to understand the result much more easily.
 
