@@ -1,0 +1,360 @@
+Ms. Ref. No.:  JSS-D-19-00422R1
+Title: Does It Always Do That?  Practical Automatic Lightweight Nondeterminism and Flaky Test Detection and Debugging for Python Libraries
+Journal of Systems and Software
+
+Dear Professor Alex Groce,
+
+Reviewers' comments on your work have now been received.  You will see that they are advising against publication of your work.  Therefore I regret that I must reject it.
+For your guidance, I append the reviewers' comments below.
+
+Thank you for giving us the opportunity to consider your work.
+
+Yours sincerely,
+
+Earl Barr
+Area Editor
+Journal of Systems and Software
+
+Reviewers' comments:
+
+
+Reviewer #1: In this first revision the authors made much effort for improving their work.
+
+From my point of view, the actual quality of the paper does not justify its publication for this venue.
+
+First of all, I would suggest the authors to answer in a detailed way to the issues pointed out by the reviewers, also in the future, and to highlight (also in the paper) the sentences that are deleted, modified or added. I found very difficult to understand the modifications made by the authors with respect to the first submission.
+
+In general, the readability of the sections should be improved. From my perspective, authors, in many cases, anticipated terms first of their definitions, at the expense of the comprehensibility of the paper. In other cases, authors jump form a concept to another then the same concepts are presented again. Please, be careful, I am not saying that you should not to refine and improve some concepts, like definitions, algorithms etc., during the narrative of the paper. I am saying that the narrative of the paper should be more straightforward. Moreover, many sentences should be clarified. 
+
+In the following I will describe the main issues affecting the different sections of the paper.
+
+*       Introduction section is not so simple to read. In particular the subsection about the main contribution should be improved. I would suggest to move the descriptions about the differences with other approaches in an other section. Maybe in related works. 
+
+*       Please improve this sentence: "Developers using a test exhibiting nondeterminism to debug a system face a challenge in reasoning about causality, in that an event observed may not even take place the next time the test is run;"
+
+*       You talk about complex software systems, but in the paper a definition is lacking.  Moreover, are complex software systems objects of your study?
+
+*       Please improve this sentence: "Technically, many nondeterministic systems are not nondeterministic in a strong sense, at all. " 
+
+*       Please improve this sentence: "Because the programmer's abstraction of the system ignores such a large number of details, very few tests are in fact deterministic in the sense that they eliminate all changes in behavior between executions. Running the same test twice almost always results in differences, given a low enough level of abstraction, since the system load, cache contents, branch predictor history, etc. are almost never controlled for; however, this kind of nondeterminism is usually of no interest, unless the test involves extremely precise timing constraints."
+
+*       You wrote "The most common such context", which contexts are you talking about?
+
+*       Why: in those instances, vertical determinism is arguably more important than horizontal determinism, in that violations usually indicate a potentially serious fault? 
+
+*       Please improve this sentence: "In differential testing, a system is compared against a reference in order to ensure that it behaves equivalently, at some level of abstraction, to another implementation of the same functionality." Do you compare the entire system with another implementation? Please be more precise.
+
+*       Why did you add sections 2.1.2 and 2.13 at the same level of Horizontal determinism? What is their added value?
+
+*       What does the AVL acronym, at page 9, mean?
+
+*       Please improve this sentence: "We assume that the underlying behavior of a system may be deterministic, or nondeterministic, in the strict sense, by allowing for a transition relation that may be a function of S x A."
+
+*       Page 12, section 2.4.2: tso --> t = so
+
+*       Section 4 needs to be improved. What is the goal of this section? Do you want to present the process? This section is very difficult to read and to understand. Just from the beginning what are T- INIT: test and Pred:test -> bool? Is Pred a function? What is T - Curr? Please restructure all this section. 
+
+*       I did not see that the section 7 about the experimental evaluation was properly restructured. It does not report the metrics for each research question. It does describe how objects and subjects were chosen. It does not properly describe the experimental procedure. The threats to validity are not discussed in terms of internal, external, construct, and reliability threats to validity.
+
+
+
+
+Reviewer #2: I liked the paper a lot. 
+In my previous review, I  had pointed out some presentation-related issues to make the paper clearer. 
+I'm generally  satisfied  with the authors' improvements; a final suggestion is to try to make it shorter, again for better readability, although I understand that is a lot of interesting material. 
+If, in the final pass, you are able to spot margins for reduction, the manuscript would convey the key message more efficiently.
+
+
+
+Reviewer #3: 
+The authors focus on the fact that nondeterministic behaviour in software under test presents problems for automated testing. Nondeterminism may lead to flaky tests which pass or fail during different regression runs in an unpredictable way.
+
+The article has a methodology and a tool component. In the methodology-related sections, the authors point out that a distinction between horizontal nondeterminism (nondeterministic outcomes of a software execution, when repeated) and vertical nondeterminism (nondeterminism in repeated test steps that should have identical results, this involves detecting idempotent functions in the code). The authors explain, that, when the test focus is on detecting unwanted nondeterminism, repeated executions of the software under test can be compared to differential testing. Concepts of delta-debugging are used to try and find shorter tests to uncover nondeterministic behaviour.
+
+In the tool part, the authors describe the TSTL tool.
+
+The intended application scenarios consist of software tests of libraries written in Python. 
+
+I agree with the authors that addressing nondeterminism in testing is an important research topic. Also, it is very good that the authors combine methodological investigation with tool presentations.
+
+However, I am not sure whether the major issues (in particular, issue (4) listed below can be fixed within a minor revision.
+
+
+Major Issues
+==============
+
+(1) The authors completely ignore the fact that there is a very well-established line of research about how to test nondeterministic systems. This must be discussed in the related work section (Section 9) before the paper can be published. In particular, the authors should state clearly that many tests are just flaky because the always expect identical output values in identical order. This is a fairly naive approach to constructing test oracles. In the field of nondeterministic systems testing, in particular, adaptive testing, test oracles are variants of state machines that may adapt their behaviour in presence of nondeterministic but legal reactions of the system under test. Adaptive testing has been mostly applied for testing control systems, but nondeterministic reference models and associated test oracles can also be applied in unit testing.
+
+There is a huge body of literature in the field of nondeterministic systems testing, the authors should cite and discuss the applicability of the results in, for example,
+
+Robert M. Hierons:
+Testing from a Nondeterministic Finite State Machine Using Adaptive State Counting. IEEE Trans. Computers 53(10): 1330-1342 (2004)
+
+Jan Tretmans:
+Model Based Testing with Labelled Transition Systems. Formal Methods and Testing 2008: 1-38
+
+Jan Peleska, Wen-ling Huang, Ana Cavalcanti:
+Finite complete suites for CSP refinement testing. Sci. Comput. Program. 179: 1-23 (2019)
+
+Alexandre Petrenko, Nina Yevtushenko:
+Adaptive Testing of Nondeterministic Systems with FSM. HASE 2014: 224-228
+
+
+(2) How is it justified that a 6% improvement of test strength (see Section 7.4.2) is a "real" improvement and not just statistic noise produced by the evaluation method?
+
+
+(3) The authors should state clearly the scope of their method and tool support and do this already in the abstract and in the introduction. From reading the article, my understanding is that the authors' test approach has been designed to (1) software testing of Python code, in particular unit tests for library code, (2) detect unwanted nondeterminism, so no functional failures are uncovered.
+
+
+(4) The paper is very long, since very simple facts are explained in a very elaborate manner. Moreover, the tool description is very lengthy and not very satisfying to read, since very basic facts are always explained in a very elaborate manner. It should be considered to produce a significantly shorter version of the article.
+
+(5) The authors should explain how their test for nondeterminism should be integrated into or complement test suites where the main issue is of course the functional correctness of the software under test.
+
+
+Detailed Comments
+===================
+
+Abstract
+
+1. "In particular, we demonstrate that our proposed failure nondeterminism can improve mutation score by 6% for a strong, full diﬀerential test harness for a widely used mock ﬁle system."
+
+Cannot understand this sentence, something seems to be missing, do mean something like
+
+"In particular, we demonstrate that our proposed failure detection mechanism for nondeterminism can improve mutation score by 6% for a strong, full diﬀerential test harness for a widely used mock ﬁle system." ?
+
+
+Section 1
+
+Why is comprehensive work on model-based testing of nondeterministic systems ignored?
+
+
+
+Section 1.2
+
+"The most common such contexts are occasional rare failures of a system in deployment,...."
+
+Cannot understand this sentence, something seems to be missing, do mean something like
+
+"The most common _of_ such contexts are occasional rare failures of a system in deployment,...."
+
+
+Section 1.3
+
+Last sentence "Failure determinism directly produces a more than 5% improvement in mutation score for an already highly eﬀective automated test generation tool for a ﬁle system, with no additional speciﬁcation or test design burden." 
+
+In the abstract you state that the improvement is 6%. Please make these statements consistent.
+
+
+Section 2.4.2
+
+You specify that idempotent action are *always* idempotent, regardless of the underlying state. This should be clearly stated, and it should be pointed out that a more powerful concept of idempotency exists, where an action has no effect only if executed in certain states. Explain why you do not need the more powerful concept.  
+
+
+Section 2.4.3
+
+Explain where the Boolean F_i come from. I think you mean that the F_i are assertions that are evaluated after certain test steps during a unit test. Please clarify. Also explain where the assertions come from, I presume that they cannot be generated automatically, but must be developed as part of the test.
+
+
+Section 3
+
+This section is length but contains only well-known facts about sources of nondeterminism. Please consider shortening or removing this section.
+
+
+Section 4
+
+For delta-debugging you should give a reference to the QuickCheck tool [7] which is very famous for its capability to find smaller tests for uncovering a given error.  In the current version of your article, no reference to [7] is given in the text at all.
+
+
+
+Section 4.1 and 4.2
+
+The explanation of publication bias is very unclear and therefore not helpful for the readers. In particular, it remains unclear what it means in the context of delta-debugging, and the comparison to medical experiments in medical journals is not helpful, because in your context, we already know that unwanted nondeterminism exists, we just wish to find a shorter test exhibiting this. Therefore, there is no question whether the diagnosis is write or wrong.
+I presume, that you wish to discuss the fact that using delta-debugging techniques to find shorter tests revealing nondeterminism may result in (shorter) tests revealing nondeterminism with a lower probability than the original one. If I am right, why do you need so much text to discuss this? If I am wrong, please explain in a simpler and shorter way what you intend to express.
+
+I suggest to delete the whole section 4.1 and find  a simpler motivation using only a few sentences.
+
+Sentence
+"Even if no researchers are dishonest, 5 of every 100 papers published in the journal will be report an eﬀect with the wrong eﬀect size or even eﬀect direction!"
+
+should read
+
+"Even if no researchers are dishonest, 5 of every 100 papers published in the journal will report an eﬀect with the wrong eﬀect size or even eﬀect direction!"
+
+
+Sentence
+"In the example, tests consist of a sequence of operations that behave nondeterministically with (independent) probabilities of 0.01, 0.05, and 0.10, respectively, storing the value of the operation one of ﬁve array locations."
+
+should read
+
+"In the example, tests consist of a sequence of operations that behave nondeterministically with (independent) probabilities of 0.01, 0.05, and 0.10, respectively, storing the value of the operation _in_ one of ﬁve array locations."
+
+
+I do not understand your test sequence
+
+array[2] = op01(); 
+array[3] = op05(); 
+clear(array[2]); 
+array[2] = op10();
+
+Why is it necessary to clear an array element before a new assignment is possible? Can't you just write
+
+array[2] = op01(); 
+array[3] = op05(); 
+array[2] = op10();
+
+In any case, what does the test do? Just evaluate the array values at the end of the execution? In that case, why is it necessary to consider assignment array[2] = op01(); since this is overwritten by array[2] = op10();? Why are you talking about 5 array locations, but use only 2 and 3?
+
+Your calculation (1 − 0.01) × (1 − 0.05) × (1 − 0.10) is the probability that ALL 3 operations behave *deterministically* in 1 test execution. Why is this the probability of the test to behave nondeterministically? 
+
+
+
+Section 5.2
+
+In sentence
+"For example, the line of code l := [] deﬁnes a set of 5 actions, each of which initializes a diﬀerent member of the list pool l to an empty list — l0 = [] ... l4 = []." 
+your chosen font format reads like 10 (ten) = [], 15 (fourteen) = []. Very confusing, please consider changing the font or using another symbol name than l. 
+
+
+Failure in test of Fig. 4. 
+
+Please state more clearly that this is not an error in the Python set/list library but just an
+illustration how a fail is raised during test execution. State clearly that length of list [1,1] is compared to cardinality of set {1} which of course differs.
+
+
+Section 5.3
+
+The reference to AFL is not very helpful, readers are usually not prepared to read an additional tool documentation (for AFL) while trying to understand your tool (TSTL).
+
+"Because TSTL has a ﬁrst-class interface to AFL [59], we can even use AFL's sophisticated heuristics to perform very thorough, week-long checks for nondeterminism, ..." 
+
+Please motivate why people have tim to make week-long check for nondeterminism. In practice, test engineers have hardly enough time to do functional tests, why should the use so much time on checking for nondeterminism?
+
+
+"When a failure is indicated by some means other than raising an =exception, ..."
+
+should read
+
+"When a failure is indicated by some means other than raising an exception,..."
+
+
+Section 6.1
+
+Please mention explicitly that the regression test would surely pass if you re-run the TSTL harness. The fails just stem from explicit values used in the Python regression tests.
+
+
+Section 7.1
+
+"(a kind of parallel bubble-sort with a simpler termination criteria)."
+
+should read 
+
+"(a kind of parallel bubble-sort with a simpler termination criterion)."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reviewer #4: This paper intends to address a huge topic of system predictability with a focus of 
+software reliability behavior. The importance of research on topics of this kind 
+should be in no doubt. At the very end, it is related to the Godel incompleteness 
+theorem and Komologorov computational complexity. 
+
+The topic of system behavior predictability is also an important one in time series 
+analysis and model-predictive control. Very often, the variance behavior is 
+investigated there. 
+
+In computer science, non-deterministic behavior is extensively tackled in theories, 
+methods, and techniques of concurrent computing such as CPS, CCS, and model 
+checking.  
+
+Given the above backgrounds, it is not clear what is meant by the term of "system 
+predictability" adopted in this paper. 
+
+As far as software testing and reliability is concerned, quite a few points (not 
+limited to the following) which are related to the paper could be raised or should 
+be addressed. 
+
+1. A noticeable talk was "software processes are software too" (delivered at ICSE). 
+Professor M Lehman (Imperial College) made a response from a perspective 
+of feedback cycles. 
+2. Is software behavior repeatable? Please refer to: 
+Kai-Yuan Cai, Lei Chen: 
+Analyzing software science data with partial repeatability. Journal of Systems 
+and Software 63(3): 173-186 (2002) 
+3. As far as "Heisenbug" and "Meddelbug" are concerned, please refer to 
+K.S.Trivedi's works. 
+4. As far as program debugging is concerned, please refer to Eric Wong's works 
+5. As far as mutation testing is concerned, please refer to Jeff Offout's works. 
+6. There were intensive debates concerning the advantages and disadvantages 
+of random testing and partition testing. Please refer to IEEE Transactions on 
+Software Engineering. 
+7. AT (adaptive testing) emerges as an alternative to random testing and 
+partition testing. Please refer to: 
+Junpeng Lv, Bei-Bei Yin, Kai-Yuan Cai: 
+On the Asymptotic Behavior of Adaptive Testing Strategy for Software 
+Reliability Assessment. IEEE Trans. Software Eng. 40(4): 396-412 (2014) 
+Chang-ai Sun, Hepeng Dai, Huai Liu, Tsong Yueh Chen, Kai-Yuan Cai: 
+Adaptive Partition Testing. IEEE Trans. Computers 68(2): 157-169 (2019) 
+8. DRT (dynamic random testing) also addresses the tradeoff issue of 
+effectiveness and efficiency. Please refer to: 
+Hanyu Pei, Kai-Yuan Cai, Beibei Yin, Aditya P. Mathur, Min Xie: Dynamic 
+Random Testing: Technique and Experimental Evaluation. IEEE Trans. 
+Reliability 68(3): 872-892 (2019) 
+9. A related and more general area is concerned with software cybernetics. 
+Please refer to:   
+Hongji Yang, Feng Chen, Suleiman Onimisi Aliyu: 
+Modern software cybernetics: New trends. Journal of Systems and Software 
+124: 169-186 (2017) 
+10. As far as software experimentation is concerned, please refer to: 
+Wohlin, C., Runeson, P., Höst, M., Ohlsson, M.C., Regnell, B., Wesslén, A. 
+Experimentation in Software Engineering, Springer, 2012 
+Juristo, Natalia, Moreno, Ana M. Basics of Software Engineering 
+Experimentation, Kluwer, 2000 
+Kai-Yuan Cai: 
+Software Reliability Experimentation and Control. J. Comput. Sci. Technol. 
+21(5): 697-707 (2006) 
+
+Overall, the paper is concerned with an important research topic and works of this 
+kind should be encouraged. However, a huge amount of works related to the 
+paper is ignored. This makes the contribution of the paper ambiguous. It should 
+do good if the paper could be completely rewritten to narrow down the scope of 
+topical coverage. A reasonable comparison with related works is necessary to 
+clarify the contribution of the paper. 
+
+The paper could be resubmitted as a new one.
+
+
+
+
+
+
+
+
+
+For further assistance, please visit our customer support site at http://help.elsevier.com/app/answers/list/p/7923. Here you can search for solutions on a range of topics, find answers to frequently asked questions and learn more about EES via interactive tutorials. You will also find our 24/7 support contact details should you need any further assistance from one of our customer support representatives.
