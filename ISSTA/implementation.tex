@@ -1,0 +1,664 @@
+\section{Implementation}
+
+The implementation of the above ideas is conceptually straightforward,
+and should be easy to apply in other automated test generation
+settings with a natural notion of actions.  We present our
+implementation by first sketching a mapping from the formalism to one
+particular popular way to represent automatically generated unit
+tests, in Section \ref{sec:pools}.  The particular implementations of
+horizontal (Section \ref{sec:horizimp}) and vertical (Section
+\ref{sec:vertimp}) determinism checks, as well as probabilistic
+delta-debugging support (Section \ref{sec:ddimp}) are described after a general
+overview of the TSTL testing tool (Section \ref{sec:tstlintro}).
+
+\subsection{Pools and Visible State}
+\label{sec:pools}
+
+While the formal definitions of nondeterminism proposed in Section
+\ref{sec:formal} offer a framework for checking for nondeterministic
+behavior, they leave unspecified the key notions of \emph{state},
+\emph{visible state}, and \emph{actions}.  For example, we could
+identify the state and visible state of a system as identical with the
+full set of memory locations accessed by that system, and actions with the
+individual processor instructions executed.  However, this
+definition is highly impractical for two reasons.  First, it is
+extremely inefficient to compare multiple executions for
+full-memory-state equivalence at every instruction step.  Second, and
+even more importantly, as noted in the introduction, very few programs
+will behave deterministically when considered at this low level,
+unless the full state of the operating system, processor, hardware
+devices, etc. are all taken as controlled inputs.
+
+What is a practical level of granularity for (visible) states and actions that
+can be efficiently checked, and matches (for the most part) developer
+and tester intuitions about what should behave deterministically?
+
+Andrews et al. formalized a value-pool-based model of unit tests that is widely used in
+actual testing tools, including Randoop \cite{Pacheco}, showing that
+all Java unit tests (and, more generally, unit tests in similar
+languages) can be represented in a \emph{canonical} form, where
+a test consists of three parts:
+
+\begin{enumerate}
+\item A declaration of a set of array variables, referred to as
+  \emph{value pools}, e.g., {\tt int [] intVP = new int[3];}.
+  \item A set of assignments of constant values to elements of
+    primitive type value pools, e.g. {\tt intVP[2] = 1;}.
+    \item A part in which all statements are assignments of calls of a
+      method to a value pool, with all arguments to the method also
+      taken from a value pool, e.g. {\tt intVP[2] = fooObjectVP[2].bar(intVP[0],
+        intVP[1]);} (these are referred to as \emph{array-canonical} statements).
+    \end{enumerate}
+
+Given such a form for unit tests, there is an obvious mapping to
+states and actions in our formalism for nondeterminism:  the state is
+the full state of the system, but visible state is restricted to
+\emph{the values stored in the value pools}.  Actions are the
+array-canonical statements that call code under test to modify the pools.  We can ignore constant assignments and
+declarations, since (assuming the language implementation itself is
+basically deterministic) these cannot introduce nondeterminism.
+Because assertions of correctness and \emph{what a test actually does}
+depend on the values in value pools, it seems likely that developers
+and testers expect determinism in unit tests, at the granularity of
+value pool assignments.
+
+\subsection{A Brief Introduction to TSTL}
+\label{sec:tstlintro}
+
+We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt}
+system, an open-source
+language and tool for property-based testing
+\cite{Hypothesis,ClaessenH00} of Python code.   TSTL, including full
+support for our nondeterminism detection methods, is available at
+\url{https://github.com/agroce/tstl}, and the {\tt examples} directory
+contains the source code needed to duplicate all of our
+experiments\footnote{In some cases, you will also need to install an
+  appropriate version of the tested software, by doing, e.g., {\tt pip
+    install pyfakefs}.};
+TSTL can also be installed using Python's {\tt pip} tool, by typing
+{\tt pip install tstl}; you will need to clone the github repository
+to have access to the case studies used in the paper, however.
+
+TSTL has
+been used to detect (and usually fix) errors in a number of widely
+used Python libraries, the Python implementation itself, the Solidity
+compiler and a Solidity static analysis tool, and Mac OS \cite{tstl}.
+
+\begin{figure}
+  {\scriptsize
+\begin{code}
+pool: <int> 5
+pool: <l> 5
+pool: <s> 5
+\vspace{0.1in}
+<int> := <[1..20]>
+<l> := []
+<l> := list(<s>)
+<s> := set()
+<s> := set(<l>)
+\vspace{0.1in}
+<l>.append(<int>)
+\{ValueError\} <l>.remove(<int>)
+<s>.add(<int>)
+\{KeyError\} <s>.remove(<int>)
+\vspace{0.1in}
+property: len(<l>) >= len(set(<l,1>))
+property: len(<s>) == len(list(<s,1>))
+\end{code}
+}
+\caption{Simple TSTL harness testing lists and sets}
+\label{fig:simple}
+\end{figure}
+
+In TSTL, a test consists of a sequence of
+\emph{actions}, where actions execute arbitrary Python code, but are
+expected to work by modifying the \emph{state} of a test, which is
+stored in a fixed set of pools containing Python objects.  TSTL's
+approach essentially follows the pool-based canonical form defined by
+Andrews et al. and described above, but relaxes many of its restrictions
+(e.g., a constant value can be used in a method call without first
+assigning it to a pool). The
+TSTL actions defined by a test harness correspond to the set $A$ of
+actions in Section \ref{sec:formal}, and transitions between states
+result from executing out the Python code in an action; these actions
+are, roughly, the array-canonical statements of the value pool formalism.  Figure
+\ref{fig:simple} shows a very simple TSTL harness that tests Python's
+built-in {\tt set} and {\tt list} types.  The harness defines the
+(visible) state of a test as consisting of three named pools of Python
+objects, {\tt int}, {\tt l}, and {\tt s}.  These pools have no
+inherent associated type, though a type can be annotated as an
+additional constraint that TSTL will check holds during test
+execution.  Initially all the pools hold the special Python value {\tt
+  None} indicating they have not been initialized.  In terms of our formalism,
+$I = \{${\tt [<int> = [None, None, None, None, None]}, {\tt <l> =
+  [None, None, None, None, None]}, {\tt <s> = [None, None, None, None,
+  None]]}$\}$.  Actions with the {\tt :=} assignment operator
+initialize pools.  For example, the line of code {\tt l := []} defines a set of 5
+actions, each of which initializes a different member of the list pool
+{\tt l} to an empty list --- {\tt l0 = []} ... {\tt l4 = []}.  Actions
+without a {\tt :=} require that pools used in them already be
+initialized.  TSTL provides constructs like {\tt <[1..20]>} for
+choosing values in a range for use in a test, and allows a user to
+specify which exceptions an action may raise without causing the test
+to fail (as in {\tt \{KeyError\} <s>.remove(<int>)}).
+
+Compiling this harness using
+the TSTL compiler produces a Python module that allows test
+generation.  If we use the random testing tool provided by TSTL, {\tt
+  tstl\_rt}, it will randomly generate valid sequences of actions, and
+report no problems.  If we change the first property to read {\tt
+  property: len(<l>) == len(set(<l,1>))}, however, TSTL will report a
+failing test, shown in Figure \ref{fig:setlistfail}.
+
+\begin{figure}
+{\scriptsize
+\begin{code}
+int0 = 1                                                                 \# STEP 0
+ACTION: int0 = 1 
+int0 = None : <type 'NoneType'>
+=> int0 = 1 : <type 'int'>
+==================================================
+l0 = []                                                                  \# STEP 1
+ACTION: l0 = [] 
+l0 = None : <type 'NoneType'>
+=> l0 = [] : <type 'list'>
+==================================================
+l0.append(int0)                                                          \# STEP 2
+ACTION: l0.append(int0) 
+int0 = 1 : <type 'int'>
+l0 = [] : <type 'list'>
+=> l0 = [1] : <type 'list'>
+==================================================
+l0.append(int0)                                                          \# STEP 3
+ACTION: l0.append(int0) 
+int0 = 1 : <type 'int'>
+l0 = [1] : <type 'list'>
+=> l0 = [1, 1] : <type 'list'>
+==================================================
+ERROR: (<type 'exceptions.AssertionError'>,
+  AssertionError(), <traceback object at 0x1032b83f8>)
+TRACEBACK:
+  File "/Users/adg326/scratch/pyexample/sut.py",
+  line 13695, in check
+    assert len(self.p\_l[0]) == len(set(self.p\_l[0]))
+\end{code}
+}
+\caption{A failing test (showing that converting a list to a set may
+  not preserve the size of the object).}
+\label{fig:setlistfail}
+\end{figure}
+
+\subsection{Implementing Horizontal Nondeterminism Detection}
+\label{sec:horizimp}
+
+Because TSTL supports differential testing \cite{tstlsttt}, horizontal
+nondeterminism detection can technically be implemented simply by
+declaring a system to be its own reference, using TSTL's notation for
+differential testing.  However, such an approach requires considerable effort
+on the part of the user to express which values are checked for
+equivalence, and does not (without a great deal of effort) support injecting timing differences,
+or re-executing in a new process, in checking for nondeterminism.
+
+We therefore instead made horizontal nondeterminism detection a first-class
+property in TSTL, using TSTL's existing notation for marking some
+types of values as \emph{opaque} (not usefully compared for equality),
+used in automatic abstraction-based testing.  Recall that in TSTL, a
+test is (essentially) a sequence of assignments to pool values,
+and method/function calls using pool values (including method calls on
+pool objects).  In TSTL, \emph{visible
+value determinism} is, as proposed above, based on comparing the values of \emph{all pool
+variables} after each test action (pool values other than the one
+assigned to must also be compared, since a common source of
+nondeterminism is when a call results in a change to a value passed as
+a parameter, or changes a shared reference held by two values).  By
+default $V$ as defined in Section \ref{sec:formal} is just the set of all possible pool values, and $v$
+simply extracts the pool values from $S$.
+TSTL allows restriction of which state is visible by removing pools marked as {\tt OPAQUE} in the
+TSTL language test harness (and values that do not support equality
+checking) from $v(S)$.  \emph{Final State Determinism} simply performs the same
+comparison, but only on the final values of all pool variables (or a
+set of designated pools) after a test has
+finished executing.
+
+
+\begin{table*}
+\centering
+{\scriptsize 
+
+\caption{TSTL Method Calls for Nondeterminism Detection}
+\label{tab:methods}
+\begin{tabular}{l|p{8cm}}
+%\hline
+Name & Purpose \\
+\hline
+\hline
+{\tt nondeterministic} & returns True if test exhibits final state nondeterminism in $k$
+  tries with delay $d$, optionally only over pools in $\mathcal{P}$\\
+\hline
+{\tt stepNondeterministic} & as above, except checks all visible values
+                       (compares state at every step)\\
+\hline
+{\tt processNondeterministic} & as above, except runs test provided in
+                          subprocess and compares non-opaque output
+                          values \\
+\hline
+{\tt P} & returns probability that a predicate holds for a test (with
+          optional number of samples to use in estimate) \\
+\hline
+{\tt forceP} & wraps a predicate for test reduction, checking that it
+               has desired probability of holding, using
+         sample size and replications parameters \\
+\hline
+\hline
+
+%\hline
+\end{tabular}
+}
+\end{table*}
+
+\begin{table*}
+\centering
+{\scriptsize
+\caption{TSTL Command Line Options for
+  Nondeterminism Detection}
+\label{tab:options}
+{\scriptsize
+\begin{tabular}{l|l|p{6cm}}
+%\hline
+Name &  Tool(s) & Purpose \\
+\hline
+\hline
+{\tt --checkDeterminism} & {\tt rt}, {\tt reduce} & Checks tests for deterministic
+                                  behavior (visible value in rt, final
+  value in reduce)\\
+\hline
+{\tt --checkProcessDeterminism} & {\tt rt}, {\tt reduce} & Checks determinism using more 
+                                         expensive process-changed 
+                                         execution \\
+\hline
+{\tt --determinismTries INT} & {\tt rt}, {\tt reduce} & Number of times to repeat test 
+                                  checking for nondeterministic
+                                  behavior \\
+\hline 
+{\tt --determinismDelay FLOAT} & {\tt rt}, {\tt reduce} & Delay between steps when 
+                                  re-executing to check for
+                                              determinism \\
+\hline 
+{\tt --checkFailureDeterminism} & tstl compiler & Produce a harness
+                                                  that checks
+                                                  determinism on all
+                                                  failing actions \\
+\hline 
+{\tt --probability P} & {\tt reduce} & force property with respect to which 
+                               test is being reduce to hold with 
+                                 probability $P$ \\
+\hline 
+{\tt --samples S} & {\tt reduce} & use $S$ samples when checking predicate
+                             probability\\
+\hline 
+{\tt --replications R} & {\tt reduce} & use $R$ replications when checking predicate probability\\
+\hline
+\hline
+
+%\hline
+\end{tabular}
+}
+}
+\end{table*}
+
+
+ Tables \ref{tab:methods}
+and \ref{tab:options} show, respectively, the primary additions to the
+TSTL Python API and the TSTL command line tools; in addition to
+horizontal nondeterminism checking, these extensions also support failure
+nondeterminism and probabilistic delta-debugging.  The TSTL test
+generation tool is called {\tt rt}, since the default mode is a fast
+pure Random Tester, and {\tt reduce} is TSTL's tool for
+delta-debugging and test
+normalization (more aggressive reduction that also tends to ease
+debugging and test triage by making tests failing due to the same
+fault more similar \cite{onetest}).  With these additions,
+developers of TSTL-based testing tools, or developers using TSTL tools
+to test code can easily add nondeterminism to the set of properties
+checked.  It is even possible to write a TSTL harness that
+automatically checks itself for nondeterminism, even if the random
+tester is not run with {\tt --checkDeterminism}, simply by adding:
+
+{\scriptsize
+\begin{code}
+property: not self.nondeterministic(self.test())
+\end{code}
+}
+
+\noindent to the harness; in fact, by removing the {\tt not}, a test harness can
+even specify that behavior should not be deterministic, a property of
+possible use in some security-related libraries.
+
+Note that TSTL provides explicit support for exploring the real-world sources of
+nondeterminism described in Section \ref{sec:sources}, by supporting
+execution in a new process ({\tt processNondeterministic} API call and
+{\tt --checkProcessDeterminism} command line argument) and allowing
+control over timing changes in re-execution, by specifying a delay to
+introduce between actions (parameters to API calls, {\tt
+  --determinismDelay} command line arugment).  Changing the timing of
+steps is very effective when exact timing is somehow involved in
+results, and often effective in exposing concurrency-related
+nondeterminism, since the delay will frequently change the
+interleaving of threads.
+
+Because TSTL has a first-class interface to AFL \cite{aflfuzz}, we can even use
+AFL's sophisticated heuristics to perform very thorough, week-long
+checks for nondeterminism, using strategies built to find subtle
+security vulnerabilities in C programs.  Equally importantly, since
+there is substantial overhead in nondeterminism detection, AFL can be
+used to predict whether tested Python code is a good candidate for
+checking for horizontal nondeterminism; if the
+AFL \emph{stability} statistic (see the AFL documentation for details
+\cite{aflfuzz}) is lower than 100\%, it may indicate horizontal
+nondeterminism is present.
+Because of the idiosyncrasies of AFL instrumentation and process
+behavior, this is not always a reliable guide, but it is a very low
+cost indicator produced as a by-product of fuzzing for other problems.
+
+\subsection{Implementing Vertical Nondeterminism Detection}
+\label{sec:vertimp}
+
+First-class vertical nondeterminism checks are currently
+limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
+compiler to emit a harness where every action that causes an \emph{expected}
+exception to be raised is repeated to ensure the same exception is
+still raised.  In terms of the formalism, if execution of action
+$\alpha_i$ raises an exception, then there are two possibilities:
+
+\begin{enumerate}
+\item If the TSTL harness does not explicitly allow the raised
+  exception, then the test fails.  There is no check for vertical
+  nondeterminism in this case, since the behavior of the system is
+  incorrect whether or not the behavior is idempotent.
+  \item If the harness does allow exception $e$ (e.g., as with {\tt
+      KeyError} and {\tt ValueError} in Figure \ref{fig:simple}), then
+    $F_i$ is true, and we repeat $\alpha_i$ in order to ensure that
+    $F_{i+1}$ is also true.
+    \end{enumerate}
+
+When a failure is indicated by some means other than raising an
+=exception, TSTL users must express this by explicitly writing
+a wrapper that raises an expected exception on failure.
+
+\subsection{Tools for Nondeterministic Delta-Debugging}
+\label{sec:ddimp}
+
+Unlike the other additions, explicitly designed for nondeterminism
+detection, the {\tt P} query, {\tt forceP} wrapper, and {\tt --probability}, {\tt
+  --samples}, and {\tt --replications} reducer options are general
+tools for use with nondeterministic predicates in delta-debugging.  Of
+course, nondeterminism and flakiness are the most common probabilistic
+test properties we are aware of, but in theory these tools can be used
+for other probabilistic debugging problems (e.g., if the property of
+interest is that a value is above a certain threshold in 90\% of test
+executions, these TSTL additions can be used to find a small test where this property
+fails to hold).  In addition to the basic probabilistic reduction
+issues discussed above, actual implementation of test reduction for
+nondeterminism introduces some subtle issues.  By default, for
+example, TSTL automatically removed non-enabled actions from tests
+during reduction, because these are never actually executed.  However,
+in timing based nondeterminism, such steps may be essential to
+causing the nondeterminism to appear (we had to turn off this feature
+for the {\tt redis-py} example discussed below).
+
+\subsection{Key Challenges}
+The key challenge in all of these implementations was choosing
+appropriate default values.  In particular, how many times to retry
+tests (horizontal determinism) or actions (vertical/failure determinism), what delays to use, and numbers of replications
+required in nondeterministic delta-debugging.  Because our confidence
+that these defaults are ideal is low, we made it easy to change the
+values used, as shown by the presence of command line options and
+optional function parameters in Tables \ref{tab:methods} and \ref{tab:options}.
+
+\section{A Simple Example}
+
+\begin{figure}
+{\scriptsize
+\begin{code}
+@from storage import *
+\vspace{0.1in}
+init: init()
+\vspace{0.1in}
+pool: <int> 5
+\vspace{0.1in}
+<int> := <[-10..10]>
+<int> := getNewVal()
+\{KeyError,ValueError\} store(<int>)
+\vspace{0.1in}
+property: len(contents()) == len(set(contents()))
+\end{code}
+}
+\caption{TSTL harness for Python library with (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexample}
+\end{figure}
+
+\begin{figure}[t]
+  {\scriptsize
+\begin{code}
+import random
+
+storage = []
+
+def contents():
+    global storage
+    return storage
+
+def init():
+    global storage
+    storage = []
+
+def store(n):
+    global storage
+    if n in storage:
+       raise KeyError
+    storage.append(n)
+    if n < 0:
+       raise ValueError
+
+def getNewVal():
+    global storage
+    if len(storage) >= 1:
+        bot = min(storage)
+        top = max(storage)
+    else:
+        bot = -10
+        top = 10
+    v = random.randint(bot-1,top+1)
+    while v in storage:
+        v = random.randint(bot-1,top+1)
+    return v
+  \end{code}
+  }
+\caption{Code for Python library with (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexamplecode}
+\end{figure}
+
+Figures \ref{fig:simpleexample} and \ref{fig:simpleexamplecode} show a self-contained example of a
+Python library and test harness with both vertical and horizontal
+nondeterminism.  The example is not meant to be realistic, but to
+better concretely explain the detection and debugging of
+nondeterminism.  A few additional TSTL features need to be described.
+First, lines beginning with an {\tt @} indicate raw Python code, here
+used to import the module to be tested.  Second, {\tt init:} indicates
+code that is to be executed at the beginning of each test, in
+order to restore the system under test to its initial state.
+
+\subsection{Horizontal Nondeterminism}
+
+If we compile and test this code without using any of the
+nondeterminism-detection functionality, TSTL will not report any
+failing tests.  The property (avoidance of duplicate entries in
+storage) holds:
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl
+ ...
+ \$ tstl\_rt
+ Random testing using config=Config...
+ storage: TEST \#1396 STEP \#0 (0:00:30.000188) Mon Feb
+ 25 11:13:18 2019 [ 15 stmts 22 branches ] (no cov+ for
+ 1391 tests) 139500 TOTAL ACTIONS (4649.97/s) (test
+ 0.0/s) 2 cov+ tests
+\end{code}
+}
+
+TSTL reports information on the testing in a status line, here showing
+that it has performed 1,396 tests, with no failures, and two tests
+that increased code coverage.  TSTL can be run in a mode that stores
+minimized versions of the tests that obtained new coverage, for use
+as, e.g., regressions:
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl
+ ...
+ \$ tstl\_rt --quickTests
+\end{code}
+}
+
+\begin{figure}
+ {\scriptsize
+{\bf quick.0.test:}
+\begin{code}
+self.p\_int[0] = getNewVal() 
+store(self.p\_int[0]) 
+store(self.p\_int[0]) 
+self.p\_int[0] = -10 
+store(self.p\_int[0]) 
+\end{code}
+\vspace{0.1in}
+{\bf quick.1.test:}
+\begin{code}
+self.p\_int[0] = -8
+store(self.p\_int[0]) 
+self.p\_int[0] = getNewVal() 
+\end{code}
+}
+\caption{Coverage maximizing tests for Python library with (independent) vertical and
+  horizonal nondeterminisms}
+\label{fig:simpleexampletests}
+\end{figure}
+
+This will result in generation of two\footnote{In some rare cases,
+  TSTL may generate one test that achieves complete code coverage, but
+  this will only happen rarely here.} files, {\tt quick.0.test} and
+{\tt quick.1.test}.  Sometimes, TSTL will fail at this point with an internal error
+({\tt REDUCED TEST DOES NOT PRESERVE COVERAGE}), due to the attempt to reduce one of the coverage-obtaining
+tests losing coverage, which is a consequence of horizontal
+nondeterminism.  However, TSTL will often produce
+test files such as those shown in Figure
+\ref{fig:simpleexampletests}.  TSTL lets us convert these tests, which
+are in TSTL's internal format, into standalone Python regression tests
+that check the properties in the test harness and ensure that the
+behavior (values of pools) are the same as in the recorded run:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_standalone quick.0.test quick0.py --regression
+ ...
+ \$ tstl\_standalone quick.1.test quick1.py --regression
+\end{code}
+}
+
+However, if we execute these Python tests, they will be very flaky;
+sometimes they will pass, but {\tt quick0.py} will almost always fail, and
+{\tt quick1.py} will fail about two thirds of the time.  The reason,
+of course, is a trivial case of horizontal nondeterminism, due to the
+use of the {\tt random.randint} function in {\tt getNewValue}.  The
+regression test will record whatever value {\tt getNewValue} returned
+the when the TSTL test file was executed in order to produce the
+Python standalone test.  The value in future executions will seldom
+match this value.  In this case, removing the nondeterminism is easy
+(simply add a fixed random seed to the {\tt init:} line in the
+harness, e.g., {\tt init: init(); random.seed(0)}).  However, in
+real-world testing, the source of the nondeterminism, may not be
+obvious, and only some regression tests may (infrequently) fail.
+However, if we ask the random tester to check for nondeterminism, it
+quickly shows us what the problem is:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_rt --checkDeterminism
+ ...
+ int2 = getNewVal()              \# STEP 50
+ MISMATCH IN REPLAY VALUE:
+    int2 : 7 VS. -5
+ TEST WAS NOT DETERMINISTIC!  WRITING FAILURE AS
+ ndfail.test
+\end{code}
+}
+
+We can use TSTL's test reduction tool to produce a small test showing
+the problem:
+
+{\scriptsize
+\begin{code}
+ \$ tstl\_reduce ndfail.test hnd.test --checkDeterminism
+ ...
+ NEW LENGTH 1
+ int0 = getNewVal()              \# STEP 0
+
+ TEST WRITTEN TO hnd.test
+\end{code}
+}
+
+Nothing is required to produce nondeterminism other than calling {\tt
+  getNewVal}, and this test is more frequently nondeterministic than
+the original, since it calls {\tt getNewVal} without any stored data
+to restrict the range of random values.
+
+\subsection{Vertical Nondeterminism}
+
+The {\tt storage.py} program also contains an (again, unrealistically
+simple) example of \emph{vertical} nondeterminism.  The {\tt store}
+method is supposed to 1) allow only a single copy of a value to be in
+the storage and 2) to disallow negative values.  Unfortunately, the
+check for negatives is \emph{after} the value is stored, which means
+that a second attempt to store the same negative value will result in
+a {\tt KeyError}, not a {\tt ValueError}.  TSTL can detect this
+problem if we compile the harness with {\tt
+  --checkFailureDeterminism}, which produces a version of the testing
+interface that ensures failing actions (ones that raise an expected
+exception) always fail again if performed again without any
+intervening actions, and always fail with the same exception.  Note
+that the check for the same exception is a slight extension of our formal
+definition of failure determinism, recording the last observed
+exception as an additional visible state element.
+
+{\scriptsize
+\begin{code}
+ \$ tstl storage.tstl --checkFailureDeterminsim
+ ...
+ \$ tstl\_rt
+ ...
+ FINAL VERSION OF TEST, WITH LOGGED REPLAY:
+ int0 = -4                                   \# STEP 0
+ ACTION: int0 = -4 
+ int0 = None : <type 'NoneType'>
+ => int0 = -4 : <type 'int'>
+ ==================================================
+ store(int0)                                 \# STEP 1
+ ACTION: store(int0) 
+ int0 = -4 : <type 'int'>
+ RAISED EXPECTED EXCEPTION:
+   <type 'exceptions.ValueError'> 
+ RAISED EXCEPTION:
+   <type 'exceptions.KeyError'>  ON RETRY
+   ERROR: (<type 'exceptions.AssertionError'>,
+   AssertionError('Failure with different exception.',),
+ <traceback object at 0x105e9edd0>)
+\end{code}
+}
+
+With failure nondeterminism, we don't have to use TSTL's specialized reduction
+tool, since the failure does not require multiple replays of a test.
+The random tester itself can properly reduce the test case, since it
+is just a ``normal'' failure, exhibited by a single trace.

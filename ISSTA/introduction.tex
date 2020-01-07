@@ -1,0 +1,205 @@
+\section{Introduction}
+
+For ourselves, we might prefer to think (and act as if) we had free
+will; however, we generally prefer our software systems to be as
+constrained in their actions as possible:  in other words, we wish
+them to be largely deterministic, from our perspective.
+
+Determinism is particularly important for testing and debugging, where
+being able to exactly reproduce system behavior is essential to
+productivity \cite{Firesmith}.  If executing ``the same test'' can produce
+significantly different behavior each time it is run, the consequences
+can be unfortunate.  Developers using a test exhibiting nondeterminism
+to debug a system
+face a challenge in reasoning about causality, in that an event
+observed may not even take place the next time the test is run; this
+pernicious phenomenon has been sometimes referred to as the dreaded
+``Heisenbug'' \cite{Heisenbug}, though the more accurate usage is
+``Mandelbug'' \cite{GrottkeBugs,FaultTriggers}, since Heisenbugs, properly speaking, are bugs that disappear or
+alter behavior under instrumentation (especially in debugging).
+Automated test generation systems using test coverage results to drive
+the search for interesting inputs may be mislead when a run executes
+code only rarely.  And, most significantly, regression testing
+effectiveness can be significantly reduced if tests fail only
+intermittently and unpredictably, as a result of environmental
+factors rather than bugs in changed code.  Such behavior is
+unfortunately all too common:  Gao et
+al. \cite{Gao:2015:MSU:2818754.2818764} observed coverage differences
+of up to 184 lines of code for the same test, and false positive rates
+as high as 96\%.  Nondeterminism is sometimes problematic for
+developers, who will usually want to  assume that library code they
+use behaves in a reliably predictable fashion; nondeterminism is
+frequently vexing in debugging efforts; most importantly, perhaps, nondeterminism is \emph{often disastrous} for large-scale highly
+automated testing.
+
+
+\subsection{What is Determinism?}
+
+A system is deterministic if, given the system's complete state at a point in
+time, it is possible, in principle, to predict its future behavior
+perfectly.  We say ``in principle'' because in the real world,
+prediction may be possible but hopelessly impractical.  We write
+complex software systems in many cases because we cannot predict their
+behavior (if we could perform the calculations in advance, ourselves,
+we would just do so).  As a consequence, in software, rather than
+defining determinism in terms of prediction, we usually therefore
+simply say that a system is deterministic if, given the same state and
+inputs, it always produces the same outputs.  
+
+Technically, many ``nondeterministic'' systems are not
+nondeterministic in a strong sense, at all.  Given the complete state
+of the system (which includes the entire state of the underlying
+hardware, the operating system, storage devices, etc.), ignoring
+quantum effects, and treating outside interventions such as network
+traffic, human activity at an input device, etc. properly as inputs,
+most software \emph{is} completely predictable.  What we actually
+mean, usually, is that, given a certain limited abstraction of state
+and of inputs, observable behavior is repeatable.  This abstraction,
+for most software, is not expected to include many elements outside of
+the software system itself.
+
+Because the
+programmer's abstraction of the system ignores  such a large number of
+details, very few tests are in fact ``deterministic'' in the sense
+that they eliminate all changes in behavior between executions.  Running the same test
+twice almost always results in differences, given a low enough level of
+abstraction, since the system load,
+cache contents, branch predictor history, etc. are almost never
+controlled for; however, this kind of
+nondeterminism is usually of no interest, unless the test involves
+extremely precise timing constraints.  Rather, what matters is when
+some kind of nondeterminism unexpectedly impacts computed values at a
+higher level of abstraction; in general, if the operating system
+itself is not buggy, low-level nondeterminism, by design, is invisible
+except in fine-grained performance testing or real-time systems.
+Unexpected nondeterminism usually arises when there is an element of higher-level
+state or input that \emph{is} critical to the produced behavior, but
+the programmer has not anticipated.  E.g.,  when it is believed that the
+behavior of a thread scheduler will not matter, but a race condition
+in the code means that it does matter, or when the order of items in
+an iterator on a hash table is important, and the hash values used are
+randomly salted.
+
+\subsection{The High Cost of Unexpected Nondeterminism}
+
+Unexpected nondeterminism is, unfortunately, usually only discovered
+in a context that makes it very hard to debug.   The most common such
+contexts are occasional rare failures of a system in deployment, and
+regression tests that do not behave reliably (known as flaky tests).
+Furthermore, unexpected nondeterminism makes it difficult to use
+automated test generation to produce effective regression tests for a
+system.  While developers may know how to produce reliably
+deterministic unit tests, even in the presence of underlying
+nondeterminism, automated test generation, without a large investment
+in human time, usually does not have sufficient information to avoid
+producing the occasional such test.  Moreover, where a human might
+make an assertion about the final value produced during a unit test,
+an automatically generated regression test is usually most easily produced by
+simply asserting equality with all values produced during a reference
+run, since the final step of a test
+is likely to be somewhat arbitrary, generated in an effort to increase
+code coverage, not establish some functional correctness property.
+This may be one reason that automated testing is seldom used to
+produce general regression tests.  While failure-inducing tests
+produced automatically are often added to regression suites, the full
+set of passing tests is, to our knowledge, only infrequently preserved
+as part of a typical regression suite, perhaps because such tests are
+likely to be \emph{flaky} without considerable human effort.
+
+\subsubsection{Nondeterminism and Flaky Tests}
+
+In order to help ensure that they are reliable and secure, complex
+modern software systems usually include a large set of
+\emph{regression tests}.  A regression test suite is a (usually large)
+set of tests that can be run against a software system every time it
+is modified, to ensure that the modification has not broken the system
+in some way.  \emph{Flaky tests} \cite{miccoflaky} are regression
+tests that fail in an intermittent, unreliable fashion, and thus
+degrade the utility of regression testing.  The essence of a flaky
+test is that, for the same snapshot of test code and code under test
+(CUT), it sometimes fails and sometimes passes: the pass/fail result (disposition) of the
+test is not a deterministic property of the test code, code under
+test, and environment in which the test is run\footnote{Again, in 
+  some sense the result \emph{is} clearly determined by the environment in
+  which the test is run, but from the point of view of a developer or
+  test engineer, the differences in environment are invisible and unknown.}.  This produces three serious
+problems: first, a flaky test often wastes developer time and delays
+software changes by forcing the investigation of code-under-test that
+is not actually incorrect.  Second, failures in flaky tests (for that
+reason) are often ignored, and therefore serious software faults may
+be missed.  Finally, to mitigate these problems, flaky tests are often
+run multiple times, wasting valuable computing resources and also
+delaying acceptance of code changes.  An analogy may make the extent
+of the problem in large-scale test automation clear:  a canary in a coal mine is of
+little use if canaries frequently become ill for reasons unrelated to
+the presence of toxic gases.  Mining may stop for no good reason, or
+miners may learn to ignore the canary, leading to tragedy; a third,
+more ``practical'' option is that miners may carry so many redundant
+canaries into the coal mine that canary-care becomes a serious burden
+on mining.
+
+Flaky tests are, for us, simply a special case of general test
+nondeterminism, where the nondeterminism of test values is sufficient
+to cause the pass/fail result of the test to vary.  The definitions
+and techniques proposed in this paper all apply to flaky tests, as a
+special case of various kinds of \emph{horizontal} nondeterminism
+described below.  Our focus, however, unlike all other tools and
+approaches we are aware of, is on detecting the \emph{sources} of
+flaky-ness \emph{before} they propagate to cause actual test failure.
+
+\subsection{Contributions:  Detecting and Debugging Nondeterminism}
+
+
+This paper proposes (1) a number of formal definitions of types of
+nondeterminism (\emph{horizontal} and \emph{vertical}) (see Section \ref{sec:formal}) and (2) an implementation, based on these definitions, for detecting and debugging
+nondeterminism in property-based testing.  The implementation is based
+on an approach where (3) horizontal determinism is considered as a
+kind of \emph{reflexive differential testing} (4) vertical
+determinism is specialized to the common case of \emph{failure
+  determinism}, and (5)  in both cases the formalism is made practical
+by using the \emph{value pool} model of unit tests to define a useful
+granularity for nondeterminism detection (see Section \ref{sec:pools}).
+We further propose modifications to the widely used delta-debugging algorithm in order to better handle
+nondeterminism as a test property.
+
+The underlying idea in this paper is that most approaches to
+nondeterminism/flaky test detection and debugging rely either on 1) identifying
+potential sources of nondeterminism such as test inter-dependence
+\cite{LamZE2015} or certain code smells \cite{palomba2017does}  or 2)
+use a heuristic approach to mark failures as likely flaky, such as that taken by DeFlaker
+\cite{bell2018d}.  In the real world, people usually detect flaky
+tests by the most obvious heuristic of all:  they observe a test both
+fail and pass for the same code version.  In a sense, even DeFlaker
+relies on this method, but avoids having to observe a flaky test actually
+passing, by inferring that if a test was previously passing, and
+executes no changed code, its failure after a code change \emph{must}
+be due to flakiness/nondeterminism.  Our approach to the problem is
+fundamentally different, and essentially orthogonal; we concentrate on the detection and avoidance of
+nondeterminism/flakiness using \emph{automated test generation},
+and make it possible for a developer or test engineer to detect when
+important values generated in automated testing differ without a
+change in the test itself or the code under test.  While some of these
+changes may be harmless, and unable to propagate to cause test
+failures, they are potential sources of flaky behavior.  To our
+knowledge, this is the first approach to the problem that
+allows detection of (potential sources of) flakiness, based on real divergence in
+behavior, without having to observe a test actually fail due to nondeterminism.
+
+This approach enables a number of useful results:
+ the automated production of
+nondeterminism-free regression tests even for libraries with some
+sources of nondeterminism, the documentation of sources of
+nondeterminism that might produce problems for manually-constructed tests, and, most importantly, detection and effective debugging for
+unexpected nondeterminism that is, itself, a bug.  Additonally, by
+identifying (using automated testing) library behaviors that are
+nondeterministic, our approach should make it much easier to flag
+statements in existing human-written unit tests that may produce flaky
+behavior:  simply scan the
+code for calls to functions identified as sources of nondeterminism.
+
+We use a set
+of case studies. including real-world, widely-used, Python libraries to demonstrate the
+utility of our ideas.  Failure determinism directly
+produces a more than 5\% improvement in mutation score for an already highly
+effective automated test generation tool for a file system, with no
+additional specification or test design burden.
