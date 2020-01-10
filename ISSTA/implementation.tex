@@ -1,5 +1,6 @@
 \section{Implementation}
 
+\begin{comment}
 The implementation of the above ideas is conceptually straightforward,
 and should be easy to apply in other automated test generation
 settings with a natural notion of actions.  We present our
@@ -10,6 +11,7 @@ horizontal (Section \ref{sec:horizimp}) and vertical (Section
 \ref{sec:vertimp}) determinism checks, as well as probabilistic
 delta-debugging support (Section \ref{sec:ddimp}) are described after a general
 overview of the TSTL testing tool (Section \ref{sec:tstlintro}).
+\end{comment}
 
 \subsection{Pools and Visible State}
 \label{sec:pools}
@@ -46,7 +48,7 @@ a test consists of three parts:
     primitive type value pools, e.g. {\tt intVP[2] = 1;}.
     \item A part in which all statements are assignments of calls of a
       method to a value pool, with all arguments to the method also
-      taken from a value pool, e.g. {\tt intVP[2] = fooObjectVP[2].bar(intVP[0],
+      taken from a value pool, e.g. {\tt intVP[2] = fooVP[2].bar(intVP[0],
         intVP[1]);} (these are referred to as \emph{array-canonical} statements).
     \end{enumerate}
 
@@ -62,8 +64,8 @@ depend on the values in value pools, it seems likely that developers
 and testers expect determinism in unit tests, at the granularity of
 value pool assignments.
 
-\subsection{A Brief Introduction to TSTL}
-\label{sec:tstlintro}
+%\subsection{A Brief Introduction to TSTL}
+%\label{sec:tstlintro}
 
 We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt}
 system, an open-source
@@ -74,7 +76,8 @@ support for our nondeterminism detection methods, is available at
 contains the source code needed to duplicate all of our
 experiments\footnote{In some cases, you will also need to install an
   appropriate version of the tested software, by doing, e.g., {\tt pip
-    install pyfakefs}.};
+    install pyfakefs}.}.
+\begin{comment}
 TSTL can also be installed using Python's {\tt pip} tool, by typing
 {\tt pip install tstl}; you will need to clone the github repository
 to have access to the case studies used in the paper, however.
@@ -109,6 +112,7 @@ property: len(<s>) == len(list(<s,1>))
 \caption{Simple TSTL harness testing lists and sets}
 \label{fig:simple}
 \end{figure}
+\end{comment}
 
 In TSTL, a test consists of a sequence of
 \emph{actions}, where actions execute arbitrary Python code, but are
@@ -121,7 +125,11 @@ assigning it to a pool). The
 TSTL actions defined by a test harness correspond to the set $A$ of
 actions in Section \ref{sec:formal}, and transitions between states
 result from executing out the Python code in an action; these actions
-are, roughly, the array-canonical statements of the value pool formalism.  Figure
+are, roughly, the array-canonical statements of the value pool
+formalism.
+
+\begin{comment}
+  Figure
 \ref{fig:simple} shows a very simple TSTL harness that tests Python's
 built-in {\tt set} and {\tt list} types.  The harness defines the
 (visible) state of a test as consisting of three named pools of Python
@@ -188,6 +196,8 @@ TRACEBACK:
 \label{fig:setlistfail}
 \end{figure}
 
+\end{comment}
+
 \subsection{Implementing Horizontal Nondeterminism Detection}
 \label{sec:horizimp}
 
@@ -220,7 +230,7 @@ comparison, but only on the final values of all pool variables (or a
 set of designated pools) after a test has
 finished executing.
 
-
+\begin{comment}
 \begin{table*}
 \centering
 {\scriptsize 
@@ -334,13 +344,13 @@ property: not self.nondeterministic(self.test())
 even specify that behavior should not be deterministic, a property of
 possible use in some security-related libraries.
 
+\end{comment}
+
 Note that TSTL provides explicit support for exploring the real-world sources of
 nondeterminism described in Section \ref{sec:sources}, by supporting
-execution in a new process ({\tt processNondeterministic} API call and
-{\tt --checkProcessDeterminism} command line argument) and allowing
+execution in a new process and allowing
 control over timing changes in re-execution, by specifying a delay to
-introduce between actions (parameters to API calls, {\tt
-  --determinismDelay} command line arugment).  Changing the timing of
+introduce between actions.  Changing the timing of
 steps is very effective when exact timing is somehow involved in
 results, and often effective in exposing concurrency-related
 nondeterminism, since the delay will frequently change the
@@ -385,6 +395,7 @@ When a failure is indicated by some means other than raising an
 =exception, TSTL users must express this by explicitly writing
 a wrapper that raises an expected exception on failure.
 
+\begin{comment}
 \subsection{Tools for Nondeterministic Delta-Debugging}
 \label{sec:ddimp}
 
@@ -413,7 +424,9 @@ tests (horizontal determinism) or actions (vertical/failure determinism), what d
 required in nondeterministic delta-debugging.  Because our confidence
 that these defaults are ideal is low, we made it easy to change the
 values used, as shown by the presence of command line options and
-optional function parameters in Tables \ref{tab:methods} and \ref{tab:options}.
+optional function parameters in Tables \ref{tab:methods} and
+\ref{tab:options}.
+\end{comment}
 
 \section{A Simple Example}
 

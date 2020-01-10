@@ -30,7 +30,8 @@ generated tests by 85\% or more, in less than 15 minutes, thus showing that redu
 has a large payoff at an acceptable price.
 
 \begin{table}
-\centering
+  \centering
+  {\scriptsize
 \begin{tabular}{l|l|r|r|l}
 & \multicolumn{1}{c}{\bf RQ1} & \multicolumn{1}{|c|}{\bf RQ2} &
                                                               \multicolumn{2}{c}{\bf RQ3}\\
@@ -44,6 +45,7 @@ Parallel Sort & Yes (see below) & $\sim$40\% & $\sim$85\% & $\sim$2 minutes\\
   seconds\\
 {\tt pyfakefs} & Yes (see below) & $\sim$8\% & $\sim$99\% & $\sim$1 second  \\
 \end{tabular}
+}
 \caption{Overview of experimental results}
 \label{tab:overviewexp}
 \end{table}
@@ -239,6 +241,7 @@ the sources of nondeterminism and produce minimal tests 3.2
 hours, which is not trivial, but also, for this purpose, not
 excessive.  Our answer to {\bf RQ1} is thus a strong affirmative.
 
+\begin{comment}
 \begin{figure*}
 {\scriptsize
 \begin{code}
@@ -269,8 +272,10 @@ excessive.  Our answer to {\bf RQ1} is thus a strong affirmative.
   nondeterminism.}
 \label{fig:flakysource}
 \end{figure*}
+\end{comment}
 
-Figure \ref{fig:flakysource} shows all calls removed or modified after
+We removed 11 calls from the {\tt redis} harness, and  modified 2
+calls, after
 identification of sources of nondeterminism.  After making these changes, no flakiness was observed in a sample of over 2,000 length
 200 tests.   Moreover, because the removals were limited to actually
 observed sources of flakiness, the code coverage loss was minimal.
@@ -591,6 +596,7 @@ $(p < 1 \times 10^{-15})$.  While \emph{statistically} significant,
 this cost is almost certainly
 too small to be of any real practical importance.
 
+\begin{comment}
 \subsection{Summary of Results}
 
 \begin{itemize}
@@ -611,9 +617,10 @@ strong differential test.
     acceptable?}  In all cases, reduction was relatively quick (a
   little over 10 minutes in the worst case) and the amount of
   reduction produced was large (85\% or better).
-  \end{itemize}
+\end{itemize}
+\end{comment}
 
-\section{Threats to Validity}
+\subsection{Threats to Validity}
 
 There are several primary threats to validity:  first, our empirical
 results are limited to a small set of Python programs, ranging from

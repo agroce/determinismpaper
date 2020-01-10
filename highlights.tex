@@ -10,18 +10,23 @@
 
 \vspace{0.1in}
 
-\noindent This article presents a new formalism and characterization of types of nondeterminism in tests (and software libraries) that can lead to ``flaky tests,'' a pernicious problem in real-world large-scale testing.
+\noindent This article presents a new approach to ``flaky tests'' and nondeterminism.
 
 \vspace{0.1in}
 
-\noindent The article describes a formalism distinguishing horizontal (where the same test does different things when run multiple times, the traditional ``flaky test'' behavior) and vertical determinism (where an operation in the same test does different things, when this is incorrect).  The articles then describes how the formalisms presented can be used to implement effective detection of nondeterminism for Python code.
+\noindent The article presents a formalism distinguishing horizontal and vertical determinism.
 
 \vspace{0.1in}
 
-\noindent The article shows that nondeterminism detection can be relatively easy to use, and inexpensive, and that the novel approach of checking for failure determinism can detect up to 6\% additional program mutants over a strong differential testing approach, for a real-world mock file system library.
+\noindent The approach is implemented in an open source Python library testing system.
 
 \vspace{0.1in}
 
-\noindent In addition to detection of nondeterminism, the paper presents the first examination of delta-debugging/test case reduction in a probabilistic setting, where a property that a test should satisfy only holds with a certain probability, or, more generally, the property describes a probability over a property of a test.  The key concept introduced is that the issues in this setting can be understood in terms of the scientific replication problem, and similar methods used to control false positives.  The above experimental results on real-world Python libraries show that the approach is effective and inexpensive.
+\noindent Failure determinism can detect 6\% more program mutants than a strong specification.
+
+\vspace{0.1in}
+
+\noindent The article presents the first examination of test reduction for probabilistic properties.
+
 
 \end{document}
