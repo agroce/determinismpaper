@@ -35,22 +35,19 @@ it behaves equivalently, at some level of abstraction, to another
 implementation of the same functionality.  Differential testing is
 extremely powerful, in that any divergence of behavior, if divergence
 is correctly defined, indicates a functional correctness fault in (at
-least) one of the systems under test.  Being able to detect functional
-correctness errors without the cost of constructing a formal
-specification is extremely useful in automated test generation.  Differential testing is widely
+least) one of the systems under test, and  is widely
 used for systems software components such as compilers
 \cite{Differential,csmith} and POSIX file systems \cite{CFV08,AMAI}, where multiple
 implementations are common.  The major limitation of differential
-testing, of course, is that multiple implementations of a system are
+testing is that multiple implementations of a system are
 almost as rare as good correctness specifications.
 
 For the special case of detecting nondeterminism, however, \emph{a
   system can serve as its own reference implementation.}    The
-question, then, becomes one of deciding at what granularity the
-reference equivalence will be checked:  as discussed above,
+problem, then, becomes one of deciding at what granularity the
+reference equivalence will be checked:  e.g., 
 processor-instruction and memory-layout determinism is seldom
-necessary or even desired (it would greatly limit optimizations of
-code execution).  We propose two approaches to ``aligning'' an
+necessary or even desired.  We propose two approaches to ``aligning'' an
 execution with itself.
 
 \subsubsection{Visible Value Determinism}
@@ -58,26 +55,25 @@ execution with itself.
 Visible value determinism uses the human-accessible outputs (displayed
 or stored to a file), and \emph{values returned by functions or methods
 called as a library by other code}, as the criteria for determining if two executions
-are equivalent.  The idea is simple:  determinism is motivated by the
+are equivalent.  Determinism is motivated by the
 desire to create consistent behavior for an observer, whether that
 observer is a human user, another software system, or a regression
-test.  The values output by a software element are the only values of
-interest to the observer.  In practice, of course, some values (time
+test.  In practice, of course, some values (time
 stamps, pointer addresses, etc.) are not expected to be deterministic
 by an observer; we call these values \emph{opaque} in that they are
 not interpretable as ``showing'' the internal workings of the code
 being tested for determinism.  Rather, they mask an abstraction,
 usually one managed by the operating system (system
 time, memory management).   Any mechanism for visible value
-determinism needs to support automatic and manual designation of some
+determinism needs to support designation of some
 values as opaque.
 
 \subsubsection{Final State Determinism}
 
 Visible value determinism has significant limitations.  While it
-provides the finest granularity for detecting nondeterminism, which is
+provides the finest granularity, which is
 important for debugging purposes, it is also expensive, requiring
-checks on (and possibly storage of) a potentially very large number of
+checks on a potentially very large number of
 values.  Additionally, in some cases so many values produced by a
 system are opaque that the annotation burden is inordinate.  In these
 cases, it is better to only compare final states of a computation
@@ -112,7 +108,7 @@ the AVL tree.
 
 One application of vertical determinism, then, is to identify
 idempotent operations in an automated test generation harness, and
-simply automatically retry all such operations, checking that the
+automatically retry all such operations, checking that the
 result is unchanged.  The overhead of vertical nondeterminism detection will
 generally be much lower than that for horizontal nondeterminism
 (horizontal checks must re-execute an entire test; vertical checks
@@ -124,16 +120,9 @@ can automatically identify a limited kind of idempotent behavior?
 \subsubsection{Failure Determinism}
 
 A specialized case of vertical determinism is failure determinism.
-Failure determinism is the following restriction on an API:
-
-{\bf If a call \emph{fails}, and indicates this to the caller, it should not modify system
-  state in any way; changes should be ``rolled back.''} 
-
-In other words, failure determinism is a property stating that an API
-is \emph{transactional} with respect to failures (it may not be so
-with respect to non-failing calls).
-
-From a user's perspective, some behaviors of the Mac OS High Sierra
+Failure determinism is the following restriction on an API: {\bf If a call \emph{fails}, and indicates this to the caller, it should not modify system
+  state in any way; changes should be ``rolled back.''}   In other words, failure determinism is a property stating that an API
+is \emph{transactional} with respect to failing calls.  From a user's perspective, some behaviors of the Mac OS High Sierra
 root exploit (CVE-2017-13872 \cite{applebug0}) exhibited failure
 nondeterminism.  Attempting to login with the root account with an
 empty password appeared to fail, then, on a repeated try, succeeded
@@ -156,17 +145,14 @@ Haskell, and ML), failure determinism can be automatically checked,
 given a notion of general vertical determinism.
 Moreover, the expected overhead should be even lower than the usual
 overhead for vertical determinism, in that we can expect most failing
-operations to be fast (since in test generation, failure is usually
+operations to be fast (since failure is usually
 due to invalid parameters).  Checking equivalence of the full
 observable state, however, is still expensive, and requires defining
 the observable components of a state.  A more lightweight, but (as we
 will show) still quite powerful way of checking for failure nondeteterminism is to
 repeat the failing operation, and check if it still fails.  If not,
 this is a sign that the operation is not deterministic with respect to
-failure.  Note that this more restrictive notion of failure
-nondeterminism captures such issues as the Apple login bug.  The
-changes to visible or hidden state we are most concerned with are
-usually those related to the failure itself.
+failure.  Note that this more restrictive notion still captures such issues as the Apple login bug. 
 
 \subsection{Nondeterminism vs. Flakiness}
 
@@ -177,11 +163,13 @@ nondeterministic behavior, not in addressing flakiness \emph{per se}.
 Of course, the concepts are closely related.  We make ``did not behave
 nondeterministically'' an additional \emph{property} that a test can
 fail.  Due to the nature of (horizontal) nondeterminism, such failure
-is almost always going to be inherently flaky --- sometimes a test
+is almost always going to be inherently flaky---sometimes a test
 will behave nondeterministically, and sometimes it will not.  But the
 idea is a separate one from flakiness; in order to show horizontal
 nondeterminism, we need only see a change in values in a test, not in
-the disposition (failed/passed) of the test.  It may be that, without
+the disposition (failed/passed) of the test.
+\begin{comment}
+  It may be that, without
 the additional property of determinism, the change cannot actually
 cause failure, and thus flakiness.  The real relationship between our
 nondeterminism and flakiness is that tests (automatically generated or
@@ -190,28 +178,33 @@ horizontal nondeterminism contain a potential source of flakiness.  If
 the code behaves nondeterministically, and the values that are
 observed to change can flow to influence the outcome of the test,
 flakiness may well result.
+\end{comment}
 
 Vertical nondeterminism, in fact, is potentially \emph{completely} unrelated
 to flakiness, in that some bugs (improper handling of hardware errors
 in a file system, for example) produce \emph{reliably}
 ``nondeterministic'' (from a software library users' point of view)
-behavior.  Vertical nondeterminism may rely on ``real'' nondeterminism
-that could produce a flaky test, but it does not have to do so.  In
-other words, vertical nondeterminism is often not a problem for
-testing (flakiness), but simply a bug in the behavior of a software
+behavior.   That is, vertical nondeterminism is often simply a bug in a software
 system, where an implicit specification on failed operations is
 consistently violated under certain conditions.  The behavior is
 ``nondeterministic'' from a caller's point of view, however, in that
 there is an expectation that a call will always ``do the same thing,
 under the same circumstances'' which is the \emph{conceptual} common
-factor in all kinds of expected determinism.
+factor in ``determinism.''
 
 \subsection{Formal Definitions}
 \label{sec:formal}
 
 We can formally distinguish the types of nondeterminism by using a
-variant of a labeled transition system (LTS) as our model:
+variant of a labeled transition system (LTS) as our model, where (1) $S$
+is a set of states; (2) $V$ is a set of \emph{observable} states, where
+$|V| \leq |S|$; (3) $v: S \rightarrow V$ is a total function that, given a state, maps it
+  into the set of observable states, such that every state has an observable
+  component, which may be the complete state, or only an aspect of the
+  full state; (4)  $I \subseteq S$ is a set of initial states; (5) $A$
+  is a set of \emph{actions}; and (6) $T \subseteq S \times A \times S$ is a transition relation.
 
+  \begin{comment}
 \begin{itemize}
 \item $S$ is a set of states.
 \item $V$ is a set of \emph{observable} states, where $|V| \leq |S|$.
@@ -225,6 +218,7 @@ variant of a labeled transition system (LTS) as our model:
 \item $A$ is a set of \emph{actions}.
 \item $T \subseteq S \times A \times S$ is a transition relation.
 \end{itemize}
+\end{comment}
 
 We assume that the underlying behavior of a system may be
 deterministic, or nondeterministic, in the strict sense, by allowing
@@ -232,9 +226,7 @@ for a transition relation that \emph{may} be a function of
 $S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
 \xrightarrow[]{\alpha_0} s_1 \xrightarrow[]{\alpha_1} \ldots
 \xrightarrow[]{\alpha_{n-1}} s_n$ where $s_0 \in I$ and $\forall i < n
-. (s_i, \alpha_i, s_{i+1}) \in T$.
-
-The concept of an action does not restrict this approach to reactive
+. (s_i, \alpha_i, s_{i+1}) \in T$.  The concept of an action does not restrict this approach to reactive
 systems; it can be generalized to consider the only action that varies
 to be the selection of an input, $\alpha_0$, with the remainder of the
 actions being internal $\tau$ actions, in the usual fashion.
@@ -258,18 +250,22 @@ A point to emphasize is that while horizontal determinism
 requires two traces, it does not require a test generation algorithm
 to \emph{produce} pairs of traces, which would require substantial
 modification of most such tools (e.g., random testers or fuzzers, and
-even model checkers).  In general, testing tools do not produce
+even model checkers), only to find an
+action sequence or input which, when executed twice, produces a $t_1$ and $t_2$
+meeting the requirements for showing nondeterminism.
+
+\begin{comment}In general, testing tools do not produce
 \emph{traces}, they produce \emph{action sequences} or \emph{inputs}.  The two traces
 used to show nondeterminism, by definition, have the same action
 sequences, which means that a testing tool only needs to search for an
 action sequence or input which, when executed twice, produces a $t_1$ and $t_2$
 meeting the requirements for showing nondeterminism ---
 non-equivalence of $v(s)$ for some $s$.
+\end{comment}
 
 \subsubsection{Vertical Determinism}
 
-Vertical nondeterminism, in contrast, is demonstrated by a single trace
-$t$, not a pair of traces.  To define vertical nondeterminism with
+To define vertical nondeterminism with
 respect to idempotency, we can
 define $\mathcal{I} \subseteq A$, the set of \emph{idempotent}
 actions.  A trace $t s_0
@@ -277,27 +273,24 @@ actions.  A trace $t s_0
 \xrightarrow[]{\alpha_{n-1}} s_n$ shows \emph{vertical nondeterminism
   with respect to idempotent operations} if $\exists i < n$ such that
 $\alpha_i \in \mathcal{I} \wedge \alpha_i = \alpha_{i+1}$ and $v(s_{i+1})
-\neq v(s_{i+2})$.
-
-Note that vertical nondeterminism may, in theory, exhibit only
+\neq v(s_{i+2})$.  Note that vertical nondeterminism may, in theory, exhibit only
 after a sequence of more than two successive applications of a (supposedly)
 idempotent operation; the definition only requires that after \emph{some}
 sequence of actions, possibly with $\alpha_{i-1} = \alpha_i$, the
 visible state changes.  In an implementation, we would usually restrict the
 search to a finite number of repetitions; for many faults, two
 ``copies'' will suffice, since an operation is either truly idempotent or
-not idempotent.  Only the existence of \emph{non-visible} state changes that
-can eventually produce visible state changes \emph{after a succession of the
-same action} require more repetitions.
+not idempotent.
+%Only the existence of \emph{non-visible} state changes that
+%can eventually produce visible state changes \emph{after a succession of the
+%same action} require more repetitions.
 
 \subsubsection{Failure Determinism}
 
 To define failure nondeterminism, we extend the
 transition relation to include a notion of \emph{failure}: $T \subseteq S
 \times A \times S \times {\tt F: bool}$, where the boolean $F$ indicates
-whether the action $A$ \emph{failed}.  
-
-A trace $t = s_0
+whether the action $A$ \emph{failed}.   A trace $t = s_0
 \xrightarrow[]{\alpha_0} (s_1, F_0) \xrightarrow[]{\alpha_1} \ldots
 \xrightarrow[]{\alpha_{n-1}} (s_n, F_{n-1})$ shows \emph{failure
   nondeterminism} if $\exists i$ such that $F_{i}$ (that is,
@@ -310,12 +303,9 @@ nondeterminism.  Unlike all of the other ways to demonstrate
 nondeterminism we consider, this second type of failure nondeterminism does not
 require the use of $v$, the notion of observable components of
 a state, or any comparison of states.  It only
-requires that we be able to say whether an operation failed.
+requires that we know whether an operation failed.
 
-
-
-
-\section{Sources of Nondeterminism in Practice}
+\section{Sources of Nondeterminisms}
 \label{sec:sources}
 
 In order to implement a practical nondeterminism-detection tool, it is
@@ -370,8 +360,8 @@ Lam et al. \cite{idflakies} note that flaky tests not due to order
 dependence are generally due to ``concurrency, timeouts,
 network/IO, etc.'' a description that is well accounted for by these two
 primary sources, and most of which can be detected, at least in
-principle, by multiple runs of a test within the same testing process.  However, simply running a test twice in the same process (possibly with a delay between steps) does
-not suffice in all cases.
+principle, by multiple runs of a test within the same testing process.  %However, simply running a test twice in the same process (possibly with a delay between steps) does
+%not suffice in all cases.
 
 \subsection{Process-Based Nondeterminism}
 
@@ -379,20 +369,16 @@ not suffice in all cases.
 
 Some sources of nondeterminism unfortunately require executing a test in a new
 process environment, because the source is inherently tied to the
-process in which code runs; simply re-executing a test in the same
-process will not reveal the problem.  In terms of our formalism, an
+process in which code runs.  In terms of our formalism, an
 action needs to be introduced that indicates the generation of a fresh
-process identity.
-
-Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
+process.  Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
 important source of nondeterminism that arises (only) from change in
 process.  ASLR scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
 vulnerabilities in code.  As a side effect, it
 means that a test that, in some circumstances, causes a crash, may at
 other times not fail at all.  Even if no inputs produce a crash,
-however, memory errors may produce variation in values that are
-overwritten or arise from uninitialized memory, and thus be detectable
+however, memory errors may produce variation in values and thus be detectable
 as nondeterminism.
 
 Another example of process-based nondeterminism was discovered by numerous Python developers when Python
@@ -412,32 +398,29 @@ running in a new process:  Python does not allow changing the salt, since changi
 break all existing dictionaries and other structures relying on
 hashing.
 
-Other, less common, effects tied to process also exist.  A few tests
-may somehow depend on their actual PID (Process ID) or at least the
-parent process' ID.  Process change increases the likelihood that on a multi-core
-system a test will execute on a different CPU than in the first
-execution, which can have many subtle effects, mostly related to
-changed timing.
+%Other, less common, effects tied to process also exist.  A few tests
+%may somehow depend on their actual PID (Process ID) or at least the
+%parent process' ID.  Process change increases the likelihood that on a multi-core
+%system a test will execute on a different CPU than in the first
+%execution, which can have many subtle effects, mostly related to
+%changed timing.
 
 One common cause of flaky tests is \emph{test order dependence} \cite{idflakies}.  This
 is less of a concern in our setting, since many problems due to test
 order are easily exposed in random testing, since the
-order-dependence-inducing operations will seldom usually happen in the
+order-dependence-inducing operations will seldom happen in the
 same order in randomly generated tests.  For example, consider the
 case where a test usually run ``early'' initializes an uninitialized
 value in a system, and a later test will only fail if it somehow is
 run before the initializing test.  In random testing, the order of
 initialization/access is likely to be random, and some run of a random
 tester is likely to expose the problem as a (deterministic, not flaky) failure.
-
 However, for cases where
 there is an order dependence that is hard to translate into an
 actual bug, using a fresh
-process may expose such dependencies --- the ``environment'' of the
+process may expose such dependencies---the ``environment'' of the
 parent process will have the, e.g., flag set or value initialized, but
 the new process will not.
-
-
 
 \section{Nondeterminism and Delta-Debugging}
 
@@ -501,7 +484,7 @@ predicate remains true of the shorter versions of the test.  The
 most common $\mathit{PRED}$ is still ``the test fails'' but other predicates,
 especially those related to code-coverage, can also be useful
 \cite{icst2014,stvrcausereduce,NonAdeq}.  Our contribution here is to consider
-what happens when $\mathit{PRED}$ not deterministic.
+what happens when $\mathit{PRED}$ is not deterministic.
 ``The test behaves flakily'' is a simple, important, example of such a $\mathit{PRED}$.
 
 In \emph{monotonic} probabilistic delta-debugging, removing a part of a test cannot
@@ -510,7 +493,6 @@ common.  In these cases, when we use a reduction algorithm to reduce $t$
 to $r$, $P(\mathit{PRED}(r)) \leq P(\mathit{PRED}(t))$.  In \emph{non-monotonic} cases,
 however, there is no such upper bound.  Removing a step in $t$ may
 increase the probability that $t$ behaves nondeterministically.
-
 The $\mathit{PRED}$ of interest for horizontal determinism is basically of
 the form:  {\bf the test will exhibit at least two different behaviors in $S$
 runs, with probability $P$}.  This predicate may be monotonic or
@@ -643,7 +625,7 @@ only many repetitions of those operations make the probability large,
 small tests obviously, on average, have fewer instances of the
 problematic operations.
 
-\subsection{Using Replications to Mitigate ``Publication Bias''}
+\subsection{Replication Mitigates  ``Publication Bias''}
 
 In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to

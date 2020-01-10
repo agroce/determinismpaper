@@ -47,8 +47,8 @@ a test consists of three parts:
   \item A set of assignments of constant values to elements of
     primitive type value pools, e.g. {\tt intVP[2] = 1;}.
     \item A part in which all statements are assignments of calls of a
-      method to a value pool, with all arguments to the method also
-      taken from a value pool, e.g. {\tt intVP[2] = fooVP[2].bar(intVP[0],
+      method to a value pool, with all arguments also
+      taken from a pool, e.g. {\tt intVP[2] = fooVP[2].bar(intVP[0],
         intVP[1]);} (these are referred to as \emph{array-canonical} statements).
     \end{enumerate}
 
@@ -198,7 +198,7 @@ TRACEBACK:
 
 \end{comment}
 
-\subsection{Implementing Horizontal Nondeterminism Detection}
+\subsection{Horizontal Nondeterminism Detection}
 \label{sec:horizimp}
 
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
@@ -370,7 +370,7 @@ Because of the idiosyncrasies of AFL instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing for other problems.
 
-\subsection{Implementing Vertical Nondeterminism Detection}
+\subsection{Vertical Nondeterminism Detection}
 \label{sec:vertimp}
 
 First-class vertical nondeterminism checks are currently

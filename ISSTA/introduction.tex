@@ -18,7 +18,7 @@ pernicious phenomenon has been sometimes referred to as the dreaded
 ``Mandelbug'' \cite{GrottkeBugs,FaultTriggers}, since Heisenbugs, properly speaking, are bugs that disappear or
 alter behavior under instrumentation (especially in debugging).
 Automated test generation systems using test coverage results to drive
-the search for interesting inputs may be mislead when a run executes
+the search for interesting inputs may go awry when a run executes
 code only rarely.  And, most significantly, regression testing
 effectiveness can be significantly reduced if tests fail only
 intermittently and unpredictably, as a result of environmental
@@ -42,21 +42,19 @@ prediction may be possible but hopelessly impractical.  We write
 complex software systems in many cases because we cannot predict their
 behavior (if we could perform the calculations in advance, ourselves,
 we would just do so).  As a consequence, in software, rather than
-defining determinism in terms of prediction, we usually therefore
-simply say that a system is deterministic if, given the same state and
+defining determinism in terms of prediction, we usually 
+say that a system is deterministic if, given the same state and
 inputs, it always produces the same outputs.  
 
 Technically, many ``nondeterministic'' systems are not
 nondeterministic in a strong sense, at all.  Given the complete state
 of the system (which includes the entire state of the underlying
-hardware, the operating system, storage devices, etc.), ignoring
-quantum effects, and treating outside interventions such as network
-traffic, human activity at an input device, etc. properly as inputs,
+hardware, the operating system, storage devices, etc.),
 most software \emph{is} completely predictable.  What we actually
-mean, usually, is that, given a certain limited abstraction of state
-and of inputs, observable behavior is repeatable.  This abstraction,
-for most software, is not expected to include many elements outside of
-the software system itself.
+mean is that, given a certain limited abstraction of state
+and inputs, observable behavior is repeatable.  %This abstraction,
+%for most software, is not expected to include many elements outside of
+%the software system itself.
 
 Because the
 programmer's abstraction of the system ignores  such a large number of
@@ -66,10 +64,14 @@ twice almost always results in differences, given a low enough level of
 abstraction, since the system load,
 cache contents, branch predictor history, etc. are almost never
 controlled for; however, this kind of
-nondeterminism is usually of no interest, unless the test involves
-extremely precise timing constraints.  Rather, what matters is when
+nondeterminism is usually of no interest.  Rather, what matters is when
 some kind of nondeterminism unexpectedly impacts computed values at a
-higher level of abstraction; in general, if the operating system
+higher level of abstraction, e.g. when it is believed that the
+behavior of a thread scheduler will not matter, but a race condition
+in the code means that it does matter, or when the order of items in
+an iterator on a hash table is important, and the hash values used are
+randomly salted.
+\begin{comment} in general, if the operating system
 itself is not buggy, low-level nondeterminism, by design, is invisible
 except in fine-grained performance testing or real-time systems.
 Unexpected nondeterminism usually arises when there is an element of higher-level
@@ -79,8 +81,9 @@ behavior of a thread scheduler will not matter, but a race condition
 in the code means that it does matter, or when the order of items in
 an iterator on a hash table is important, and the hash values used are
 randomly salted.
+\end{comment}
 
-\subsection{The High Cost of Unexpected Nondeterminism}
+%\subsection{The High Cost of Unexpected Nondeterminism}
 
 Unexpected nondeterminism is, unfortunately, usually only discovered
 in a context that makes it very hard to debug.   The most common such
@@ -89,16 +92,14 @@ regression tests that do not behave reliably (known as flaky tests).
 Furthermore, unexpected nondeterminism makes it difficult to use
 automated test generation to produce effective regression tests for a
 system.  While developers may know how to produce reliably
-deterministic unit tests, even in the presence of underlying
-nondeterminism, automated test generation, without a large investment
-in human time, usually does not have sufficient information to avoid
+deterministic unit tests, automated test generation usually does not have sufficient information to avoid
 producing the occasional such test.  Moreover, where a human might
 make an assertion about the final value produced during a unit test,
 an automatically generated regression test is usually most easily produced by
-simply asserting equality with all values produced during a reference
+asserting equality with all values produced during a reference
 run, since the final step of a test
-is likely to be somewhat arbitrary, generated in an effort to increase
-code coverage, not establish some functional correctness property.
+is arbitrary, generated in an effort to increase
+code coverage, not establish functional correctness.
 This may be one reason that automated testing is seldom used to
 produce general regression tests.  While failure-inducing tests
 produced automatically are often added to regression suites, the full
@@ -147,7 +148,7 @@ described below.  Our focus, however, unlike all other tools and
 approaches we are aware of, is on detecting the \emph{sources} of
 flaky-ness \emph{before} they propagate to cause actual test failure.
 
-\subsection{Contributions:  Detecting and Debugging Nondeterminism}
+\subsection{Contributions}
 
 
 This paper proposes (1) a number of formal definitions of types of
@@ -162,7 +163,7 @@ granularity for nondeterminism detection (see Section \ref{sec:pools}).
 We further propose modifications to the widely used delta-debugging algorithm in order to better handle
 nondeterminism as a test property.
 
-The underlying idea in this paper is that most approaches to
+Previous practical approaches to
 nondeterminism/flaky test detection and debugging rely either on 1) identifying
 potential sources of nondeterminism such as test inter-dependence
 \cite{LamZE2015} or certain code smells \cite{palomba2017does}  or 2)
@@ -189,15 +190,16 @@ This approach enables a number of useful results:
  the automated production of
 nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, the documentation of sources of
-nondeterminism that might produce problems for manually-constructed tests, and, most importantly, detection and effective debugging for
+nondeterminism that might produce problems for manually-constructed
+tests, and, most importantly, detection and \emph{effective debugging}
+(using a novel modification of delta-debugging designed for
+nondeterminism) for
 unexpected nondeterminism that is, itself, a bug.  Additonally, by
-identifying (using automated testing) library behaviors that are
+identifying library behaviors that are
 nondeterministic, our approach should make it much easier to flag
 statements in existing human-written unit tests that may produce flaky
 behavior:  simply scan the
-code for calls to functions identified as sources of nondeterminism.
-
-We use a set
+code for calls to such functions.  We use a set
 of case studies. including real-world, widely-used, Python libraries to demonstrate the
 utility of our ideas.  Failure determinism directly
 produces a more than 5\% improvement in mutation score for an already highly
