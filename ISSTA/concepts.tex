@@ -154,6 +154,7 @@ repeat the failing operation, and check if it still fails.  If not,
 this is a sign that the operation is not deterministic with respect to
 failure.  Note that this more restrictive notion still captures such issues as the Apple login bug. 
 
+\begin{comment}
 \subsection{Nondeterminism vs. Flakiness}
 
 A key concept in this paper is that flaky tests (tests that sometimes
@@ -168,7 +169,7 @@ will behave nondeterministically, and sometimes it will not.  But the
 idea is a separate one from flakiness; in order to show horizontal
 nondeterminism, we need only see a change in values in a test, not in
 the disposition (failed/passed) of the test.
-\begin{comment}
+%\begin{comment}
   It may be that, without
 the additional property of determinism, the change cannot actually
 cause failure, and thus flakiness.  The real relationship between our
@@ -178,7 +179,7 @@ horizontal nondeterminism contain a potential source of flakiness.  If
 the code behaves nondeterministically, and the values that are
 observed to change can flow to influence the outcome of the test,
 flakiness may well result.
-\end{comment}
+%\end{comment}
 
 Vertical nondeterminism, in fact, is potentially \emph{completely} unrelated
 to flakiness, in that some bugs (improper handling of hardware errors
@@ -191,6 +192,7 @@ consistently violated under certain conditions.  The behavior is
 there is an expectation that a call will always ``do the same thing,
 under the same circumstances'' which is the \emph{conceptual} common
 factor in ``determinism.''
+\end{comment}
 
 \subsection{Formal Definitions}
 \label{sec:formal}
@@ -305,7 +307,7 @@ require the use of $v$, the notion of observable components of
 a state, or any comparison of states.  It only
 requires that we know whether an operation failed.
 
-\section{Sources of Nondeterminisms}
+\section{Sources of Nondeterminism}
 \label{sec:sources}
 
 In order to implement a practical nondeterminism-detection tool, it is
@@ -321,39 +323,37 @@ concurrent code by adding ad-hoc {\tt sleep} statements).   Most
 nondeterministic behavior in tests is probably attributable to such
 effects that can vary with a repeated execution, in the same
 (approximate) enviroment, of the same test.  The two broad classes of
-nondeterminism that can usually be detected (with some probability) by
-simply executing the same test twice in succession, without attempting
+nondeterminism that can usually be detected by
+executing the same test twice in succession, without attempting
 to control any other factors, are:
 
 \begin{itemize}
 \item {\bf External Environment:} This class of nondeterminism arises
   when a test's behavior depends on factors outside the program under
   test, which are subject to uncontrolled variance.  Calling {\tt
-    random()} in Python is an obvious example; the call is almost
-  guaranteed to return a different value each time it is called in a
-  test, unless we explicitly re-seed the random number generator at
-  the beginning of each test.  Similarly, calls to {\tt time}
+    random()} in Python is an obvious example. Similarly, calls to {\tt time}
   functions  will usually return different values on different runs,
-  and even if only elapsed time, rather than absolute, is used to
-  influence behavior, subtle variances in timing are to be expected
-  due to system load, I/O, and other external factors.  Finally, in
-  distributed system testing, the environment is often remote servers
-  (or clients) that may be unavailable, slower than expected, or
-  subject to faulty behavior for reasons not under the control of the
-  test.
-\item {\bf Concurrency:} Perhaps the second most common cause for
+  and even if only elapsed time is used, due to system load, I/O, and
+  other external factors.
+  %Finally, in
+  %distributed system testing, the environment is often remote servers
+  %(or clients) that may be unavailable, slower than expected, or
+  %subject to faulty behavior for reasons not under the control of the
+  %test.
+\item {\bf Concurrency:} Ae second common cause for
   nondeterminism in tests is when an algorithm is implemented using
   concurrency, in the (incorrect) belief that the result of the
   algorithm remains deterministic.  E.g., consider a multi-threaded
   implementation of a search algorithm, that returns the location of
   an item in an unsorted list.  If the list may contain duplicates,
   and a developer has not accounted for this possibility, the
-  algorithm may return different locations of an item for the same list,
-  depending on the scheduling of threads.  Arguably, this can be
-  subsumed under the first class, with the behavior of the
-  processor/scheduler as the ``enviromental'' factor; relying on
-  scheduling is, in a sense, equivalent to calling {\tt random} or
-  {\tt time}.
+  algorithm may return different locations of an item
+  depending on the scheduling of threads.
+  %Arguably, this can be
+  %subsumed under the first class, with the behavior of the
+  %processor/scheduler as the ``enviromental'' factor; relying on
+  %scheduling is, in a sense, equivalent to calling {\tt random} or
+  %{\tt time}.
 \end{itemize}
 
 Lam et al. \cite{idflakies} note that flaky tests not due to order

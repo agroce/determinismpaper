@@ -31,13 +31,13 @@ automatically identify usually-idempotent operations, and check them
 for deviation from the expected behavior.  We would also like to lower the cost
 of checking process nondeterminism, perhaps by using methods taken in
 AFL \cite{aflfuzz} to avoid high startup costs for test executions.
-
 More generally, we are interested in using test decomposition
 \cite{Composition} to more easily isolate, understand, and avoid
-nondeterminism is tests, and to mitigate the problem of flaky tests.
+nondeterminism in tests, and to mitigate the problem of flaky tests.
 Reliable detection of nondeterminism is a first step towards
 evaluating such pro-active flaky test mitigations.
 
+\begin{comment}
 Finally, it would be useful to implement versions of our formalisms in
 test generation tools for other languages with a suitable notion of
 action.  For example, the DeepState
@@ -55,3 +55,4 @@ Jeff Listfield, and Celal Ziftci at Google, for discussion of
 flaky tests, Andreas Zeller and David R. MacIver for discussion of the
 problem of probabilistic delta-debugging, and Chris
 Colohan for discussion of sources of process-based nondeterminism.}
+\end{comment}
