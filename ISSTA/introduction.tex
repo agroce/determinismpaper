@@ -184,24 +184,16 @@ changes may be harmless, and unable to propagate to cause test
 failures, they are potential sources of flaky behavior.  To our
 knowledge, this is the first approach to the problem that
 allows detection of (potential sources of) flakiness, based on real divergence in
-behavior, without having to observe a test actually fail due to nondeterminism.
+behavior, without having to observe a test actually fail due to nondeterminism.  we additionally introduce the first variation of delta-debugging that properly handles probabilistic faults and reduction properties.
 
-This approach enables a number of useful results:
- the automated production of
+Our methods enable automated production of
 nondeterminism-free regression tests even for libraries with some
-sources of nondeterminism, the documentation of sources of
+sources of nondeterminism, documentation of sources of
 nondeterminism that might produce problems for manually-constructed
-tests, and, most importantly, detection and \emph{effective debugging}
-(using a novel modification of delta-debugging designed for
-nondeterminism) for
-unexpected nondeterminism that is, itself, a bug.  Additonally, by
-identifying library behaviors that are
-nondeterministic, our approach should make it much easier to flag
-statements in existing human-written unit tests that may produce flaky
-behavior:  simply scan the
-code for calls to such functions.  We use a set
-of case studies. including real-world, widely-used, Python libraries to demonstrate the
-utility of our ideas.  Failure determinism directly
+tests, and, most importantly, detection of 
+unexpected nondeterminism that is, itself, a bug.  We use a set
+of case studies. including real-world, widely-used, Python libraries, to demonstrate the
+utility of our ideas.  Our novel notion of failure determinism directly
 produces a more than 5\% improvement in mutation score for an already highly
 effective automated test generation tool for a file system, with no
 additional specification or test design burden.
