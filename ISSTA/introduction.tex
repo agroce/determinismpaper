@@ -163,6 +163,7 @@ granularity for nondeterminism detection (see Section \ref{sec:pools}).
 We further propose modifications to the widely used delta-debugging algorithm in order to better handle
 nondeterminism as a test property.
 
+\begin{comment}
 Previous practical approaches to
 nondeterminism/flaky test detection and debugging rely either on 1) identifying
 potential sources of nondeterminism such as test inter-dependence
@@ -184,13 +185,17 @@ changes may be harmless, and unable to propagate to cause test
 failures, they are potential sources of flaky behavior.  To our
 knowledge, this is the first approach to the problem that
 allows detection of (potential sources of) flakiness, based on real divergence in
-behavior, without having to observe a test actually fail due to nondeterminism.  we additionally introduce the first variation of delta-debugging that properly handles probabilistic faults and reduction properties.
+behavior, without having to observe a test actually fail due to
+nondeterminism.  we additionally introduce the first variation of
+delta-debugging that properly handles probabilistic faults and
+reduction properties.
+\end{comment}
 
 Our methods enable automated production of
 nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, documentation of sources of
 nondeterminism that might produce problems for manually-constructed
-tests, and, most importantly, detection of 
+tests, and, most importantly, detection and debugging of 
 unexpected nondeterminism that is, itself, a bug.  We use a set
 of case studies. including real-world, widely-used, Python libraries, to demonstrate the
 utility of our ideas.  Our novel notion of failure determinism directly
