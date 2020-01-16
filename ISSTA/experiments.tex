@@ -27,7 +27,9 @@ average cost of each action (the expected overhead, since we
 essentially execute each test twice), and thus never halved the amount of
 testing performed.  Test reduction always reduced the size of
 generated tests by 85\% or more, in less than 15 minutes, thus showing that reduction
-has a large payoff at an acceptable price.
+has a large payoff at an acceptable price.  Values here and discussed
+below are, unless otherwise noted, the mean of 30 runs; we omit variance due to little
+variance exhibited, but can provide full details in our replication package.
 
 \begin{table}
   \centering
@@ -52,21 +54,17 @@ Parallel Sort & Yes (see below) & $\sim$40\% & $\sim$85\% & $\sim$2 minutes\\
 
 \subsection{Parallel Sorting}
 
-Our first subject is a simple implementation of a parallel merge
-sort\footnote{\url{https://gist.github.com/stephenmcd/39ded69946155930c347}}.  The
-merge sort and harness can be found in the TSTL GitHub repository
-\cite{tstl}, under {\tt examples/parallelsorts}.  When a sorting
+Our first subject is an implementation of a parallel merge
+sort\footnote{\url{https://gist.github.com/stephenmcd/39ded69946155930c347}}. When a sorting
 algorithm is implemented using concurrency, a key question to ask is
-whether the ordering of elements that are equal under the comparison
-operator is consistent across sorts of the same original sequence.
-This is related to the question of whether a sort is a stable sort
-(preserving the original relative order of equal-by-comparison elements),
-but imposes a less strict requirement on the sort; a concurrent sort
+whether the ordering of (equal under comparison) elements is consistent.
+This is related to the question of whether a sort is stable,
+but imposes a less strict requirement; a concurrent sort
 might not be stable, but might still produce the same (non-stable)
 ordering from the same provided sequence, every time.  This is a
-particular instance of a common expectation noted above:  while a parallel
+particular instance of a common expectation:  while a parallel
 implementation of an algorithm will likely have internal
-nondeterminism (due to scheduling of work), it is often expected to
+nondeterminism, it is often expected to
 behave deterministically, from the point of view of a caller.
 
 This experimental subject serves two purposes:  first, to show that the
@@ -78,28 +76,28 @@ does exhibit nondeterministic behavior.  For the second purpose, we
 implemented a very simple swap-based parallel sorting algorithm that
 repeatedly has multiple threads scan through a sequence and swap
 out-of-order neighbors, until the sequence is sorted (a kind of
-parallel bubble-sort with a simpler termination criteria).
+parallel bubble-sort).
 
 \begin{figure}
 {\scriptsize
 \begin{code}
 @import mergesort
 @import swapsort
-%\vspace{0.1in}
+
 pool: <val> 10
 pool: <data> 10
 pool: <sorted> 10
-%\vspace{0.1in}
+
 <val> := <[-10..10]>
-%\vspace{0.1in}
+
 <data> := []
 <data>.append((<val>,<val>))
 len(<data,2>) < len(<data,1>) -> <data>.extend(<data>)
-%\vspace{0.1in}
+
 <sorted> := mergesort.merge\_sort\_parallel(<data>)
 <sorted> := swapsort.swap\_sort\_parallel(<data>)
 <sorted>
-%\vspace{0.1in}
+
 property: swapsort.is\_sorted(<sorted>)
 \end{code}
 }
@@ -112,24 +110,21 @@ Figure \ref{fig:parallelcode} shows the complete TSTL harness for
 checking the parallel sorts.  This harness produces sequences of
 integer pairs, where only the first integer is used in the comparison
 operator of the sorting algorithms, and checks that the results of
-{\tt sort\_parallel} calls are in fact sorted, using the {\tt
-  swapsort}'s function for checking if a sequence is sorted.
-
+{\tt sort\_parallel} calls are sorted..
 Running TSTL's random tester without checking for determinism, we can
-see that both sorting algorithms always produce sorted output.  If we run with {\tt --checkDeterminism --determinismDelay 0}, however, a
-test case showing the {\tt swapsort} behaving nondeterministically is
-almost instantly produced (it takes less than 3 seconds), thus
+see that both sorting algorithms always produce sorted output.  The
+horizontal determinism detector, however, always generates a 
+test case showing the {\tt swapsort} behaving nondeterministically in
+less than 3 seconds, thus
 answering yes to {\bf  RQ1}.  If we comment out the call to {\tt
   swap\_sort\_parallel} and only check the parallel merge sort, however, TSTL
 finds no nondeterministic behavior.  Running tests of the merge sort
 with nondeterminism detection turned on results in a slowdown of approximately
-40\% ({\bf RQ2}.
+40\% ({\bf RQ2} with little variance.
 
-Reducing a lengthy test showing nondeterminism of the swapsort to a
-short test case using delta-debugging usually takes less than two
-minutes.  If the number of attempts to produce nondeterminism is
-increased in the reducer using the {\tt --determinismTries 10} option,
-the resulting test will be usually be very compact, in this case
+Reducing a lengthy test showing nondeterminism of the swapsort usually takes less than two
+minutes (out of 10 trials, only one took four minutes).  If the number of attempts to produce nondeterminism is
+increased in the reducer, the resulting test will be usually be very compact, e.g.
 reducing the original test from 56 to 8 steps.
 
 {\scriptsize
@@ -145,9 +140,9 @@ sorted0 = swapsort.swap\_sort\_parallel(data0)
 \end{code}
 }
 
-For this simple example, more sophisticated delta-debugging strategies
-are not needed; we only want to see the code behaving
-nondeterministically, and do not care about preserving a higher probability of nondeterminism.
+%For this simple example, more sophisticated reduction strategies
+%are not needed; we only want to see the code behaving
+%nondeterministically, and do not care about preserving a higher probability of nondeterminism.
 
 \subsection {The {\tt redis-py} Library}
 
@@ -184,7 +179,8 @@ Using TSTL's harness for {\tt redis-py}, both {\tt redis-py} and Redis
 itself can be tested; unfortunately, generating stand-alone
 high-coverage regression tests for {\tt redis-py} and Redis using TSTL
 has proven difficult, as numerous Redis commands introduce nondeterministic
-behavior:  thus the resulting tests are very often \emph{flaky}.   Using {\tt tstl\_afl\_fuzz}, we can see that {\tt redis-py} has a 
+behavior:  thus the resulting tests are very often \emph{flaky}.
+Using AFL, we can see that {\tt redis-py} has a 
 stability of only 56.26\%, a clear indicator of significant nondeterminism. Some
 of the problematic commands are obvious simply by inspection (e.g.,
 {\tt randomkey, srandmember}).  And, given an understanding of Redis
@@ -220,8 +216,8 @@ normaliized \cite{onetest} test.  At the end of the testing period,
 all distinct tests exhibiting nondeterminism are reported to the
 user.  The process reduces the large number of different tests
 exhibiting flakiness to a small set of tests, each short, showing a
-different cause of nondeterminism.  The set produced is not perfect,
-there is some duplication of causes, but it is sufficient for
+different cause of nondeterminism.  The set produced is not perfect:
+There is some duplication of causes, but it is sufficient for
 identifying causes of nondeterminism.
 
 This process is unlikely to truly require 12
@@ -237,7 +233,7 @@ observed probability of nondeterminism.  Our 12 hour run identified
 all sources of nondeterminism successfully, according to a series of
 48 hour runs performed on the version of the harness we modified to
 remove nondeterminism, which produced no flaky tests.  We determined that the mean time to find all
-the sources of nondeterminism and produce minimal tests 3.2
+the sources of nondeterminism and produce minimal tests is 3.2
 hours, which is not trivial, but also, for this purpose, not
 excessive.  Our answer to {\bf RQ1} is thus a strong affirmative.
 
@@ -274,7 +270,7 @@ excessive.  Our answer to {\bf RQ1} is thus a strong affirmative.
 \end{figure*}
 \end{comment}
 
-We removed 11 calls from the {\tt redis} harness, and  modified 2
+We removed 11 calls from the {\tt redis-py} harness, and  modified 2
 calls, after
 identification of sources of nondeterminism.  After making these changes, no flakiness was observed in a sample of over 2,000 length
 200 tests.   Moreover, because the removals were limited to actually
@@ -316,7 +312,7 @@ a more reliably nondeterministic test.  Using the same parameters as
 in Section \ref{sec:pubbias}, we see the same pattern.  Simply making
 a predicate that ``forces'' the probability to remain high, with a
 large number of samples, does not work (Figure \ref{fig:r3}) and
-requires over 2000 seconds to produce a test with an even worse
+requires over 2,000 seconds to produce a test with an even worse
 probability of nondeterminism.  Using 10 samples and 10 replications,
 on the other hand, actually improves the probability of
 nondeterministic behavior, and (in this case) even produces a smaller test (only 14 steps) in just
@@ -353,8 +349,7 @@ nondeterminism.  If we increase the delay to 0.01 seconds and the
 number of replays of a test used to check for nondeterminism, we
 almost double the number of nondeterministic tests discovered.  Both
 visible value and final state approaches find 40 nondeterministic
-tests, though the overlap of tests thus detected is not quite perfect
---- each method detects two tests the other does not.  The difference
+tests, though the overlap of tests thus detected is not quite perfect---each method detects two tests the other does not.  The difference
 in overhead, interestingly, is very similar:  0.48\%; however, under
 these parameters, visible value nondeterminism is actually cheaper on average
 than final state nondeterminism, due to early termination of the
@@ -387,37 +382,35 @@ influence future computation, final state nondeterminism may be almost useless.
 \begin{code}
 @import inference\_algs
 @import datarray
-%\vspace{0.1in}
 <@
-def flatten\_and\_sort(v):
-    return (sorted(map(flatten\_and\_sort,v),key=repr) if type(v) in [list,tuple] else
-                (flatten\_and\_sort(list(v.items())) if type(v) == dict else v))
+def flat\_sort(v):
+    return (sorted(map(flat\_sort,v),key=repr) if type(v) in [list,tuple]
+                else (flat\_sort(list(v.items())) if type(v) == dict else v))
 
 def psplit(P):
     return ([P,1.0-P])
 @>
-%\vspace{0.1in}
 pool: <P> 3
 pool: <cpts> 3
 pool: <evidence> 3 OPAQUE
 pool: <ename> 3
 pool: <event> 3
-%\vspace{0.1in}
+
 <P> := 0.01 * <[0..100]>
 <ename> := "E" + str(<[1..5]>)
-\{Exception\} <event> := datarray.DataArray(psplit(<P>), axes = [<ename>])
-\{Exception\} <ename,1>!=<ename,2> -> <event> := [datarray.DataArray([[psplit(<P>)],
-   psplit(<P>)],[<ename>,<ename>])]
+\{Exception\} <event> := datarray.DataArray(psplit(<P>),axes=[<ename>])
+\{Exception\} <ename,1>!=<ename,2> -> <event> := [datarray.DataArray([[
+   psplit(<P>)], psplit(<P>)],[<ename>,<ename>])]
 <cpts> := []
 ~<cpts>.append(<event>)
 <evidence> := \{\}
 ~<evidence>.update([(<ename>,0)])
-%\vspace{0.1in}
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,
+
+\{Exception\} print(flat\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,
    <evidence>)))
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,
+\{Exception\} print(flat\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,
    <evidence>)))
-\{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_jtree(<cpts>,
+\{Exception\} print(flat\_sort(inference\_algs.calc\_marginals\_jtree(<cpts>,
    <evidence>)))
 \end{code}
 }
@@ -437,25 +430,23 @@ an iterator over a Python dictionary, on Python versions above 3.2,
 until 3.6 (see Section \ref{sec:pnondet}).  
 
 Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
-  datarray} algorithms (it can be found in the {\tt
-  examples/datarray\_inference} directory in the TSTL repository \cite{tstl}).  The {\tt flatten\_and\_sort} function is needed because we care about actual differences in probability values, not simply the order of list, tuple, or dictionary items.  Running this harness using TSTL's {\tt
-  --checkProcessDeterminism} flag required less than 10 seconds on
-average to produce a test exhibiting process-level nondeterminism in
+  datarray} algorithms.  The {\tt flat\_sort} function is
+needed because we care about actual differences in probability values,
+not simply the order of list, tuple, or dictionary items.  Running
+this harness consistently requires less than 10 seconds to produce a test exhibiting process-level nondeterminism in
 the {\tt calc\_marginals\_sumproduct} function (the only broken
 algorithm), answering {\bf RQ1} again in the affirmative.  Reducing this 60 step test to a minimal test of only 6 steps,
 showing an extremely simple input producing the issue, 
-required another 92 seconds ({\bf RQ3}).  Interestingly, the way that {\tt
+required another 92 seconds ({\bf RQ3}) on average.  Interestingly, the way that {\tt
   python-afl} is used in TSTL means that AFL stability is 100\% even
 for the original, broken, code,
 because the {\tt PYTHONHASHSEED} has already been chosen before the
-fork in AFL executions.
-
-Removing the nondeterministic call, we can see that the cost of
+fork in AFL.  Removing the nondeterministic call, we can see that the cost of
 checking for process nondeterminism, with no delay between operations,
-is high, a 93\% slowdown({\bf RQ2}.  This is due to the high cost of subprocess
+is high, a mean 93\% slowdown ({\bf RQ2}.  This is due to the high cost of subprocess
 creation and communication. However, even with this essentially worst
 case behavior (where test runtime is very low compared to process overheads),
-we sacrifice less than half of the test executions for a given time budget.
+we sacrifice less than half of the test executions.
 
 \subsection {Vertical Determinism: {\tt pyfakefs}}
 
