@@ -10,29 +10,29 @@ leading to the costly problem of flaky tests
 This paper proposes a formulation of types of nondeterminism, and a
 practical approach to using automated test generation to detect
 nondeterminism, especially in the library code that underlies most
-systems. In addition to traditional \emph{horizontal} nondeterminism
-(the phenomenon behind Mandelbugs and flaky tests), we also discuss
-the related concept of \emph{vertical} nondeterminism, which is more
-frequently simply a software bug.  We implemented our approach in the
+systems. In addition to traditional \emph{horizontal} nondeterminism, we introduce
+the concept of \emph{vertical} nondeterminism bugs.  
+\begin{comment}
+We implemented our approach in the
 TSTL automated test generation system for Python, and demonstrated the
 simplicity and utility of the approach on real-world examples.
+\end{comment}
 
-As future work, we would like to make the automatic detection of
-values that should not be visible (e.g., count towards nondeterminism)
-possible: if a value (e.g., a timestamp) is always different in every
-run, it is likely opaque.  This would make
-testing libraries mixing deterministic behavior and nondeterministic
-behavior, e.g. cryptographic librarie, much easier. Similarly, in order to extend the
-utility of vertical nondeterminism, we would like to
+As future work, we would like to support the automatic detection of opaque
+values; if a value (e.g., a timestamp) is different in \emph{every}
+trace, it is likely opaque.  This would make
+testing libraries mixing deterministic and nondeterministic
+behavior, e.g. cryptographic libraries, much easier. Similarly, for
+vertical nondeterminism, we would like to
 automatically identify usually-idempotent operations.
 %We would also like to lower the cost
 %of checking process nondeterminism, perhaps by using methods taken in
 %AFL \cite{aflfuzz} to avoid high startup costs for test executions.
 Finally, we are interested in using test decomposition
-\cite{Composition} to more easily isolate, understand, and avoid
-nondeterminism in tests, and to mitigate flaky tests.
+\cite{Composition} to more isolate, understand, and mitigate
+nondeterminism in unit tests, and to mitigate flaky tests.
 Reliable detection of nondeterminism is a first step towards
-evaluating such fine-grained proactive flaky test mitigations.
+evaluating such fine-grained proactive flaky test mitigation.
 
 \begin{comment}
 Finally, it would be useful to implement versions of our formalisms in
