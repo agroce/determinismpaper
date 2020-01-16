@@ -339,9 +339,8 @@ possible use in some security-related libraries.
 We provide support for the real-world sources of
 nondeterminism described in Section \ref{sec:sources}, via
 control over timing and/or execution in a new process.  Changing the timing of
-steps is also effective in exposing concurrency-related
-nondeterminism, since it often changes the
-interleaving of threads.
+steps is also often effective in exposing concurrency-related
+nondeterminism.
 
 Because TSTL has an interface to AFL \cite{aflfuzz}, we can use
 AFL's sophisticated heuristics to perform very thorough, week-long
@@ -349,12 +348,11 @@ checks for nondeterminism.  Moreover, since
 there is substantial overhead in nondeterminism detection, AFL can be
 used to predict whether tested Python code is a good candidate for
 checking for horizontal nondeterminism; if the
-AFL \emph{stability} statistic (see the AFL documentation for details
-\cite{aflfuzz}) is lower than 100\%, it may indicate horizontal
+AFL \emph{stability} statistic \cite{aflfuzz} is lower than 100\%, it may indicate horizontal
 nondeterminism.
 Because of the idiosyncrasies of AFL instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
-cost indicator produced as a by-product of fuzzing for other problems.
+cost indicator.
 
 %\subsection{Vertical Nondeterminism Detection}
 %\label{sec:vertimp}

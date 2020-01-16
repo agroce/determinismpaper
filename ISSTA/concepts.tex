@@ -285,7 +285,7 @@ require the use of $v$, the notion of observable components of
 a state, or any comparison of states.  It only
 requires that we know whether an operation failed.
 
-\section{Sources of Nondeterminism}
+\subsection{Sources of Nondeterminism}
 \label{sec:sources}
 
 In order to implement a practical nondeterminism-detection tool, it is
@@ -361,7 +361,7 @@ primary sources.
 %However, simply running a test twice in the same process (possibly with a delay between steps) does
 %not suffice in all cases.
 
-\subsection{Process-Based Nondeterminism}
+\paragraph{Process-Based Nondeterminism}
 
 \label{sec:pnondet}
 
@@ -487,7 +487,7 @@ runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
 \end{comment}
 In probabilistic
-settings, we can often exploit non-monotonicity.  For instance, a test may be
+settings, we can often exploit non-monotonicity.  E.g., a test may be
 ``almost non-flaky'' and we want $P(\mathit{fail})$ to be closer to
 50\%, to aid debugging.
 
@@ -674,10 +674,7 @@ array slot.  An example test sequence would be:
 
 {\scriptsize
 \begin{code}
-array[2] = op01();
-array[3] = op05();
-clear(array[2]);
-array[2] = op10();
+array[2] = op01(); array[3] = op05(); clear(array[2]); array[2] = op10();
 \end{code}
 }
 

@@ -32,7 +32,7 @@ frequently vexing in debugging efforts; most importantly, perhaps, nondeterminis
 automated testing.
 
 
-\subsection{What is Determinism?}
+%\subsection{What is Determinism?}
 
 A system is deterministic if, given the system's complete state at a point in
 time, it is possible, in principle, to predict its future behavior
@@ -103,9 +103,9 @@ set of passing tests is seldom preserved, perhaps because such tests are
 likely to be \emph{flaky}.
 %without considerable human effort.
 
-\subsubsection{Nondeterminism and Flaky Tests}
+\paragraph{Nondeterminism and Flaky Tests}
 
-In order to help ensure that they are reliable and secure, complex
+Complex
 modern software systems usually include a large set of
 \emph{regression tests}.  A regression test suite is a
 set of tests that can be run against softwarre every time it
@@ -138,7 +138,7 @@ flaky-ness in libraries, before they propagate.
 %approaches we are aware of, is on detecting the \emph{sources} of
 %flaky-ness \emph{before} they propagate to cause actual test failure.
 
-\subsection{Contributions}
+\paragraph{Contributions}
 
 
 This paper proposes (1) a number of formal definitions of types of
