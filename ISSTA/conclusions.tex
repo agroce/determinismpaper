@@ -7,7 +7,6 @@ frustrating debugging efforts (Heisenbugs \cite{Heisenbug} and
 Mandelbugs \cite{GrottkeBugs,FaultTriggers} are widely loathed), and
 leading to the costly problem of flaky tests
 \cite{miccoflaky,listfieldtestanalysis}.
-
 This paper proposes a formulation of types of nondeterminism, and a
 practical approach to using automated test generation to detect
 nondeterminism, especially in the library code that underlies most
@@ -16,26 +15,24 @@ systems. In addition to traditional \emph{horizontal} nondeterminism
 the related concept of \emph{vertical} nondeterminism, which is more
 frequently simply a software bug.  We implemented our approach in the
 TSTL automated test generation system for Python, and demonstrated the
-simplicity and basic utility of the approach on three real-world examples.
+simplicity and utility of the approach on real-world examples.
 
 As future work, we would like to make the automatic detection of
 values that should not be visible (e.g., count towards nondeterminism)
 possible: if a value (e.g., a timestamp) is always different in every
-run, it is likely of no interest to developers.  This would make
+run, it is likely opaque.  This would make
 testing libraries mixing deterministic behavior and nondeterministic
-behavior, e.g. cryptographic libraries offering high-quality random
-number generators, easier for users, who would only be shown
-``surprising'' nondeterminism.  Similarly, in order to extend the
-utility of vertical nondeterminism detection, we would like to
-automatically identify usually-idempotent operations, and check them
-for deviation from the expected behavior.  We would also like to lower the cost
-of checking process nondeterminism, perhaps by using methods taken in
-AFL \cite{aflfuzz} to avoid high startup costs for test executions.
-More generally, we are interested in using test decomposition
+behavior, e.g. cryptographic librarie, much easier. Similarly, in order to extend the
+utility of vertical nondeterminism, we would like to
+automatically identify usually-idempotent operations.
+%We would also like to lower the cost
+%of checking process nondeterminism, perhaps by using methods taken in
+%AFL \cite{aflfuzz} to avoid high startup costs for test executions.
+Finally, we are interested in using test decomposition
 \cite{Composition} to more easily isolate, understand, and avoid
-nondeterminism in tests, and to mitigate the problem of flaky tests.
+nondeterminism in tests, and to mitigate flaky tests.
 Reliable detection of nondeterminism is a first step towards
-evaluating such pro-active flaky test mitigations.
+evaluating such fine-grained proactive flaky test mitigations.
 
 \begin{comment}
 Finally, it would be useful to implement versions of our formalisms in
