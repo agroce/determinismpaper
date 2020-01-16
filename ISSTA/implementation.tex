@@ -428,6 +428,7 @@ optional function parameters in Tables \ref{tab:methods} and
 \ref{tab:options}.
 \end{comment}
 
+\begin{comment}
 \section{A Simple Example}
 
 \begin{figure}
@@ -436,7 +437,6 @@ optional function parameters in Tables \ref{tab:methods} and
 @from storage import *
 \vspace{0.1in}
 init: init()
-\vspace{0.1in}
 pool: <int> 5
 \vspace{0.1in}
 <int> := <[-10..10]>
@@ -454,18 +454,14 @@ property: len(contents()) == len(set(contents()))
 \begin{figure}[t]
   {\scriptsize
 \begin{code}
-import random
-
-storage = []
-
-def contents():
+import random                                   def getNewVal():
+storage = []                                            global storage
+def contents():                                        if len(storage) >= 1:
     global storage
     return storage
-
 def init():
     global storage
     storage = []
-
 def store(n):
     global storage
     if n in storage:
@@ -675,3 +671,5 @@ With failure nondeterminism, we don't have to use TSTL's specialized reduction
 tool, since the failure does not require multiple replays of a test.
 The random tester itself can properly reduce the test case, since it
 is just a ``normal'' failure, exhibited by a single trace.
+
+\end{comment}

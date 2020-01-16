@@ -85,21 +85,21 @@ parallel bubble-sort with a simpler termination criteria).
 \begin{code}
 @import mergesort
 @import swapsort
-\vspace{0.1in}
+%\vspace{0.1in}
 pool: <val> 10
 pool: <data> 10
 pool: <sorted> 10
-\vspace{0.1in}
+%\vspace{0.1in}
 <val> := <[-10..10]>
-\vspace{0.1in}
+%\vspace{0.1in}
 <data> := []
 <data>.append((<val>,<val>))
 len(<data,2>) < len(<data,1>) -> <data>.extend(<data>)
-\vspace{0.1in}
+%\vspace{0.1in}
 <sorted> := mergesort.merge\_sort\_parallel(<data>)
 <sorted> := swapsort.swap\_sort\_parallel(<data>)
 <sorted>
-\vspace{0.1in}
+%\vspace{0.1in}
 property: swapsort.is\_sorted(<sorted>)
 \end{code}
 }
@@ -387,7 +387,7 @@ influence future computation, final state nondeterminism may be almost useless.
 \begin{code}
 @import inference\_algs
 @import datarray
-\vspace{0.1in}
+%\vspace{0.1in}
 <@
 def flatten\_and\_sort(v):
     return (sorted(map(flatten\_and\_sort,v),key=repr) if type(v) in [list,tuple] else
@@ -396,13 +396,13 @@ def flatten\_and\_sort(v):
 def psplit(P):
     return ([P,1.0-P])
 @>
-\vspace{0.1in}
+%\vspace{0.1in}
 pool: <P> 3
 pool: <cpts> 3
 pool: <evidence> 3 OPAQUE
 pool: <ename> 3
 pool: <event> 3
-\vspace{0.1in}
+%\vspace{0.1in}
 <P> := 0.01 * <[0..100]>
 <ename> := "E" + str(<[1..5]>)
 \{Exception\} <event> := datarray.DataArray(psplit(<P>), axes = [<ename>])
@@ -412,7 +412,7 @@ pool: <event> 3
 ~<cpts>.append(<event>)
 <evidence> := \{\}
 ~<evidence>.update([(<ename>,0)])
-\vspace{0.1in}
+%\vspace{0.1in}
 \{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_simple(<cpts>,
    <evidence>)))
 \{Exception\} print(flatten\_and\_sort(inference\_algs.calc\_marginals\_sumproduct(<cpts>,
@@ -638,14 +638,14 @@ nondeterminism at any smaller granularity than that of a whole tests's
 pass/fail result) and target the Java language.  iDFlakies
 \cite{idflakies}, similarly, ``does not further classify the causes of
 the flaky tests'' beyond identifying them as likely related to test
-order, or not.
-
-However, the primary
+order, or not.  However, the primary
 aim of our results is to show 1) that nondeterminism at the library
 level can exist in real Python programs, 2) that it can be detected
 by an implementation of the formalism proposed in this paper, and 3)
 that the overhead for such detection, and cost to delta-debug
-nondeterministic tests, is not prohibitive.  We believe that the case
+nondeterministic tests, is not prohibitive.
+\begin{comment}
+We believe that the case
 studies show that users testing Python libraries, and concerned about
 nondeterminism, would find the TSTL tools useful, and would be able to
 detect and debug nondeterministic behavior using our approach, a
@@ -654,12 +654,10 @@ literature (and supported in no other tool).  Comparison with a
 competing tool is not required to validate the basic idea, since
 precise empirical measurements of overheads, or improvements on an
 existing approach, are not proposed for evaluation.
-
+\end{comment}
 Another threat to validity is posed by implementation errors.
 TSTL and the mutation tool are tested for bugs by a set of Travis CI
-tests, and are (for academic research code) moderately well-used by
-external users, making this a lesser concern.  The nondeterminism
-detected by TSTL can be demonstrated with standalone tests TSTL
-generates that do not depend on any TSTL code.
+tests, and the nondeterminism
+detected by TSTL can be demonstrated with standalone tests that do not depend on any TSTL code.
 The source code for the tools and all experimental subjects is
 available for inspection and replication in the TSTL repository.
