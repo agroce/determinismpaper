@@ -14,18 +14,19 @@ TSTL harnesses, and serve to show how easily our
 approach can be integrated into an existing test
 generation effort.  The other two subjects were chosen, and new harnesses
 written, specifically to demonstrate specific, important sources of
-nondeterminism in Python code: concurrency and hash salting.  In
+nondeterminism in Python code: concurrency and hash salting.
+\begin{comment}In
 addition to our core research questions ({\bf RQ1-RQ3}) shared by all subjects, we
 report on aspects of using the TSTL nondeterminism tools
 specific to each subject.
-
+\end{comment}
 Table \ref{tab:overviewexp} shows a summary of our experimental
 results.  In all cases, our approach was able to detect interesting
-nondeterminism (in fact, all nondeterminism of which we are aware).  The overhead on testing imposed by nondeterminism
-checks varied considerably, but in the worst case did not double the
+nondeterminism (in fact, all nondeterminism of which we are aware).  The overhead imposed by nondeterminism
+checks varied,, but in the worst case did not double the
 average cost of each action (the expected overhead, since we
 essentially execute each test twice), and thus never halved the amount of
-testing performed.  Test reduction always reduced the size of
+testing.  Test reduction always reduced the size of
 generated tests by 85\% or more, in less than 15 minutes, thus showing that reduction
 has a large payoff at an acceptable price.  Values are, unless otherwise noted, the mean of 30 runs.
 
@@ -348,9 +349,7 @@ visible value and final state approaches find 40 nondeterministic
 tests, though the overlap of tests thus detected is not quite perfect---each method detects two tests the other does not.  The difference
 in overhead, interestingly, is very similar:  0.48\%; however, under
 these parameters, visible value nondeterminism is actually cheaper on average
-than final state nondeterminism, due to early termination of the
-additional replays, when nondeterminism is detected (the difference is
-again significant by Wilcoxon test, with $p < 1.44 \times 10^{-10}$).
+than final state nondeterminism, due to early termination when nondeterminism is detected ($p < 1.44 \times 10^{-10}$).
 
 In practice, we expect that visible value nondeterminism and final state
 nondeterminism will often be very similar in both ability to detect
@@ -457,51 +456,35 @@ file system changes that would not be safe or easily performed using
 real persistent storage.  Originally developed in 2006 at Google by
 Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
 inside and outside Google \cite{pyfakefs}.
-
 The TSTL harness for {\tt pyfakefs} has been used to detect (and
-correct) over 80 faults.  The harness can be found in the TSTL GitHub repository
-in the {\tt examples/pyfakefs} directory, and the bugs discovered can
-be viewed at \url{https://github.com/jmcgeheeiv/pyfakefs/issues?q=label%3ATSTL}.  However, the testing largely relies on
-the existence of a reference file system implementation.  One purpose
-of failure nondeterminism is to make it somewhat easier to perform effective
-property-based testing of
-complex APIs like this even without a complete reference implementation, or in cases
-where the implementations do not use the same error
-codes (as is common, e.g. in NASA flight software
-\cite{ICSEDiff,CFV08}).
+correct) over 80 faults.
+%\url{https://github.com/jmcgeheeiv/pyfakefs/issues?q=label\%3ATSTL}.  
 
-\subsubsection{Manually Inserted Fault}
+\paragraph{Manually Inserted Fault}
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
-correct error, but still carries out the remove operation.  Using {\tt
-  os.remove} to delete directories does not break any file system
-invariants, but violates the Python {\tt os} specification (and,
-indirectly, the usual POSIX implementation behavior where {\tt unlink}
-does not work for directories).  Detecting this bug using the TSTL
+correct error, but still carries out the remove.  Using {\tt
+  os.remove} to delete directories violates the Python {\tt os}
+specification (and the POSIX standard).  Detecting this bug using the TSTL
 {\tt pyfakefs} harness is normally impossible without using another
 file system as a reference.  However, the fault was detected  essentially
-immediately, even without using a reference, when we compiled the harness
-with the {\tt --checkFailureDeterminism} flag (an affirmative answer
-to {\bf RQ1}).  Moreover, the overhead for the check for failure determinism in a
-version of the code without the {\tt remove} error was
+immediately with our failure determinism checks (an affirmative answer
+to {\bf RQ1}).  Moreover, the overhead for the check in a
+version of the code without the error was
 less than 8\%  ({\bf RQ2}).  Detecting the fault using a reference file system 
 required 17\% more testing time before detection, and took over twice as
-long to reduce the failure to a
+long to reduce the failure, to a
 slightly longer failing test, which did not have {\tt remove} as its
 final operation (since further operations are required to 
-expose the bad file system state the operation introduces).
+expose the bad state).
 Because vertical
 reduction does not require running complete tests multiple times, and
 does not affect the delta-debugging algorithm's performance, reducing
 the failing test to 3 steps required less than a second ({\bf RQ3}).
-For this hypothetical subtle bug, failure determinism checks not only make it
-possible to detect the fault without a reference implementation, they
-improves on detection speed and ease of debugging even compared to a
-full-blown reference implementation (the MacOS file system, operating
-on a RAM disk) and strong, hand-tuned, differential testing.
+For this hypothetical subtle bug, failure determinism even improves on strong, hand-tuned, differential testing.
 
-\subsubsection{Mutation Analysis}
+\paragraph{Mutation Analysis}
 
 We wanted to determine whether there were also simple faults that
 could be detected by failure nondeterminism, but \emph{not} detected
@@ -509,45 +492,52 @@ by differential testing, and quantify the additional specification
 strength provided by failure determinism checks, to further answer
 {\bf RQ1} in the special case of failure determinism.  We therefore used
 {\tt universalmutator} \cite{RegExpMut} to produce 2,350 mutants of
-the {\tt pyfakefs} core file system code.   We restricted the generation
-to only mutate code covered during a 60 second run of the test
-harness, with differential testing turned off.  In this
-\emph{non-differential} mode, the harness will only detect a fault when it
-causes an unexpected exception to be raised, or results in a timeout
-due to, e.g., an infinite loop.  We could have applied mutation
+the {\tt pyfakefs} core file system code.   %We restricted the generation
+%to only mutate code covered during a 60 second run of the test
+%harness.
+\begin{comment}
+  We could have applied mutation
 testing to {\tt redis-py}, but we are dubious of the value of such an
 analysis without a strong differential harness to compare to; the {\tt
   redis-py} testing is limited in strength, and largely useful for
 producing high-coverage operation sequences from which to construct
 manual unit tests.
 
-We first analyzed the mutants using 60 seconds of non-differential
+
+In each run we first analyzed the mutants using 60 seconds of non-differential
 testing \emph{without failure nondeterminism checks}, then with the
 full differential harness (also without failure nondeterminism checks)
 for 120 seconds; the additional 60 seconds is to make sure we accounted for the observed 17\%
 extra time to detect in the manually constructed example: we want to
 maximize the chance to detect a bug using the strong version of the harness.   For both comparisons, we then tested
-all surviving mutants using the non-differential harness for 60
-seconds, this time with failure nondeterminism checking turned on.
-We used the same random seed for
-all runs, so that the only differences would be specification-based.
+all surviving mutants using a non-differential harness for 60
+seconds, this time with failure nondeterminism checking.
+%We used the same random seed for
+%all runs, so that the only differences would be specification-based.
+\end{comment}
 
-Non-differential testing, without failure determinism checks, killed
-872 mutants, a 37.1\% kill rate.  Adding a failure determinism check
-allowed the testing to kill an additional 98 mutants, an 11\% improvement.
+Non-differential testing, without failure determinism checks,
+consistently (in all runs) killed
+872 mutants, a 37.1\% kill rate.
+%Adding a failure determinism check
+%allowed the testing to (again, consistently) kill an additional 98 mutants, an 11\% improvement.
 The differential harness, with an additional 60 seconds of testing
-time, killed 1148 mutants, improving the kill rate to 48.8\%.  Failure
-nondeterminism checking added an
-additional 71 mutants to the total killed, a 6\% improvement even for
-this strong differential harness with a larger test budget.  Using
-failure nondeterminism was the only way to push the mutation score
+time (to make sure we accounted for the observed 17\%
+extra time to detect in the manually constructed example: we want to
+maximize the chance to detect a bug using the strong version of the harness), consistently killed 1,148 mutants, improving the kill rate to 48.8\%.  Failure
+nondeterminism checking consistently added an
+additional 71 mutants to that total, \emph{a 6\% improvement even for
+this strong differential harness with a larger test budget}, nearly as
+large an improvement as the gain from using a full reference
+implementation for comparison.  Using
+failure nondeterminism was the \emph{only} way to push the mutation score
 above 50\%.  The kill rates are generally low
-because {\tt universalmutator}, by design, includes many operations
-that can produce equivalent mutants, but can also produce hard-to-kill
-non-equivalent mutants not produced by other mutation tools, e.g. code
-that throws away exceptions raised by a function call (see below), or code
-reversing a list.
+because {\tt universalmutator} includes many operations
+thatproduce hard-to-kill
+non-equivalent mutants not produced by other mutation tools.  This is a strong affirmative answer to {\bf
+  RQ1} at least for a large set of hypothetical bugs.
 
+\begin{comment}
 In order to further investigate the additional specification power
 provided by failure nondeterminism detection, we inspected the mutants
 killed using the failure determinism check but not killed by the
@@ -555,21 +545,12 @@ strong differential testing.  The largest category of mutants not
 killed (22 of the 71 mutants) was what we refer to as ``exception
 swallowing'' mutants, which transform a Python statement into the same
 statement, but wrapped in a {\tt try} block with a catch that ignores
-any raised exceptions, e.g., {\tt foo()} becomes:
-
-\begin{code}
-try: foo()
-except: pass
-\end{code}
-
-\noindent It is easy to
+any raised exceptions.
+It is easy to
 see that such mutants may introduce faults in the handling of
-errors, and thus would tend to cause failure nondeterminism.  However,
-these are a minority of the mutations introducing hard-to-detect but
-non-equivalent failure
-nondeterminism.  Other mutation operators resulting in subtle flaws
+errors, and thus would tend to cause failure nondeterminism.  Other mutation operators resulting in subtle flaws
 not (at least easily) detectable by differential testing compared to a
-correct file system include:  arithmetic operation changes, statement
+correct file system included:  arithmetic operation changes, statement
 deletions, logical operator modifications, constant replacements
 (including replacement of a string with the empty string), and
 introducing a break into a loop.  The variety of mutant types suggests
@@ -586,6 +567,8 @@ larger with failure determinism checking, and this change was significant by Wil
 $(p < 1 \times 10^{-15})$.  While \emph{statistically} significant,
 this cost is almost certainly
 too small to be of any real practical importance.
+\end{comment}
+
 
 \begin{comment}
 \subsection{Summary of Results}
@@ -617,24 +600,19 @@ There are several primary threats to validity:  first, our empirical
 results are limited to a small set of Python programs, ranging from
 relatively small and simple to large and complex libraries; the
 representative nature of these subjects is not clear.
-Furthermore, because
-no other tools implement the kind of approach taken here, based on
-automated generation of value pool based unit tests for a system
-(imperative property-based testing), to our knowledge, we were unable
+Because
+no other tools implement the kind of approach taken here, we were unable
 to perform a meaningful comparison with another nondeterminism
-detection tool.  Available tools, such as DeFlaker \cite{bell2018d}
-(\url{http://www.deflaker.org/}), perform a completely different task (DeFlaker
-is essentially a plugin for Maven regression tests, and cannot check
-nondeterminism at any smaller granularity than that of a whole tests's
-pass/fail result) and target the Java language.  iDFlakies
+detection tool.  DeFlaker \cite{bell2018d}
+performs a completely different task, and cannot check
+nondeterminism at any smaller granularity than a whole test.  iDFlakies
 \cite{idflakies}, similarly, ``does not further classify the causes of
 the flaky tests'' beyond identifying them as likely related to test
-order, or not.  However, the primary
+order.  However, the primary
 aim of our results is to show 1) that nondeterminism at the library
 level can exist in real Python programs, 2) that it can be detected
-by an implementation of the formalism proposed in this paper, and 3)
-that the overhead for such detection, and cost to delta-debug
-nondeterministic tests, is not prohibitive.
+by our methods, and 3)
+that the overhead for such detection, and test reduction, is acceptable.
 \begin{comment}
 We believe that the case
 studies show that users testing Python libraries, and concerned about
@@ -649,7 +627,6 @@ existing approach, are not proposed for evaluation.
 Another threat to validity is posed by implementation errors.
 TSTL and the mutation tool are tested for bugs by a set of Travis CI
 tests, and the nondeterminism
-detected by TSTL can be demonstrated with standalone tests that do not
-depend on our code.
-The source code for our TSTL version and all experimental subjects will be
+detected by TSTL can be demonstrated with standalone tests.
+Our source code and experimental subjects will be
 made available for inspection and replication.

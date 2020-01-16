@@ -13,7 +13,7 @@ delta-debugging support (Section \ref{sec:ddimp}) are described after a general
 overview of the TSTL testing tool (Section \ref{sec:tstlintro}).
 \end{comment}
 
-\subsection{Pools and Visible State}
+\paragraph{Pools and Visible State}
 \label{sec:pools}
 
 While the formal definitions above offer a framework for checking nondeterminism, they leave unspecified the key notions of \emph{state},
@@ -28,11 +28,9 @@ even more importantly, as noted in the introduction, very few programs
 are deterministic in this strict sense.  What is a practical level of granularity for (visible) states and actions that
 can be efficiently checked, and matches (for the most part) developer
 and tester intuitions about what should behave deterministically?
-
 Andrews et al. formalized a value-pool-based model of unit tests that is widely used in
-actual testing tools, including Randoop \cite{Pacheco}, showing that
-unit tests can be represented in a \emph{canonical} form, where
-a test consists of three parts:
+tools, including Randoop \cite{Pacheco}, where
+unit tests are represented in a \emph{canonical} form based on:
 
 \begin{enumerate}
 \item A declaration of a set of array variables, referred to as
@@ -113,10 +111,9 @@ Andrews et al. and described above, but relaxes many of its restrictions
 (e.g., a constant value can be used in a method call without first
 assigning it to a pool). The
 TSTL actions defined by a test harness correspond to the set $A$ of
-actions in Section \ref{sec:formal}, and transitions between states
-result from executing out the Python code in an action; these actions
-are, roughly, the array-canonical statements of the value pool
-formalism.
+actions in Section \ref{sec:formal}, and transitions 
+result from executing action code, roughly, the array-canonical
+statements.
 
 \begin{comment}
   Figure

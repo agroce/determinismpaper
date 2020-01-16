@@ -417,7 +417,7 @@ break all existing dictionaries.
 %parent process will have the, e.g., a flag set or value initialized, but
 %the new process will not.
 
-\section{Nondeterminism and Delta-Debugging}
+\section{Probabilistic Test Reduction}
 
 Delta-debugging \cite{DD}  is a widely used method for reducing the
 size of failing tests, making them easier to understand and debug.
@@ -503,7 +503,7 @@ holds (in a non-monotonic case where we aim to increase the probability
 of nondeterminism).
 \end{comment}
 
-\subsection{``Publication Bias'' in Delta-Debugging}
+\subsection{``Publication Bias'' in Reduction}
 \label{sec:pubbias}
 
 \begin{figure}
@@ -585,8 +585,9 @@ that says ``this exciting new treatment works!''
 The \emph{bias} in
 favor of positive results is shared by test reduction, which;
 is much more influenced by cases where
-$\mathit{PRED}$ holds than cases where it does not.  The ``unpublished papers'' are invisible, magnifying the
-effect of the ``published'' experiments.
+$\mathit{PRED}$ holds than cases where it does not.
+%The ``unpublished papers'' are invisible, magnifying the
+%effect of the ``published'' experiments.
 
 \begin{comment}
 It is the combination of
