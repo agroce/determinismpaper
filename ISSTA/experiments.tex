@@ -335,7 +335,6 @@ single run.  This difference is obviously not statistically
 significant; for the nondeterminism in {\tt redis-py}, with these
 parameters, the two approaches cannot be statistically distinguished
 as to effectiveness in detecting nondeterminism.
-
 Final state nondeterminism was also faster; visible value
 nondeterminism took, on average, 0.48\% longer to check for
 nondeterminism on the 300 tests, 1.199 mean seconds vs. 1.205 mean seconds.  The difference was significant, with
@@ -482,7 +481,7 @@ Because vertical
 reduction does not require running complete tests multiple times, and
 does not affect the delta-debugging algorithm's performance, reducing
 the failing test to 3 steps required less than a second ({\bf RQ3}).
-For this hypothetical subtle bug, failure determinism even improves on strong, hand-tuned, differential testing.
+Here, failure determinism even improves on hand-tuned differential testing.
 
 \paragraph{Mutation Analysis}
 
@@ -535,7 +534,7 @@ above 50\%.  The kill rates are generally low
 because {\tt universalmutator} includes many operations
 thatproduce hard-to-kill
 non-equivalent mutants not produced by other mutation tools.  This is a strong affirmative answer to {\bf
-  RQ1} at least for a large set of hypothetical bugs.
+  RQ1}.
 
 \begin{comment}
 In order to further investigate the additional specification power
