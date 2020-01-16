@@ -16,29 +16,22 @@ overview of the TSTL testing tool (Section \ref{sec:tstlintro}).
 \subsection{Pools and Visible State}
 \label{sec:pools}
 
-While the formal definitions of nondeterminism proposed in Section
-\ref{sec:formal} offer a framework for checking for nondeterministic
-behavior, they leave unspecified the key notions of \emph{state},
+While the formal definitions above offer a framework for checking nondeterminism, they leave unspecified the key notions of \emph{state},
 \emph{visible state}, and \emph{actions}.  For example, we could
 identify the state and visible state of a system as identical with the
-full set of memory locations accessed by that system, and actions with the
-individual processor instructions executed.  However, this
-definition is highly impractical for two reasons.  First, it is
+full set of memory locations accessed by that system, and actions with
+processor instructions.  However, this
+definition is highly impractical.  First, it is
 extremely inefficient to compare multiple executions for
 full-memory-state equivalence at every instruction step.  Second, and
 even more importantly, as noted in the introduction, very few programs
-will behave deterministically when considered at this low level,
-unless the full state of the operating system, processor, hardware
-devices, etc. are all taken as controlled inputs.
-
-What is a practical level of granularity for (visible) states and actions that
+are deterministic in this strict sense.  What is a practical level of granularity for (visible) states and actions that
 can be efficiently checked, and matches (for the most part) developer
 and tester intuitions about what should behave deterministically?
 
 Andrews et al. formalized a value-pool-based model of unit tests that is widely used in
 actual testing tools, including Randoop \cite{Pacheco}, showing that
-all Java unit tests (and, more generally, unit tests in similar
-languages) can be represented in a \emph{canonical} form, where
+unit tests can be represented in a \emph{canonical} form, where
 a test consists of three parts:
 
 \begin{enumerate}
@@ -49,7 +42,7 @@ a test consists of three parts:
     \item A part in which all statements are assignments of calls of a
       method to a value pool, with all arguments also
       taken from a pool, e.g. {\tt intVP[2] = fooVP[2].bar(intVP[0],
-        intVP[1]);} (these are referred to as \emph{array-canonical} statements).
+        intVP[1]);} (referred to as \emph{array-canonical} statements).
     \end{enumerate}
 
 Given such a form for unit tests, there is an obvious mapping to
@@ -67,16 +60,13 @@ value pool assignments.
 %\subsection{A Brief Introduction to TSTL}
 %\label{sec:tstlintro}
 
-We implemented our approach in the TSTL \cite{NFM15,ISSTA15,tstlsttt}
+We implemented our approach as a modification of the TSTL \cite{NFM15,ISSTA15,tstlsttt}
 system, an open-source
 language and tool for property-based testing
-\cite{Hypothesis,ClaessenH00} of Python code.   TSTL, including full
-support for our nondeterminism detection methods, is available at
-\url{https://github.com/agroce/tstl}, and the {\tt examples} directory
-contains the source code needed to duplicate all of our
-experiments\footnote{In some cases, you will also need to install an
-  appropriate version of the tested software, by doing, e.g., {\tt pip
-    install pyfakefs}.}.
+\cite{Hypothesis,ClaessenH00} of Python code.
+%The TSTL {\tt examples} directory
+%contains the SUTs needed to replicate our
+%experiments.
 \begin{comment}
 TSTL can also be installed using Python's {\tt pip} tool, by typing
 {\tt pip install tstl}; you will need to clone the github repository
@@ -198,8 +188,8 @@ TRACEBACK:
 
 \end{comment}
 
-\subsection{Horizontal Nondeterminism Detection}
-\label{sec:horizimp}
+\subsection{Nondeterminism Detection}
+%\label{sec:horizimp}
 
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
 nondeterminism detection can technically be implemented simply by
@@ -346,38 +336,36 @@ possible use in some security-related libraries.
 
 \end{comment}
 
-Note that TSTL provides explicit support for exploring the real-world sources of
-nondeterminism described in Section \ref{sec:sources}, by supporting
-execution in a new process and allowing
-control over timing changes.  Changing the timing of
+We provide support for the real-world sources of
+nondeterminism described in Section \ref{sec:sources}, via
+control over timing and/or execution in a new process.  Changing the timing of
 steps is also effective in exposing concurrency-related
-nondeterminism, since the delay will frequently change the
+nondeterminism, since it often changes the
 interleaving of threads.
 
-Because TSTL has a first-class interface to AFL \cite{aflfuzz}, we can even use
+Because TSTL has an interface to AFL \cite{aflfuzz}, we can use
 AFL's sophisticated heuristics to perform very thorough, week-long
-checks for nondeterminism, using strategies built to find subtle
-security vulnerabilities in C programs.  Equally importantly, since
+checks for nondeterminism.  Moreover, since
 there is substantial overhead in nondeterminism detection, AFL can be
 used to predict whether tested Python code is a good candidate for
 checking for horizontal nondeterminism; if the
 AFL \emph{stability} statistic (see the AFL documentation for details
 \cite{aflfuzz}) is lower than 100\%, it may indicate horizontal
-nondeterminism is present.
+nondeterminism.
 Because of the idiosyncrasies of AFL instrumentation and process
 behavior, this is not always a reliable guide, but it is a very low
 cost indicator produced as a by-product of fuzzing for other problems.
 
-\subsection{Vertical Nondeterminism Detection}
-\label{sec:vertimp}
+%\subsection{Vertical Nondeterminism Detection}
+%\label{sec:vertimp}
 
 First-class vertical nondeterminism checks are currently
 limited to failures.  
 %{\tt --checkFailureDeterminism} causes the TSTL
 %compiler to emit a harness where every action that causes an \emph{expected}
 %exception to be raised is repeated to ensure the same exception is
-still raised.
-%In terms of the formalism, if execution of action
+%still raised.
+In terms of the formalism, if execution of action
 $\alpha_i$ raises an exception that does not, itself, indicate a test failure, then 
     $F_i$ is true, and TSTL repeats $\alpha_i$ in order to ensure that
     $F_{i+1}$ is also true.

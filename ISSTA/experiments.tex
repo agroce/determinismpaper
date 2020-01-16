@@ -8,15 +8,15 @@ points we wanted to explore were {\bf RQ1:} whether our approach was able to rel
 nondeterminism, {\bf RQ2:} whether the overhead of nondeterminism
 detection for real systems was acceptable, and {\bf RQ3:} whether the performance of
 delta-debugging in this setting was acceptable, in terms of both time
-and results (amount of reduction in test size).  We chose two of
+and results (amount of reduction).  We chose two of
 the subjects, {\tt redis-py} and {\tt pyfakefs}, based on the fact that they were previously-existing large
-examples of TSTL harnesses, and therefore serve to show how easily our
-approach can be integrated into an existing large-scale test
+TSTL harnesses, and serve to show how easily our
+approach can be integrated into an existing test
 generation effort.  The other two subjects were chosen, and new harnesses
 written, specifically to demonstrate specific, important sources of
 nondeterminism in Python code: concurrency and hash salting.  In
 addition to our core research questions ({\bf RQ1-RQ3}) shared by all subjects, we
-report on particular aspects of using the TSTL nondeterminism tools
+report on aspects of using the TSTL nondeterminism tools
 specific to each subject.
 
 Table \ref{tab:overviewexp} shows a summary of our experimental
@@ -658,6 +658,7 @@ existing approach, are not proposed for evaluation.
 Another threat to validity is posed by implementation errors.
 TSTL and the mutation tool are tested for bugs by a set of Travis CI
 tests, and the nondeterminism
-detected by TSTL can be demonstrated with standalone tests that do not depend on any TSTL code.
-The source code for the tools and all experimental subjects is
-available for inspection and replication in the TSTL repository.
+detected by TSTL can be demonstrated with standalone tests that do not
+depend on our code.
+The source code for our TSTL version and all experimental subjects will be
+made available for inspection and replication.

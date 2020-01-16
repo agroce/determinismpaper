@@ -26,9 +26,8 @@ factors rather than bugs in changed code.  Such behavior is
 unfortunately all too common:  Gao et
 al. \cite{Gao:2015:MSU:2818754.2818764} observed coverage differences
 of up to 184 lines of code for the same test, and false positive rates
-as high as 96\%.  Nondeterminism is sometimes problematic for
-developers, who will usually want to  assume that library code they
-use behaves in a reliably predictable fashion; nondeterminism is
+as high as 96\%.  Nondeterminism is often problematic for
+developers, who want to  assume that library code behaves in a  predictable fashion; nondeterminism is
 frequently vexing in debugging efforts; most importantly, perhaps, nondeterminism is \emph{often disastrous} for large-scale highly
 automated testing.
 
@@ -38,39 +37,36 @@ automated testing.
 A system is deterministic if, given the system's complete state at a point in
 time, it is possible, in principle, to predict its future behavior
 perfectly.  We say ``in principle'' because in the real world,
-prediction may be possible but hopelessly impractical.  We write
-complex software systems in many cases because we cannot predict their
-behavior (if we could perform the calculations in advance, ourselves,
-we would just do so).  As a consequence, in software, rather than
+prediction may be possible but  impractical.  We write
+complex software systems because we cannot predict their
+behavior (if we could perform the calculations in advance, 
+we would just do so).  As a consequence, rather than
 defining determinism in terms of prediction, we usually 
 say that a system is deterministic if, given the same state and
 inputs, it always produces the same outputs.  
-
 Technically, many ``nondeterministic'' systems are not
-nondeterministic in a strong sense, at all.  Given the complete state
+nondeterministic in a strong sense.  Given the complete state
 of the system (which includes the entire state of the underlying
 hardware, the operating system, storage devices, etc.),
 most software \emph{is} completely predictable.  What we actually
-mean is that, given a certain limited abstraction of state
-and inputs, observable behavior is repeatable.  %This abstraction,
+mean is that, \emph{given a certain limited abstraction of state
+and inputs, observable behavior is repeatable}.  %This abstraction,
 %for most software, is not expected to include many elements outside of
 %the software system itself.
 
 Because the
 programmer's abstraction of the system ignores  such a large number of
-details, very few tests are in fact ``deterministic'' in the sense
-that they eliminate all changes in behavior between executions.  Running the same test
+details, very few tests are ``deterministic'' in the sense
+that they eliminate all changes between executions.  Running the same test
 twice almost always results in differences, given a low enough level of
 abstraction, since the system load,
 cache contents, branch predictor history, etc. are almost never
-controlled for; however, this kind of
-nondeterminism is usually of no interest.  Rather, what matters is when
+controlled for; however, this is seldom of interest.  What matters is when
 some kind of nondeterminism unexpectedly impacts computed values at a
 higher level of abstraction, e.g. when it is believed that the
 behavior of a thread scheduler will not matter, but a race condition
-in the code means that it does matter, or when the order of items in
-an iterator on a hash table is important, and the hash values used are
-randomly salted.
+in the code means that it does matter.
+
 \begin{comment} in general, if the operating system
 itself is not buggy, low-level nondeterminism, by design, is invisible
 except in fine-grained performance testing or real-time systems.
@@ -101,66 +97,59 @@ run, since the final step of a test
 is arbitrary, generated in an effort to increase
 code coverage, not establish functional correctness.
 This may be one reason that automated testing is seldom used to
-produce general regression tests.  While failure-inducing tests
-produced automatically are often added to regression suites, the full
-set of passing tests is, to our knowledge, only infrequently preserved
-as part of a typical regression suite, perhaps because such tests are
-likely to be \emph{flaky} without considerable human effort.
+produce general regression tests.  While bugs found by tools are added
+to regression suites, the full
+set of passing tests is seldom preserved, perhaps because such tests are
+likely to be \emph{flaky}.
+%without considerable human effort.
 
 \subsubsection{Nondeterminism and Flaky Tests}
 
 In order to help ensure that they are reliable and secure, complex
 modern software systems usually include a large set of
-\emph{regression tests}.  A regression test suite is a (usually large)
-set of tests that can be run against a software system every time it
-is modified, to ensure that the modification has not broken the system
-in some way.  \emph{Flaky tests} \cite{miccoflaky} are regression
-tests that fail in an intermittent, unreliable fashion, and thus
-degrade the utility of regression testing.  The essence of a flaky
+\emph{regression tests}.  A regression test suite is a
+set of tests that can be run against softwarre every time it
+is modified, to ensure that the modification has not broken the system.  \emph{Flaky tests} \cite{miccoflaky} are regression
+tests that fail in an intermittent, unreliable fashion.  The essence of a flaky
 test is that, for the same snapshot of test code and code under test
 (CUT), it sometimes fails and sometimes passes: the pass/fail result (disposition) of the
 test is not a deterministic property of the test code, code under
-test, and environment in which the test is run\footnote{Again, in 
-  some sense the result \emph{is} clearly determined by the environment in
-  which the test is run, but from the point of view of a developer or
-  test engineer, the differences in environment are invisible and unknown.}.  This produces three serious
+test, and testing environment.  This produces three serious
 problems: first, a flaky test often wastes developer time and delays
 software changes by forcing the investigation of code-under-test that
-is not actually incorrect.  Second, failures in flaky tests (for that
-reason) are often ignored, and therefore serious software faults may
+is not actually incorrect.  Second, failures in flaky tests are often ignored, and therefore serious software faults may
 be missed.  Finally, to mitigate these problems, flaky tests are often
-run multiple times, wasting valuable computing resources and also
-delaying acceptance of code changes.  An analogy may make the extent
-of the problem in large-scale test automation clear:  a canary in a coal mine is of
+run multiple times, wasting computing resources and
+delaying acceptance of code changes.  As an analogy, we note that  a canary in a coal mine is of
 little use if canaries frequently become ill for reasons unrelated to
 the presence of toxic gases.  Mining may stop for no good reason, or
 miners may learn to ignore the canary, leading to tragedy; a third,
 more ``practical'' option is that miners may carry so many redundant
-canaries into the coal mine that canary-care becomes a serious burden
-on mining.
+canaries into the coal mine that canary-care itself becomes a serious burden.
 
 Flaky tests are, for us, simply a special case of general test
 nondeterminism, where the nondeterminism of test values is sufficient
 to cause the pass/fail result of the test to vary.  The definitions
 and techniques proposed in this paper all apply to flaky tests, as a
 special case of various kinds of \emph{horizontal} nondeterminism
-described below.  Our focus, however, unlike all other tools and
-approaches we are aware of, is on detecting the \emph{sources} of
-flaky-ness \emph{before} they propagate to cause actual test failure.
+described below.  Our focus, however, is on detecting sources of
+flaky-ness in libraries, before they propagate.
+%unlike all other tools and
+%approaches we are aware of, is on detecting the \emph{sources} of
+%flaky-ness \emph{before} they propagate to cause actual test failure.
 
 \subsection{Contributions}
 
 
 This paper proposes (1) a number of formal definitions of types of
-nondeterminism (\emph{horizontal} and \emph{vertical}) (see Section \ref{sec:formal}) and (2) an implementation, based on these definitions, for detecting and debugging
+nondeterminism (\emph{horizontal} and \emph{vertical}) and (2) an implementation, based on these definitions, for detecting and debugging
 nondeterminism in property-based testing.  The implementation is based
 on an approach where (3) horizontal determinism is considered as a
 kind of \emph{reflexive differential testing} (4) vertical
 determinism is specialized to the common case of \emph{failure
   determinism}, and (5)  in both cases the formalism is made practical
-by using the \emph{value pool} model of unit tests to define a useful
-granularity for nondeterminism detection (see Section \ref{sec:pools}).
-We further propose modifications to the widely used delta-debugging algorithm in order to better handle
+by using the \emph{value pool} model of unit tests.
+We also introduce necessary modifications to the widely used delta-debugging algorithm in order to better handle
 nondeterminism as a test property.
 
 \begin{comment}

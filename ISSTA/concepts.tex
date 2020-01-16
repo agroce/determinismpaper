@@ -9,18 +9,15 @@
 
 We define two basic types of determinism, shown in Figure
 \ref{fig:types}:  horizontal determinism and vertical determinism.  In
-horizontal determinism, which is what we usually think of when we
-think about deterministic behavior, a software system reliably
+horizontal determinism a software system reliably
 produces the same behavior given the same steps of a test: the
 behavior of multiple executions that are ``the same'' in terms of
-inputs/actions can be aligned and checked for some type of equality.  In
+inputs/actions can be aligned and checked for equality.  In
 vertical determinism, rather than behavior across executions, we are
 interested in behavior within an execution, where repeating the same
-step of a test twice should result in the same behavior.  Obviously,
-vertical determinism is both rarer and more specialized than
-horizontal determinism.  However, in those instances, vertical
-determinism is arguably more important than horizontal determinism, in
-that violations usually indicate a potentially serious fault.
+step of a test twice should result in the same behavior.  Vertical determinism is both rarer and more specialized than
+horizontal determinism.  However, vertical
+determinism violations usually indicate a potentially serious fault.
 
 \subsection{Horizontal Determinism}
 
@@ -32,16 +29,14 @@ nondeterminism detection as an unusual kind of \emph{differential
   testing} \cite{Differential,ICSEDiff}.  In differential testing, a
 system is compared against a reference in order to ensure that
 it behaves equivalently, at some level of abstraction, to another
-implementation of the same functionality.  Differential testing is
-extremely powerful, in that any divergence of behavior, if divergence
-is correctly defined, indicates a functional correctness fault in (at
+implementation.  Differential testing is
+extremely powerful, in that any (properly defined) divergence of
+behavior indicates a functional correctness fault in (at
 least) one of the systems under test, and  is widely
-used for systems software components such as compilers
-\cite{Differential,csmith} and POSIX file systems \cite{CFV08,AMAI}, where multiple
-implementations are common.  The major limitation of differential
+used for systems software such as compilers
+\cite{Differential,csmith} and file systems \cite{CFV08,AMAI}.  The major limitation of differential
 testing is that multiple implementations of a system are
 almost as rare as good correctness specifications.
-
 For the special case of detecting nondeterminism, however, \emph{a
   system can serve as its own reference implementation.}    The
 problem, then, becomes one of deciding at what granularity the
@@ -182,7 +177,7 @@ factor in ``determinism.''
 \label{sec:formal}
 
 We can formally distinguish the types of nondeterminism by using a
-variant of a labeled transition system (LTS) as our model, where (1) $S$
+variant of a labeled transition system (LTS)l, where (1) $S$
 is a set of states; (2) $V$ is a set of \emph{observable} states, where
 $|V| \leq |S|$; (3) $v: S \rightarrow V$ is a total function that, given a state, maps it
   into the set of observable states, such that every state has an observable
@@ -206,8 +201,8 @@ $|V| \leq |S|$; (3) $v: S \rightarrow V$ is a total function that, given a state
 \end{itemize}
 \end{comment}
 
-We assume that the underlying behavior of a system may be
-deterministic, or nondeterministic, in the strict sense, by allowing
+We assume that the \emph{underlying} behavior of a system may be
+deterministic, or nondeterministic  by allowing
 for a transition relation that \emph{may} be a function of
 $S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
 \xrightarrow[]{\alpha_0} s_1 \xrightarrow[]{\alpha_1} \ldots
@@ -215,7 +210,7 @@ $S \times A$.  A \emph{trace} $t$ is a finite sequence $t = s_0
 . (s_i, \alpha_i, s_{i+1}) \in T$.  The concept of an action does not restrict this approach to reactive
 systems; it can be generalized to consider the only action that varies
 to be the selection of an input, $\alpha_0$, with the remainder of the
-actions being internal $\tau$ actions, in the usual fashion.
+actions being internal $\tau$ actions.
 
 \subsubsection{Horizontal Determinism}
 
@@ -228,9 +223,7 @@ A pair of traces $(t_1, t_2)$ where $t_1 = s^1_0
 v(s^1_j) = v(s^2_j)$ but $v(s^1_i) \neq v(s^2_i)$.  \emph{Final state
   nondeterminism} is defined in the same way, except with the
 restriction that $i = n$.  A pair of traces may exhibit visible value
-nondeterminism but not final state nondeterminism, but any pair of
-traces exhibiting final state nondeterminism also demonstrate visible
-value nondeterminism.  
+nondeterminism but not final state nondeterminism.
 
 \begin{comment}
 A point to emphasize is that while horizontal determinism
@@ -267,8 +260,7 @@ idempotent operation; the definition only requires that after \emph{some}
 sequence of actions, possibly with $\alpha_{i-1} = \alpha_i$, the
 visible state changes.  In an implementation, we would usually restrict the
 search to a finite number of repetitions; for many faults, two
-``copies'' will suffice, since an operation is either truly idempotent or
-not idempotent.
+``copies'' will suffice.
 %Only the existence of \emph{non-visible} state changes that
 %can eventually produce visible state changes \emph{after a succession of the
 %same action} require more repetitions.
@@ -311,11 +303,23 @@ concurrent code by adding ad-hoc {\tt sleep} statements).
 \end{comment}
 Most nondeterministic behavior in tests is probably attributable to simple
 effects that can vary with a repeated execution, in the same
-(approximate) enviroment, of the same test.  The two broad classes of
+(approximate) enviroment, of the same test.  There are two broad classes of
 nondeterminism that can usually be detected by
 executing the same test twice in succession, without attempting
-to control any other factors, are:
+to control any other factors.  {\bf External Environment} nondeterminism arises
+  when a test's behavior depends on factors outside the program under
+  test, which are subject to uncontrolled variance.  Calling {\tt
+    random()} in Python is an obvious example. Similarly, calls to {\tt time}
+  functions  will usually return different values on different runs,
+  and even if only elapsed time is used, due to system load, I/O, and
+  other external factors.  {\bf Concurrency} is a second common cause for
+  nondeterminism, when an algorithm is implemented using
+  concurrency, in the (incorrect) belief that the result of the
+  algorithm remains deterministic.  E.g., a multi-threaded
+  implementation of a search algorithm, that returns the location of
+  an item in an unsorted list; in the presence of duplicate items, thread scheduling may change the index returned.
 
+\begin{comment}
 \begin{itemize}
 \item {\bf External Environment:} This class of nondeterminism arises
   when a test's behavior depends on factors outside the program under
@@ -345,13 +349,15 @@ to control any other factors, are:
   %scheduling is, in a sense, equivalent to calling {\tt random} or
   %{\tt time}.
 \end{itemize}
+\end{comment}
 
 Lam et al. \cite{idflakies} note that flaky tests not due to order
 dependence are generally due to ``concurrency, timeouts,
 network/IO, etc.'' a description that is well accounted for by these two
-primary sources, and most of which can be detected easily
+primary sources.
+%, and most of which can be detected easily
 %, at least in principle, 
-by multiple runs of a test.
+%by multiple runs of a test.
 %However, simply running a test twice in the same process (possibly with a delay between steps) does
 %not suffice in all cases.
 
@@ -413,18 +419,13 @@ break all existing dictionaries.
 
 \section{Nondeterminism and Delta-Debugging}
 
-Delta-debugging \cite{DD}\footnote{We use delta-debugging to stand for
-  all test reduction algorithms, even those \cite{CReduce,tstl} that do not use the exact
-  binary-search that distinguishes delta-debugging \emph{per se}; the
-  differences are immaterial for our purposes.}  is a widely used method for reducing the
+Delta-debugging \cite{DD}  is a widely used method for reducing the
 size of failing tests, making them easier to understand and debug.
-The core idea of delta-debugging is to take a test that satisfies some
-property (usually the property is ``it fails in a particular way'')
-and produce a smaller test that satisfies the same property.
-Delta-debugging, as proposed by Zeller and Hildebrandt, relies on a
-modified binary search, but the
-following discussion relies only on the general structure of
-delta-debugging \cite{CReduce,onetest}, which is as follows.  Given a
+The core idea of delta-debugging is to take a test with some
+property (usually ``it fails'')
+and produce a smaller test that has the same property.
+Delta-debugging as originally proposed uses a
+modified binary search, but we rely only on the general structure: \cite{CReduce,onetest}:  Given a
 test case, $T_{\mathit{INIT}} : \mathit{test}$ and a predicate
 $\mathit{PRED}: \mathit{test} \rightarrow \mathit{bool}$, we
 reduce $T_{\mathit{INIT}}$ with respect to $\mathit{PRED}$
@@ -433,9 +434,7 @@ as follows:
 \begin{enumerate}
 \item $T_{\mathit{CURR}} = T_{\mathit{INIT}}$
 \item Let $T_{\mathit{NEXT}} =$ a variation of $T_{\mathit{CURR}}$
-  that has not yet been tried.  If there are no further variations of
-  $T_{\mathit{CURR}}$, stop and return $T_{\mathit{CURR}}$ as the
-  reduced test.
+  that has not yet been tried.  If none exist, stop and return $T_{\mathit{CURR}}$.
 \item Add $T_{\mathit{NEXT}}$ to the set of variations that have been
   tried.
 \item If $\mathit{PRED}(T_{\mathit{NEXT}})$, set $T_{\mathit{CURR}} =
@@ -451,34 +450,36 @@ to note that any such algorithm will apply $\mathit{PRED}$ to a
 potentially very large number of tests.
 \end{comment}
 
-Delta-debugging in the context of detecting nondeterminism has two
+Delta-debugging in the context of nondeterminism has two
 purposes.  One is simply the usual goal of reducing the size of a
 test.  Identifying the cause of nondeterminism may be very easy in a
-test consisting of ten library function calls (it is one of these ten
-calls), but very difficult in a test consisting of a hundred library
-function calls.  This is the typical use of
-delta-debugging.  However, in horizontal nondeterminism detection,
+test consisting of ten library function calls but very difficult with
+more than a hundred calls.  In horizontal nondeterminism detection, however,
 delta-debugging also tends to \emph{change the probability of
   nondeterministic behavior}; this can be both harmful and
-beneficial.  The behavior is part of a more general (and, to our
-knowledge, not previously investigated) issue:  using delta-debugging
-to minimize a test with respect to a predicate $\mathit{PRED}$ that only holds with a
-certain probability (the predicate itself is nondeterministic).  Note
+beneficial.  This behavior is part of a more general (and, to our
+knowledge, not previously investigated) issue: reducing a test with
+respect to an arbitrary predicate $\mathit{PRED}$ (including failure,
+but also code coverage, etc. \cite{icst2014,stvrcausereduce,NonAdeq}) that \emph{only holds with a
+certain probability} (the predicate itself is nondeterministic).
+\begin{comment}Note
 that while most descriptions of delta-debugging discuss reducing a
 test with respect to \emph{test failure} (hence the term
 ``delta-\emph{debugging}'') we adopt the wider view of delta-debugging
 as reducing the length of a test while maintaining that an arbitrary
 predicate still holds.   E.g., predicates, related to code-coverage can be very useful
-\cite{icst2014,stvrcausereduce,NonAdeq}.  Our contribution is to consider
-what happens when $\mathit{PRED}$ is not deterministic.
-``The test behaves flakily'' is a simple, important, example of such a $\mathit{PRED}$.
+\cite{icst2014,stvrcausereduce,NonAdeq}.
+\end{comment}
+%We want to consider
+%what happens when $\mathit{PRED}$ is not deterministic.
+``The test behaves flakily'' is an obvious relevant example of such a $\mathit{PRED}$.
 
-In \emph{monotonic} probabilistic delta-debugging, removing part of a test \emph{cannot
-increase the probability of the predicate holding}.  This is fairly
-common.  In these cases, when we use a reduction algorithm to reduce $t$
-to $r$, $P(\mathit{PRED}(r)) \leq P(\mathit{PRED}(t))$.  In \emph{non-monotonic} cases,
+For \emph{monotonic} $\mathit{PRED}$, removing part of a test \emph{cannot
+increase the probability of the predicate holding}: when we reduce $t$
+to $r$, $P(\mathit{PRED}(r)) \leq P(\mathit{PRED}(t))$.  This is fairly
+common.  In \emph{non-monotonic} cases,
 however, there is no such upper bound.  Removing a step in $t$ may
-\emph{increase} the probability that $t$ behaves nondeterministically.
+\emph{increase} the probability of $\mathit{PRED}$.
 \begin{comment}
 The $\mathit{PRED}$ of interest for horizontal determinism is basically of
 the form:  {\bf the test will exhibit at least two different behaviors in $S$
@@ -486,9 +487,9 @@ runs, with probability $P$}.  This predicate may be monotonic or
 non-monotonic, depending on the causes of the nondeterminism detected.
 \end{comment}
 In probabilistic
-settings, we may want to exploit non-monotonicity to find a
-subset of a test where a predicate that is very far from holding (in terms of probability, $P$) on the original test now
-holds.  For instance, a test may be very infrequently nondeterministic, and we want to find a subset where there is much greater probability of variance.
+settings, we can often exploit non-monotonicity.  For instance, a test may be
+``almost non-flaky'' and we want $P(\mathit{fail})$ to be closer to
+50\%, to aid debugging.
 
 \begin{comment}
 The only absolutely necessary changes required to use standard
@@ -510,26 +511,27 @@ of nondeterminism).
 \begin{subfigure}{0.30\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{lengthddmin}
-\caption{Standard delta-debugging}
+\caption{No modification}
 \label{fig:p1}
 \end{subfigure}
 \begin{subfigure}{0.30\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{lengthddminforcep}
-\caption{P=0.5, 100 samples}
+\caption{N=100}
 \label{fig:p2}
 \end{subfigure}
 \begin{subfigure}{0.30\columnwidth}
 \centering
 \includegraphics[width=\columnwidth]{lengthddminforceprep}
-\caption{P=0.5, 10 samples, 10 replications}
+\caption{M=10, N=10}
 \label{fig:p3}
 \end{subfigure}
-\caption{Delta-debugging of the same simple test}
+\caption{Reducing the same simple test; x-axis is time/changing
+  $T_\mathit{CURR}$; y-axis is true $P(\mathit{PRED})$.}
 \end{figure}
 
 However, simply using delta-debugging off the shelf with a $\mathit{PRED}$
-such as $P(fail) > 0.3 \wedge P(fail) < 0.7$, to force a test to be highly flaky, and force it to fail
+such as $P(\mathit{fail}) > 0.3 \wedge P(\mathit{fail}) < 0.7$, to force a test to be highly flaky, and force it to fail
 sufficiently often to be used in debugging, will often produce
 surprising and unfortunate results.  In many cases,
 delta-debugging will indeed reduce the large test to a small subset.
@@ -538,14 +540,14 @@ convert a nondeterministic test to a completely deterministic test,
 because the reduced test $r$ that delta-debugging returns is always one
 such that $\mathit{PRED}(r)$ has evaluated to true at least once.
 However, if you run the resulting test, it will, in many cases, have a
-$P(fail)$ that is much, much smaller than
+$P(\mathit{fail})$ that is much, much smaller than
 0.3, perhaps as low as 0.01.  Why?
 
 The problem is analogous to the problem of publication bias in
 scientific fields \cite{ahmed2012assessment}.  We can think of each
 application of $\mathit{PRED}$ to a candidate variant
 $T_{\mathit{NEW}}$ as a scientific experiment.  A predicate like
-$P(fail) > 0.3 \wedge P(fail) < 1.0$ cannot be evaluated by
+$P(\mathit{fail}) > 0.3 \wedge P(\mathit{fail}) < 1.0$ cannot be evaluated by
 determining the true probability of failure; we have no more direct access to
 this value than a medical researcher has access to the true effect
 size and direction of a proposed medical treatment; rather, the test must be
@@ -554,48 +556,37 @@ Even if the number of samples $N$ is large, there is some
 probability (based on the sample size) of a result that diverges
 significantly from the actual probability of failure.  If the
 predicate were run only once, and the number of samples reasonably
-large, this would not matter.  However, by their nature,
-delta-debugging and other test reduction algorithms explore a search
-space that often contains thousands or even millions of
-candidate tests.  The predicate is evaluated on each of these, and so
-even with large $N$, it is extremely likely that \emph{some} evaluation will
-produce a very poor estimate of $P(fail)$.  At this point, delta-debugging is
-``stuck'' with the error, because test reduction
+large, this would not matter.  However, test reduction algorithms explore a search
+space that often contains thousands or millions of
+tests.  The predicate is evaluated on each of these, and so
+even with large $N$, it is likely that \emph{some} evaluation will
+produce a poor estimate of $P(\mathit{fail})$.  At this point, reduction is
+``stuck'' with the error, because the
 algorithms usually do not allow backtracking.  After such a ``mistake,'' finding further
-reductions will become harder, but may still be possible due to the
-same source of errors:  \emph{the number of experiments run is far larger
-  than the probability of an incorrect result for a single
-  experiment}.  We define a \emph{false positive} in probabilistic
+reductions will become harder, but may still be possible due to
+another unlucky evaluation.  We define a \emph{false positive} in probabilistic
 delta debugging as a case where $\mathit{PRED}$ evaluates to true, but
-the actual probability constraints of $\mathit{PRED}$ are not satsified.  False negatives
-also exist, but are usually harmless, since it often just forces a different, equally
-desirable reduction path.
+the actual probability constraints of $\mathit{PRED}$ are not
+satsified (false negatives
+also exist, but are less of a problem).
 
 The analogy to publication bias is simple.  Assume that a paper in,
 e.g., a medical journal will only be published if it shows that a
 treatment is effective, with the statistical requirement that $p <
-0.05$ (that is, by some statistical test, the probability
-that the result is due to chance rather than reflecting reality is
-less than 5\%).  Even if no researchers are dishonest, 5 of every 100 papers published
+0.05$.  Even if no researchers are dishonest, 5 of every 100 papers published
 in the journal will be report an effect with the wrong effect size or
-even effect direction!  Now consider a ``hot'' topic, a kind of
+even direction!  Now consider a ``hot'' topic, a kind of
 treatment many research teams may investigate.  Major journals tend
 not to publish papers that say ``this new treatment, which is not
-established, may not work,'' (especially if the result is not ``the
-treatment certainly does not work'' but only ``the experiment did not
-establish $p < 0.05$''), but they  are very likely to publish a paper
-that says ``this exciting new treatment works!''  In addition to
-sometimes producing excitement about treatments that do not work, this
-bias tends to magnify the expected effect size of treatments, since
-the chance of getting a ``passing'' $p$-value is higher when an
-experiment finds a larger effect size, due to how most statistical
-tests work.
+established, may not work,'' (especially if the result is not ``we
+accept the null hypothesis'' but only ``the experiment did not
+show $p < 0.05$''), but they  are very likely to publish a paper
+that says ``this exciting new treatment works!'' 
 The \emph{bias} in
-favor of positive results is shared by delta-debugging;
-delta-debugging's behavior is much more influenced by cases where
-$\mathit{PRED}$ holds than cases where it does not.  Looking at the
-literature, the unpublished papers are invisible, magnifying the
-effect on scientific opinion of the published experiments.
+favor of positive results is shared by test reduction, which;
+is much more influenced by cases where
+$\mathit{PRED}$ holds than cases where it does not.  The ``unpublished papers'' are invisible, magnifying the
+effect of the ``published'' experiments.
 
 \begin{comment}
 It is the combination of
@@ -620,45 +611,40 @@ problematic operations.
 
 In scientific literature, the most frequently proposed solution is the
 use of replications:  repeated runs of ``successful'' experiments to
-minimize the probability that a direction or effect size is a fluke due to publication
-bias.  One way to produce this effect would be to allow
-delta-debugging to backtrack if the probabilities observed in predicate
-evaluations suddenly exhibit a strong discontinuity, a kind of ``paper
-retraction'' based on near-replications.  However, this requires
-modifying delta-debugging implementations, which is difficult and
-sometimes not really feasible (e.g., few users of afl-fuzz \cite{aflfuzz} will wish
-to change its C code for test reduction).  Ideally, the solution
-should be implementable simply by modifying $\mathit{PRED}$.
+minimize the probability that a direction or effect size is a fluke.  One way to produce this effect would be to allow
+reducers to backtrack if the probabilities observed in predicate
+evaluations suddenly exhibit a strong discontinuity.  However, this requires
+modifying the implementations, which is difficult and
+sometimes not really feasible.  Ideally, the solution
+should be implementable simply by modifying $\mathit{PRED}$ itself.
 
-A costly but somewhat effective solution is to make $N$ large in comparison to
+A costly but plausible solution is to make $N$ large in comparison to
 the number of expected predicate evaluations performed during
 delta-debugging.  However, given the large number of evaluations performed,
-this will tend to make delta-debugging extremely slow.  We propose
+this will tend to make reduction extremely slow, since $N$ must be
+very large indeed.  We propose
 using a dynamic sampling approach, where $N$ is small, but if the
 predicate evaluates to true, $M$ repeated true evaluations
-(``replications'', where the first true evaluation is counted as 1 replication) are
-required before the predicate returns ``true'' to the delta-debugging
-algorithm.  To evaluate the predicate $\mathit{PRED}$ given $N$,
-$M$, and desired probability threshold $p$, the algorithm is simple:
+(``replications'') are
+required before the predicate is counted as holding.  To evaluate the predicate $\mathit{PRED}$ given $N$,
+$M$, and desired probability bound $p$, the algorithm is:
 
-\begin{enumerate}
-  \item  $i = 0$
-  \item Evaluate $\mathit{PRED}$ $N$ times.  If the proportion of cases
-  where $\mathit{PRED}$ was true is less than $p$, return false.
-  \item  $i = i + 1$
-  \item If $i < M$ go to step 1.
-  \item  Return true.
-\end{enumerate}
+\begin{code}
+for $i = 0 \ldots M-1$
+   $T =$ \# times $\mathit{PRED}$ is TRUE over $N$ evaluations.
+   if $\frac{T}{N} < p$, return FALSE.
+return TRUE
+\end{code}
 
 A set of $M$ repeated false positives with
 $N = \frac{K}{M}$ samples each is much less likely than a false positive
 with $K$ samples; so long as we accept the resulting bias in favor of
 false negatives, we can therefore produce a reduced test with a
-desired $P(fail)$ much more cheaply:  the use of replications not only
+desired $P(\mathit{fail})$ much more cheaply:  the use of replications not only
 means we only pay the full sampling price on rare occasions, but a
 desired accuracy for $P$ can be obtained with a much smaller value $M
 \times N$ than a non-dynamically-sampled $N$.  For example, if $\mathit{PRED}$
-is $P(fail) \geq 0.5$, and the true probability for a candidate test
+is $P(\mathit{fail}) \geq 0.5$, and the true probability for a candidate test
 is 0.25, using $N=8$ will give a false positive rate of over 10\%.
 Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
 positive rate of about 3.7\%, yet requires almost 60\% fewer
@@ -671,7 +657,7 @@ delta-debugging process; gathering experimental data during a trial
 delta-debugging run and tuning $N$ and $M$ to yield desired
 results is  more effective.  In fact, by tuning $M$, any degree of confidence can be achieved, with
 the basic tradeoff being between finding a test with the desired
-probabilities, and the speed and effectiveness of delta-debugging.
+probabilities, and the speed and effectiveness of reduction.
 Because increasing $M$ makes false negatives more likely, larger $M$
 will usually result in less-than-optimal reduction of the original
 test.
