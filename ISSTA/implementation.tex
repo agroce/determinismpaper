@@ -349,10 +349,8 @@ possible use in some security-related libraries.
 Note that TSTL provides explicit support for exploring the real-world sources of
 nondeterminism described in Section \ref{sec:sources}, by supporting
 execution in a new process and allowing
-control over timing changes in re-execution, by specifying a delay to
-introduce between actions.  Changing the timing of
-steps is very effective when exact timing is somehow involved in
-results, and often effective in exposing concurrency-related
+control over timing changes.  Changing the timing of
+steps is also effective in exposing concurrency-related
 nondeterminism, since the delay will frequently change the
 interleaving of threads.
 
@@ -374,26 +372,20 @@ cost indicator produced as a by-product of fuzzing for other problems.
 \label{sec:vertimp}
 
 First-class vertical nondeterminism checks are currently
-limited to failures:  {\tt --checkFailureDeterminism} causes the TSTL
-compiler to emit a harness where every action that causes an \emph{expected}
-exception to be raised is repeated to ensure the same exception is
-still raised.  In terms of the formalism, if execution of action
-$\alpha_i$ raises an exception, then there are two possibilities:
-
-\begin{enumerate}
-\item If the TSTL harness does not explicitly allow the raised
-  exception, then the test fails.  There is no check for vertical
-  nondeterminism in this case, since the behavior of the system is
-  incorrect whether or not the behavior is idempotent.
-  \item If the harness does allow exception $e$ (e.g., as with {\tt
-      KeyError} and {\tt ValueError} in Figure \ref{fig:simple}), then
-    $F_i$ is true, and we repeat $\alpha_i$ in order to ensure that
+limited to failures.  
+%{\tt --checkFailureDeterminism} causes the TSTL
+%compiler to emit a harness where every action that causes an \emph{expected}
+%exception to be raised is repeated to ensure the same exception is
+still raised.
+%In terms of the formalism, if execution of action
+$\alpha_i$ raises an exception that does not, itself, indicate a test failure, then 
+    $F_i$ is true, and TSTL repeats $\alpha_i$ in order to ensure that
     $F_{i+1}$ is also true.
-    \end{enumerate}
+    %\end{enumerate}
 
-When a failure is indicated by some means other than raising an
-=exception, TSTL users must express this by explicitly writing
-a wrapper that raises an expected exception on failure.
+%When a failure is indicated by some means other than raising an
+%exception, TSTL users must express this by explicitly writing
+%a wrapper that raises an expected exception on failure.
 
 \begin{comment}
 \subsection{Tools for Nondeterministic Delta-Debugging}
