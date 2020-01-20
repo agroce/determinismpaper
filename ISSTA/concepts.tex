@@ -350,7 +350,6 @@ to control any other factors.  {\bf External Environment} nondeterminism arises
   %{\tt time}.
 \end{itemize}
 \end{comment}
-
 Lam et al. \cite{idflakies} note that flaky tests not due to order
 dependence are generally due to ``concurrency, timeouts,
 network/IO, etc.'' a description that is well accounted for by these two
@@ -374,9 +373,9 @@ important source of nondeterminism that arises (only) from change in
 process.  ASLR scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
 vulnerabilities in code.  As a side effect, it
-means that a test that, in some circumstances, causes a crash, may at
-other times not fail at all.  Even if no inputs produce a crash,
-however, memory errors may produce variation in values and thus be detectable.
+means can easily produce flaky tests that sometimes crash.  The
+nondeterminism may usually be visible at the value level, even if it does not
+cause a crash, however.
 %as nondeterminism.
 
 Another example of process-based nondeterminism was discovered by numerous Python developers when Python

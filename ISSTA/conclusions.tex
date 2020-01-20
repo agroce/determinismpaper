@@ -8,10 +8,12 @@ Mandelbugs \cite{GrottkeBugs,FaultTriggers} are widely loathed), and
 leading to the costly problem of flaky tests
 \cite{miccoflaky,listfieldtestanalysis}.
 This paper proposes a formulation of types of nondeterminism, and a
-practical approach to using automated test generation to detect
+practical approach to using automated test generation to detect and understand
 nondeterminism, especially in the library code that underlies most
 systems. In addition to traditional \emph{horizontal} nondeterminism, we introduce
-the concept of \emph{vertical} nondeterminism bugs.  
+the concept of \emph{vertical} nondeterminism bugs, and show their
+additional specification power compared to a
+strong differential testing harness.  
 \begin{comment}
 We implemented our approach in the
 TSTL automated test generation system for Python, and demonstrated the
@@ -31,8 +33,8 @@ automatically identify usually-idempotent operations.
 Finally, we are interested in using test decomposition
 \cite{Composition} to more isolate, understand, and mitigate
 nondeterminism in unit tests, and to mitigate flaky tests.
-Reliable detection of nondeterminism is a first step towards
-evaluating such fine-grained proactive flaky test mitigation.
+Reliable detection of nondeterminism is a critical tool in making such
+an approach efficient and reliable.
 
 \begin{comment}
 Finally, it would be useful to implement versions of our formalisms in
