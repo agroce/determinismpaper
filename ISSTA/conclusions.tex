@@ -23,10 +23,9 @@ simplicity and utility of the approach on real-world examples.
 As future work, we would like to support the automatic detection of opaque
 values; if a value (e.g., a timestamp) is different in \emph{every}
 trace, it is likely opaque.  This would make
-testing libraries mixing deterministic and nondeterministic
-behavior, e.g. cryptographic libraries, much easier. Similarly, for
+testing libraries with intended nondeterminism much easier. Similarly, for
 vertical nondeterminism, we would like to
-automatically identify usually-idempotent operations.
+automatically identify idempotent operations.
 %We would also like to lower the cost
 %of checking process nondeterminism, perhaps by using methods taken in
 %AFL \cite{aflfuzz} to avoid high startup costs for test executions.

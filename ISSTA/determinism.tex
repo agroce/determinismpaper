@@ -9,7 +9,8 @@
 %\documentclass[elsarticle]
 %\documentclass[preprint,12pt,authoryear]{elsarticle}
 %\documentclass[preprint,12pt]{elsarticle}
-\documentclass[sigconf]{acmart}
+\documentclass[conference,letterpaper]{IEEEtran}
+
 
 
 % \documentclass[pldi-cameraready]{sigplanconf-pldi16}
@@ -28,6 +29,7 @@
 \usepackage{mathtools}
 %\usepackage{caption}
 \usepackage{subcaption}
+\usepackage{comment}
 \usepackage{code}
 %\usepackage[colorlinks=true,allcolors=blue,breaklinks,draft=false]{hyperref}   % hyperlinks, including DOIs and URLs in bibliography
 % known bug: http://tex.stackexchange.com/questions/1522/pdfendlink-ended-up-in-different-nesting-level-than-pdfstartlink
@@ -74,16 +76,16 @@
   Detection and Debugging for Python Libraries}
 
 
-%\author{
-%\IEEEauthorblockN{Alex Groce}
-%\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
-%Northern Arizona University\\
-%Email: agroce@gmail.com}
-%\and
-%\IEEEauthorblockN{Josie Holmes}
-%\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
-%Northern Arizona University\\
-%Email: josie.holmes@nau.edu}}
+\author{
+\IEEEauthorblockN{Alex Groce}
+\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
+Northern Arizona University\\
+Email: agroce@gmail.com}
+\and
+\IEEEauthorblockN{Josie Holmes}
+\IEEEauthorblockA{School of Informatics, Computing \& Cyber Systems\\
+Northern Arizona University\\
+Email: josie.holmes@nau.edu}}
 
 %\author{Alex Groce}
 %\ead{agroce@gmail.com}
@@ -126,11 +128,11 @@
 %\keywords{mutants, distance metrics, fault identification/localization}
 
 
+\maketitle 
+
 \begin{abstract}
 \input{abstract}
 \end{abstract}
-
-\maketitle 
 
 
 

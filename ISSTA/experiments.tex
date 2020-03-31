@@ -444,7 +444,7 @@ checking for process nondeterminism, with no delay between operations,
 is high, a mean 93\% slowdown ({\bf RQ2}.  This is due to the high cost of subprocess
 creation and communication. However, even with this essentially worst
 case behavior (where test runtime is very low compared to process overheads),
-we sacrifice less than half of the test executions.
+we don't quite halve test executions.
 
 \subsection {Vertical Determinism: {\tt pyfakefs}}
 
@@ -459,7 +459,7 @@ The TSTL harness for {\tt pyfakefs} has been used to detect (and
 correct) over 80 faults.
 %\url{https://github.com/jmcgeheeiv/pyfakefs/issues?q=label\%3ATSTL}.  
 
-\paragraph{Manually Inserted Fault}
+\subsubsection{Manually Inserted Fault}
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
@@ -483,7 +483,7 @@ does not affect the delta-debugging algorithm's performance, reducing
 the failing test to 3 steps required less than a second ({\bf RQ3}).
 Here, failure determinism even improves on hand-tuned differential testing.
 
-\paragraph{Mutation Analysis}
+\subsubsection{Mutation Analysis}
 
 We wanted to determine whether there were also simple faults that
 could be detected by failure nondeterminism, but \emph{not} detected

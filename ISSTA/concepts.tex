@@ -8,7 +8,7 @@
 \end{figure}
 
 We define two basic types of determinism, shown in Figure
-\ref{fig:types}:  horizontal determinism and vertical determinism.  In
+\ref{fig:types}:  \emph{horizontal} and \emph{vertical} determinism.  In
 horizontal determinism a software system reliably
 produces the same behavior given the same steps of a test: the
 behavior of multiple executions that are ``the same'' in terms of
@@ -98,21 +98,15 @@ Consider adding an element to an AVL tree implementing a set, not a
 multiset.  Assume the method call returns the parent node of the
 element, whether it was added or was already in the tree.  Calling
 this method any number of times in a row should always return the
-same value
-
-One approach, then, would be to identify
-idempotent operations in an automated test generation harness, and
+same value.  One approach, then, would be to identify
+idempotent operations 
 automatically retry all such operations, checking that the
-result is unchanged.  The overhead of vertical nondeterminism detection will
-generally be much lower than that for horizontal nondeterminism
-(horizontal checks must re-execute an entire test; vertical checks
-only re-execute proportional to the number of idempotent operations
-performed).  However, identifying idempotent operations is an additional specification burden.  Are there instances where a tool
-can automatically identify a limited kind of idempotent behavior?
+result is unchanged.  However, identifying idempotent operations is an additional specification burden.  Are there instances where a tool
+can automatically identify likely idempotency?
 
-\subsubsection{Failure Determinism}
+%\subsubsection{Failure Determinism}
 
-A specialized case of vertical determinism is failure determinism.
+We claim the answer is yes: in the specialized case of  failure determinism.
 Failure determinism is the following restriction on an API: {\bf If a call \emph{fails}, and indicates this to the caller, it should not modify system
   state in any way; changes should be ``rolled back.''}   In other words, failure determinism is a property stating that an API
 is \emph{transactional} with respect to failing calls.  From a user's perspective, some behaviors of the Mac OS High Sierra
@@ -360,7 +354,7 @@ primary sources.
 %However, simply running a test twice in the same process (possibly with a delay between steps) does
 %not suffice in all cases.
 
-\paragraph{Process-Based Nondeterminism}
+\subsubsection{Process-Based Nondeterminism}
 
 \label{sec:pnondet}
 
@@ -459,7 +453,7 @@ delta-debugging also tends to \emph{change the probability of
 beneficial.  This behavior is part of a more general (and, to our
 knowledge, not previously investigated) issue: reducing a test with
 respect to an arbitrary predicate $\mathit{PRED}$ (including failure,
-but also code coverage, etc. \cite{icst2014,stvrcausereduce,NonAdeq}) that \emph{only holds with a
+but also code coverage, etc. \cite{icst2014,stvrcausereduce}) that \emph{only holds with a
 certain probability} (the predicate itself is nondeterministic).
 \begin{comment}Note
 that while most descriptions of delta-debugging discuss reducing a
@@ -467,7 +461,7 @@ test with respect to \emph{test failure} (hence the term
 ``delta-\emph{debugging}'') we adopt the wider view of delta-debugging
 as reducing the length of a test while maintaining that an arbitrary
 predicate still holds.   E.g., predicates, related to code-coverage can be very useful
-\cite{icst2014,stvrcausereduce,NonAdeq}.
+\cite{icst2014,stvrcausereduce}.
 \end{comment}
 %We want to consider
 %what happens when $\mathit{PRED}$ is not deterministic.
@@ -629,12 +623,14 @@ predicate evaluates to true, $M$ repeated true evaluations
 required before the predicate is counted as holding.  To evaluate the predicate $\mathit{PRED}$ given $N$,
 $M$, and desired probability bound $p$, the algorithm is:
 
+{\scriptsize
 \begin{code}
 for $i = 0 \ldots M-1$
    $T =$ \# times $\mathit{PRED}$ is TRUE over $N$ evaluations.
    if $\frac{T}{N} < p$, return FALSE.
 return TRUE
 \end{code}
+}
 
 A set of $M$ repeated false positives with
 $N = \frac{K}{M}$ samples each is much less likely than a false positive
@@ -674,7 +670,8 @@ array slot.  An example test sequence would be:
 
 {\scriptsize
 \begin{code}
-array[2] = op01(); array[3] = op05(); clear(array[2]); array[2] = op10();
+  array[2] = op01(); array[3] = op05();
+  clear(array[2]); array[2] = op10();
 \end{code}
 }
 

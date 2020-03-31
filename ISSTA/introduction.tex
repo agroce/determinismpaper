@@ -7,7 +7,7 @@ them to be largely deterministic, from our perspective.
 
 Determinism is particularly important for testing and debugging, where
 being able to exactly reproduce system behavior is essential to
-productivity \cite{Firesmith}.  If executing ``the same test'' can produce
+productivity.  If executing ``the same test'' can produce
 significantly different behavior each time it is run, the consequences
 can be unfortunate.  Developers using a test exhibiting nondeterminism
 to debug a system
@@ -103,7 +103,7 @@ set of passing tests is seldom preserved, perhaps because such tests are
 likely to be \emph{flaky}.
 %without considerable human effort.
 
-\paragraph{Nondeterminism and Flaky Tests}
+%\subsection{Nondeterminism and Flaky Tests}
 
 Complex
 modern software systems usually include a large set of
@@ -132,16 +132,16 @@ nondeterminism, where the nondeterminism of test values is sufficient
 to cause the pass/fail result of the test to vary.  The definitions
 and techniques proposed in this paper all apply to flaky tests, as a
 special case of various kinds of \emph{horizontal} nondeterminism
-described below.  Our focus, however, is on detecting sources of
-flaky-ness in libraries, before they propagate.
+described below.  Our focus is on detecting sources of
+flaky-ness in libraries, \emph{before} they propagate.
 %unlike all other tools and
 %approaches we are aware of, is on detecting the \emph{sources} of
 %flaky-ness \emph{before} they propagate to cause actual test failure.
 
-\paragraph{Contributions}
+%\subsection{Contributions}
 
 
-This paper proposes (1) a number of formal definitions of types of
+{\bf Contributions:} This paper proposes (1) a number of formal definitions of types of
 nondeterminism (\emph{horizontal} and \emph{vertical}) and (2) an implementation, based on these definitions, for detecting and debugging
 nondeterminism in property-based testing.  The implementation is based
 on an approach where (3) horizontal determinism is considered as a
@@ -185,7 +185,7 @@ nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, documentation of sources of
 nondeterminism that might produce problems for manually-constructed
 tests, and, most importantly, detection and debugging of 
-unexpected nondeterminism that is, itself, a bug.  We use a set
+unexpected nondeterminism bugs.  We use a set
 of case studies. including real-world, widely-used, Python libraries, to demonstrate the
 utility of our ideas.  Our novel notion of failure determinism directly
 produces a more than 5\% improvement in mutation score for an already highly
