@@ -26,7 +26,7 @@ extremely inefficient to compare multiple executions for
 full-memory-state equivalence at every instruction step.  Second, and
 even more importantly, as noted in the introduction, very few programs
 are deterministic in this strict sense.  What is a practical level of granularity for (visible) states and actions that
-can be efficiently checked, and matches (for the most part) developer
+can be efficiently checked, and matches developer
 and tester intuitions about what should behave deterministically?
 Andrews et al. formalized a value-pool-based model \cite{AndrewsTR} that is widely used in
 tools, including Randoop \cite{Pacheco}, where
@@ -61,7 +61,20 @@ value pool assignments.
 We implemented our approach as a modification of the TSTL \cite{tstlsttt}
 system, an open-source
 language and tool for property-based testing
-\cite{Hypothesis,ClaessenH00} of Python code.
+\cite{Hypothesis,ClaessenH00} of Python code.  TSTL has
+been used to detect (and usually fix) errors in a number of widely
+used Python libraries, the Python implementation itself, the Solidity
+compiler and a Solidity static analysis tool, and Mac OS.
+ TSTL takes a harness (a
+definition of \emph{what} to test, and what properties to check) and
+generates tests using random testing and various other approaches.
+TSTL is open source, and it and all examples used in this paper are
+available at:  \url{https://github.com/agroce/tstl}.  We implemented
+horizontal determinism checking (with both timing and process-based
+differentiation of executions), failure determinism checking, and a
+set of probabilistic delta-debugging strategies in TSTL, in order to
+examine their effectiveness, and to make them available to users
+performing Python library testing.
 %The TSTL {\tt examples} directory
 %contains the SUTs needed to replicate our
 %experiments.
@@ -107,7 +120,7 @@ In TSTL, a test consists of a sequence of
 expected to work by modifying the \emph{state} of a test, which is
 stored in a fixed set of pools containing Python objects.  TSTL's
 approach essentially follows the pool-based canonical form defined by
-Andrews et al. and described above, but relaxes many of its restrictions
+Andrews et al. \cite{AndrewsTR} and described above, but relaxes many of its restrictions
 (e.g., a constant value can be used in a method call without first
 assigning it to a pool). The
 TSTL actions defined by a test harness correspond to the set $A$ of
