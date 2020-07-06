@@ -127,9 +127,9 @@ operations to be fast (since failure is usually
 due to invalid parameters).  Checking equivalence of the full
 observable state, however, is still expensive, and requires defining
 the observable components of a state.  A more lightweight, but (as we
-will show) still powerful way of checking for failure nondeteterminism is to
-\emph{repeat the failing operation, and check if it still fails}.  If not,
-this is a sign that the operation is not failure deterministic; this more restrictive notion still captures such issues as the Apple login bug. 
+will show) still powerful way of checking for failure nondeteterminism
+is to simply
+\emph{repeat the failing operation, and check if it still fails}.  This more restrictive notion still captures such issues as the Apple login bug. 
 
 \begin{comment}
 \subsection{Nondeterminism vs. Flakiness}
@@ -276,9 +276,7 @@ repeated, but this time does not fail).  The second possibility
 offers a \emph{lightweight} approach to checking for failure
 nondeterminism.  Unlike all of the other ways to demonstrate
 nondeterminism we consider, this second type of failure nondeterminism does not
-require the use of $v$, the notion of observable components of
-a state, or any comparison of states.  It only
-requires that we know whether an operation failed.
+require the use of $v$.
 
 \subsection{Sources of Nondeterminism}
 \label{sec:sources}
@@ -368,7 +366,7 @@ process.  Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the
 important source of nondeterminism that arises (only) from change in
 process.  ASLR scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
-vulnerabilities in code, and different orders may cause/avoid crashes.
+vulnerabilities in code, but also makes tests more flaky
 %as nondeterminism.
 
 Another example of process-based nondeterminism was discovered by numerous Python developers when Python
