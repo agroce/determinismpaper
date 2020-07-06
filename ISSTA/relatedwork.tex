@@ -15,11 +15,13 @@ allows detection of potential sources of flakiness, based on real divergence in
 behavior, without having to observe a test actually fail.  We additionally introduce the first variation of
 delta-debugging that properly handles probabilistic reduction criteria.
 
+\begin{comment}
 Other efforts \cite{ParallelDeterministic} have aimed to avoid nondeterminism in parallel implementations, by design, indicating the importance of avoiding nondeterministic behavior, even at the expense of adopting novel programming models, where the goal is not simply (as in, say, Rust) to avoid classic concurrency errors, but to enforce true determinism.
+\end{comment}
 
 Vertical/failure determinism is a less-studied concept, and to our knowledge the formulation here, as a kind of determinism in a different ``direction,'' has not previously appeared; the kinds of errors that are exposed, however, are not new.  In particular, we believe that many such faults are related to the propagation of error conditions, which has been studied using static analysis \cite{FileProp}.
 
-TSTL's approach to test generation, and our instantiation of the formal definitions of nondeterminism are based on a formulation of unit tests using \emph{pools} of values \cite{AndrewsTR}, which provides a practical solution to the problem of defining the visible state to be compared when checking for nondeterminism.
+%TSTL's approach to test generation, and our instantiation of the formal definitions of nondeterminism are based on a formulation of unit tests using \emph{pools} of values \cite{AndrewsTR}, which provides a practical solution to the problem of defining the visible state to be compared when checking for nondeterminism.
 
 \begin{comment}
 Finally, Cotroneo et al. \cite{CompBugs,FaultTriggers}, and Grottke and Trivedi \cite{GrottkeBugs} have followed on early work on understanding bugs and how they manifest, including transient \cite{Transient} software faults.  This work informs our attempt to identify sources of nondeterminism, and should provide other, context and project-specific, sources that could be introduced into our general framework.

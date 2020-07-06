@@ -2,7 +2,8 @@
   Detection}
 
 \begin{figure}
-\includegraphics[width=\columnwidth]{types}
+  \centering
+\includegraphics[width=0.6\columnwidth]{types}
 \caption{Types of determinism}
 \label{fig:types}
 \end{figure}
@@ -311,7 +312,11 @@ to control any other factors.  {\bf External Environment} nondeterminism arises
   concurrency, in the (incorrect) belief that the result of the
   algorithm remains deterministic.  E.g., a multi-threaded
   implementation of a search algorithm, that returns the location of
-  an item in an unsorted list; in the presence of duplicate items, thread scheduling may change the index returned.
+  an item in an unsorted list; in the presence of duplicate items,
+  thread scheduling may change the index returned.  Lam et al. \cite{idflakies} note that flaky tests not due to order
+dependence are generally due to ``concurrency, timeouts,
+network/IO, etc.'' a description that is well accounted for by these two
+primary sources.
 
 \begin{comment}
 \begin{itemize}
@@ -344,10 +349,7 @@ to control any other factors.  {\bf External Environment} nondeterminism arises
   %{\tt time}.
 \end{itemize}
 \end{comment}
-Lam et al. \cite{idflakies} note that flaky tests not due to order
-dependence are generally due to ``concurrency, timeouts,
-network/IO, etc.'' a description that is well accounted for by these two
-primary sources.
+
 %, and most of which can be detected easily
 %, at least in principle, 
 %by multiple runs of a test.
@@ -366,10 +368,7 @@ process.  Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the
 important source of nondeterminism that arises (only) from change in
 process.  ASLR scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
-vulnerabilities in code.  As a side effect, it
-means can easily produce flaky tests that sometimes crash.  The
-nondeterminism may usually be visible at the value level, even if it does not
-cause a crash, however.
+vulnerabilities in code, and different orders may cause/avoid crashes.
 %as nondeterminism.
 
 Another example of process-based nondeterminism was discovered by numerous Python developers when Python
@@ -378,12 +377,11 @@ per-process basis,
 in order to mitigate hash-based denial of service attacks
 \cite{denial}.  Until version 3.6 this not only resulted in changes in
 exact hash values, but in the order of iteration on
-dictionaries; in Python 3.6, the default dictionary implementation became an ordered dictionary with consistent iteration, though actual hashes remained nondeterministic.  While very few programs rely on exact hash values, many
-relied on them in that they only functioned correctly with a
+dictionaries; in Python 3.6, the default dictionary implementation became an ordered dictionary with consistent iteration, though actual hashes remained nondeterministic.  While few programs relied on exact hash values, many
+relied on a
 predictable order for dictionary iteration.  Testing
 Python code for nondeterminism based on hash seed requires
-running in a new process:  Python does not allow changing the salt, since changing hash values on-the-fly would
-break all existing dictionaries.
+running in a new process:  Python does not allow changing the salt.
 
 %Other, less common, effects tied to process also exist.  A few tests
 %may somehow depend on their actual PID (Process ID) or at least the
@@ -534,7 +532,12 @@ because the reduced test $r$ that delta-debugging returns is always one
 such that $\mathit{PRED}(r)$ has evaluated to true at least once.
 However, if you run the resulting test, it will, in many cases, have a
 $P(\mathit{fail})$ that is much, much smaller than
-0.3, perhaps as low as 0.01.  Why?
+0.3, perhaps as low as 0.01.  In fact, we have often observed
+delta-debugging taking a test that had such a high probability of
+failure that we were unaware it was ``flaky'' (only hundreds of repeated executions showed there was
+a small chance it could pass) and transforming it into a
+test that only failed once in every 10 to 20 executions.
+\emph{Delta-debugging can easily act as a flakiness multiplier.}  Why?
 
 The problem is analogous to the problem of publication bias in
 scientific fields \cite{ahmed2012assessment}.  We can think of each
@@ -663,27 +666,11 @@ To make the basic concepts, more clear, Figures
 delta-debugging and nondeterministic predicates for a simple example.
 In the example, tests consist of a sequence of operations that behave
 nondeterministically with (independent) probabilities of 0.01, 0.05,
-and 0.10, respectively, storing the value of the operation in one of five array locations.
-There is also an operation that clears out an array location, making
-it possible to store another (possibly nondeterministic) value in that
-array slot.  An example test sequence would be:
-
-{\scriptsize
-\begin{code}
-  array[2] = op01(); array[3] = op05();
-  clear(array[2]); array[2] = op10();
-\end{code}
-}
-
-The probability that this test behaves nondeterministically is
-0.84645, the result of the simple calculation $(1-0.01) \times
-(1-0.05) \times (1-0.10)$.  Figure \ref{fig:p1} shows one run of
-delta-debugging on a test of length 500.  The initial test is
-essentially guaranteed to behave nondeterministically; delta-debugging
-only checks that it \emph{can} behave nondeterministically, and so, in
+and 0.10, respectively.  Figure \ref{fig:p1} shows one run of
+delta-debugging on a test of length 500.  In
 the course of reducing the test length to a test with only two
 operations, the delta-debugging algorithm also reduces the probability
-of nondeterminism to about 20\%.  If we use a predicate that
+of nondeterminism from almost 100\% to about 20\%.  If we use a predicate that
 ``forces'' the test to behave nondeterministically at least half the
 time, by sampling the predicate value 100 times and only returning
 true when at least 50 of the evaluations report true, we see the
@@ -694,16 +681,4 @@ we use the same target of 50\% nondeterminism, but use only 10
 samples, with 10 replications ($N$ = 10, $M$ = 10):  the test is not
 much longer than in Figure \ref{fig:p2}, but the probability of
 nondeterminism is above our target value, close to 60\% (and, as a bonus, many fewer
-test executions are required on average for each check of the predicate).  Note that
-this example is purely monotonic; the pattern of probability changes
-in non-monotonic settings can be more difficult to predict and
-control, but the principle of forcing a probability by sampling and
-replication still holds.
-
-Finally, we note that this problem is not limited to debugging
-nondeterminism or known flakiness.  We have often observed
-delta-debugging taking a test that had such a high probability of
-failure that we were unaware it was ``flaky'' (only hundreds of repeated executions showed there was
-indeed a small chance the could pass) and transforming it into a
-test that only failed once in every 10 to 20 executions.
-\emph{Delta-debugging can easily act as a flakiness multiplier.} Multiple evaluations using replications are our proposed solution.
+test executions are required on average for each check of the predicate).  

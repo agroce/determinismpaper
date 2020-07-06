@@ -56,7 +56,10 @@ Parallel Sort & Yes (see below) & $\sim$40\% & $\sim$85\% & $\sim$2 minutes\\
 Our first subject is an implementation of a parallel merge
 sort ({\url{https://gist.github.com/stephenmcd/39ded69946155930c347}). When a sorting
 algorithm is implemented using concurrency, a key question to ask is
-whether the ordering of (equal under comparison) elements is consistent.
+whether the ordering of (equal under comparison) elements is
+consistent.  TSTL can be used to show that a parallel sort implementation provides
+a consistent, deterministic ordering.
+\begin{comment}
 This is related to the question of whether a sort is stable,
 but imposes a less strict requirement; a concurrent sort
 might not be stable, but might still produce the same (non-stable)
@@ -70,7 +73,9 @@ nondeterminism detection features of TSTL can be used to, with
 acceptable overhead, show that a parallel sort implementation provides
 a consistent, deterministic ordering, and second to show that the
 mechanism can also detect the nondeterminism in a parallel sort that
-does exhibit nondeterministic behavior.  For the second purpose, we
+does exhibit nondeterministic behavior.
+\end{comment}
+For contrast, we also 
 implemented a very simple swap-based parallel sorting algorithm that
 repeatedly has multiple threads scan through a sequence and swap
 out-of-order neighbors, until the sequence is sorted (a kind of
@@ -113,8 +118,7 @@ Our TSTL harness for parallel sorting produces sequences of
 integer pairs, where only the first integer is used in the comparison
 operator of the sorting algorithms, and checks that the results of
 are sorted..
-Running TSTL's random tester without checking for determinism, we can
-see that both sorting algorithms always produce sorted output.  The
+Both sorting algorithms always produce sorted output.  The
 horizontal determinism detector, however, always generates a 
 test case showing the {\tt swapsort} behaving nondeterministically in
 less than 3 seconds, thus
@@ -124,8 +128,7 @@ finds no nondeterminism.  This results in a slowdown of approximately
 40\% ({\bf RQ2}).
 
 Reducing a lengthy test showing nondeterminism of the swapsort usually takes less than two
-minutes (out of 10 trials, only one took four minutes).  If the number of attempts to produce nondeterminism is
-increased in the reducer, the resulting test will be usually be very compact, e.g.
+minutes (out of 10 trials, only one took four minutes).  The resulting test will be usually be very compact, e.g.
 reducing the original test from 56 to 8 steps.
 
 \begin{comment}
@@ -186,13 +189,13 @@ of the problematic commands are obvious simply by inspection (e.g.,
 {\tt randomkey, srandmember}). It is also clear that 
 commands producing data with a limited lifetime (e.g., {\tt expire,
   pexpire}) introduce timing-based nondeterminism.
-
 However, that a command such as {\tt restore} takes an expiration
-argument is not obvious to a non-expert, nor is the behavior of {\tt
-  spop}, which pops a random value from a set.  Moreover, it is
+argument is not obvious to a non-expert, and it is very
 difficult to guess whether the {\tt pipe} mechanism, which allows a
 large sequence of commands to be queued up and executed
-at once, introduces the potential for nondeterminism. Deep experience with Redis would make these
+at once, introduces nondeterminism.
+\begin{comment}
+  Deep experience with Redis would make these
 issues clear, but tests using a library are often written by those not
 intimately familiar with the semantics of every library call (otherwise they would not have
 been as likely to introduce flaky tests in the first place).  This is
@@ -200,6 +203,7 @@ even more true in the case of automated test generation, where the
 test engineer is often chosen for expertise in test generation tools,
 not in the domain of the SUT, and is seldom the
 original developer.
+\end{comment}
 
 Using the original TSTL harness, just over 20\% of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  Using the
@@ -340,6 +344,7 @@ nondeterminism took, on average, 0.48\% longer to check for
 nondeterminism on the 300 tests, 1.199 mean seconds vs. 1.205 mean seconds.  The difference was significant, with
 $p$-value $< 1.19 \times 10^{-23}$ by a paired Wilcoxon test.
 
+\begin{comment}
 These results, of course, depend on the parameters of the check for
 nondeterminism.  If we increase the delay to 0.01 seconds and the
 number of replays of a test used to check for nondeterminism, we
@@ -366,7 +371,9 @@ in behavior tend to propagate to other state components, or at least
 persist until termination of a test, detects nondeterminism quite
 effectively.  However, in a setting where changes in behavior can
 easily by overwritten by future test behavior, and do not causally
-influence future computation, final state nondeterminism may be almost useless.
+influence future computation, final state nondeterminism may be almost
+useless.
+\end{comment}
 
 \subsection{Berkeley {\tt datarray} Inference Algorithms}
 
@@ -607,25 +614,8 @@ performs a completely different task, and cannot check
 nondeterminism at any smaller granularity than a whole test.  iDFlakies
 \cite{idflakies}, similarly, ``does not further classify the causes of
 the flaky tests'' beyond identifying them as likely related to test
-order.  However, the primary
-aim of our results is to show 1) that nondeterminism at the library
-level can exist in real Python programs, 2) that it can be detected
-by our methods, and 3)
-that the overhead for such detection, and test reduction, is acceptable.
-\begin{comment}
-We believe that the case
-studies show that users testing Python libraries, and concerned about
-nondeterminism, would find the TSTL tools useful, and would be able to
-detect and debug nondeterministic behavior using our approach, a
-functionality that we believe to be unique in the automated test generation
-literature (and supported in no other tool).  Comparison with a
-competing tool is not required to validate the basic idea, since
-precise empirical measurements of overheads, or improvements on an
-existing approach, are not proposed for evaluation.
-\end{comment}
+order.  
 Another threat to validity is posed by implementation errors.
-TSTL and the mutation tool are tested for bugs by a set of Travis CI
-tests, and the nondeterminism
-detected by TSTL can be demonstrated with standalone tests.
-Our source code and experimental subjects will be
-made available for inspection and replication.
+%TSTL and the mutation tool are tested for bugs by a set of Travis CI
+%tests, and the nondeterminism
+%detected by TSTL can be demonstrated with standalone tests.

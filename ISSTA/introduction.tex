@@ -36,11 +36,10 @@ automated testing.
 
 A system is deterministic if, given the system's complete state at a point in
 time, it is possible, in principle, to predict its future behavior
-perfectly.  We say ``in principle'' because in the real world,
+perfectly.  In the real world,
 prediction may be possible but  impractical.  We write
 complex software systems because we cannot predict their
-behavior (if we could perform the calculations in advance, 
-we would just do so).  As a consequence, rather than
+behavior.  As a consequence, rather than
 defining determinism in terms of prediction, we usually 
 say that a system is deterministic if, given the same state and
 inputs, it always produces the same outputs.  
@@ -61,11 +60,9 @@ that they eliminate all changes between executions.  Running the same test
 twice almost always results in differences, given a low enough level of
 abstraction, since the system load,
 cache contents, branch predictor history, etc. are almost never
-controlled for; however, this is seldom of interest.  What matters is when
+controlled for; however, what matters is when
 some kind of nondeterminism unexpectedly impacts computed values at a
-higher level of abstraction, e.g. when it is believed that the
-behavior of a thread scheduler will not matter, but a race condition
-in the code means that it does matter.
+higher level of abstraction.
 
 \begin{comment} in general, if the operating system
 itself is not buggy, low-level nondeterminism, by design, is invisible
@@ -96,11 +93,9 @@ asserting equality with all values produced during a reference
 run, since the final step of a test
 is arbitrary, generated in an effort to increase
 code coverage, not establish functional correctness.
-This may be one reason that automated testing is seldom used to
-produce general regression tests.  While bugs found by tools are added
+While bugs found by tools are added
 to regression suites, the full
-set of passing tests is seldom preserved, perhaps because such tests are
-likely to be \emph{flaky}.
+set of passing tests is seldom preserved.
 %without considerable human effort.
 
 %\subsection{Nondeterminism and Flaky Tests}
