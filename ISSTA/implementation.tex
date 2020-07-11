@@ -23,8 +23,7 @@ full set of memory locations accessed by that system, and actions with
 processor instructions.  However, this
 definition is highly impractical.  First, it is
 extremely inefficient to compare multiple executions for
-full-memory-state equivalence at every instruction step.  Second, and
-even more importantly, as noted in the introduction, very few programs
+full-memory-state equivalence at every instruction step.  Second, very few programs
 are deterministic in this strict sense.  What is a practical level of granularity for (visible) states and actions that
 can be efficiently checked, and matches developer
 and tester intuitions about what should behave deterministically?
@@ -52,8 +51,8 @@ declarations, since (assuming the language implementation itself is
 basically deterministic) these cannot introduce nondeterminism.
 Because assertions of correctness and \emph{what a test actually does}
 depend on the values in value pools, it seems likely that developers
-and testers expect determinism in unit tests, at the granularity of
-value pool assignments.
+and testers expect determinism \emph{at the granularity of
+value pool assignments}.
 
 %\subsection{A Brief Introduction to TSTL}
 %\label{sec:tstlintro}
@@ -125,7 +124,7 @@ Andrews et al. \cite{AndrewsTR} and described above, but relaxes many of its res
 assigning it to a pool). The
 TSTL actions defined by a test harness correspond to the set $A$ of
 actions in Section \ref{sec:formal}, and transitions 
-result from executing action code, roughly, the array-canonical
+result from executing action code,---roughly, the array-canonical
 statements.
 
 \begin{comment}
@@ -198,7 +197,7 @@ TRACEBACK:
 
 \end{comment}
 
-\subsection{Nondeterminism Detection}
+%\subsection{Nondeterminism Detection}
 %\label{sec:horizimp}
 
 Because TSTL supports differential testing \cite{tstlsttt}, horizontal
@@ -210,7 +209,7 @@ equivalence, and does not (without a great deal of effort) support injecting tim
 or re-executing in a new process, in checking for nondeterminism.
 We therefore instead made horizontal nondeterminism detection a first-class
 property in TSTL, using TSTL's existing notation for marking some
-types of values as \emph{opaque} (not usefully compared for equality)  In TSTL, \emph{visible
+types of values as \emph{opaque} (not usefully compared for equality).  In TSTL, \emph{visible
 value determinism} is thus based on comparing the values of \emph{all
 non-opaque pool
 variables} after each test action. 
@@ -333,13 +332,14 @@ property: not self.nondeterministic(self.test())
 even specify that behavior should not be deterministic, a property of
 possible use in some security-related libraries.
 
-\end{comment}
+
 
 We provide support for the real-world sources of
 nondeterminism described in Section \ref{sec:sources}, via
 control over timing and/or execution in a new process.  Changing the timing of
 steps is also often effective in exposing concurrency-related
 nondeterminism.
+\end{comment}
 
 Because TSTL has an interface to AFL \cite{aflfuzz}, we can use
 AFL's sophisticated heuristics to perform very thorough, week-long

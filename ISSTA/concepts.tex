@@ -17,8 +17,7 @@ inputs/actions can be aligned and checked for equality.  In
 vertical determinism, rather than behavior across executions, we are
 interested in behavior within an execution, where repeating the same
 step of a test twice should result in the same behavior.  Vertical determinism is both rarer and more specialized than
-horizontal determinism.  However, vertical
-determinism violations usually indicate a potentially serious fault.
+horizontal determinism.
 
 \subsection{Horizontal Determinism}
 
@@ -46,9 +45,7 @@ processor-instruction and memory-layout determinism is seldom
 necessary or even desired.  We propose two approaches to ``aligning'' an
 execution with itself.
 
-\subsubsection{Visible Value Determinism}
-
-Visible value determinism uses the human-accessible outputs (displayed
+\emph{Visible value determinism} uses the human-accessible outputs (displayed
 or stored to a file), and \emph{values returned by functions or methods
 called as a library by other code}, as the criteria for determining if two executions
 are equivalent.  Determinism is motivated by the
@@ -64,18 +61,11 @@ time, memory management).   Any mechanism for visible value
 determinism needs to support designation of some
 values as opaque.
 
-\subsubsection{Final State Determinism}
-
-Visible value determinism has significant limitations.  While it
-provides the finest granularity, which is
-important for debugging purposes, it is also expensive, requiring
-checks on a potentially very large number of
-values.  Additionally, in some cases so many values produced by a
-system are opaque that the annotation burden is inordinate.  In these
-cases, it is better to only compare final states of a computation
-performed by the system being checked for determinism.  The final
-state may have opaque components, but it is easy to define an
-abstraction that reduces the state to the actual value of interest.
+While visisble value determinism provides very fine granularity, which
+is important for debugging purposes, it is also expensive, requiring
+checks on a potentially very large number of values.  It is often
+sufficient to only compare final states of a computation performed by
+the system, which we refer to as \emph{final state determinism}.
 
 
 %\subsubsection{Core Sources of Difference:  Timing and Process}
@@ -102,15 +92,14 @@ this method any number of times in a row should always return the
 same value.  One approach, then, would be to identify
 idempotent operations 
 automatically retry all such operations, checking that the
-result is unchanged.  However, identifying idempotent operations is an additional specification burden.  Are there instances where a tool
-can automatically identify likely idempotency?
+result is unchanged.  Identifying idempotent operations, however, imposes a specification burden.
 
 %\subsubsection{Failure Determinism}
 
-We claim the answer is yes: in the specialized case of  failure determinism.
-Failure determinism is the following restriction on an API: {\bf If a call \emph{fails}, and indicates this to the caller, it should not modify system
-  state in any way; changes should be ``rolled back.''}   In other words, failure determinism is a property stating that an API
-is \emph{transactional} with respect to failing calls.  From a user's perspective, some behaviors of the Mac OS High Sierra
+However, for the specialized case of  failure determinism, no
+specification is required.
+Failure determinism is the following restriction on an API: {\bf If a call/action \emph{fails}, and indicates this to the caller, it should not modify system
+  state in any way; changes should be ``rolled back.''}   Some behaviors of the Mac OS High Sierra
 root exploit (CVE-2017-13872 \cite{applebug0}) exhibited failure
 nondeterminism.  Attempting to login with the root account with an
 empty password appeared to fail, then, on a repeated try, succeeded
@@ -121,10 +110,9 @@ such as {\tt read} and {\tt write} tend to explicitly return a degree of success
 
 In languages with a clear mechanism for expressing failure of a call
 (e.g., exceptions in Python and Java, or Option/Result types in Rust,
-Haskell, and ML), failure determinism can easily be automatically checked.
-Moreover, the expected overhead should be even lower than for other vertical determinism, in that we can expect most failing
-operations to be fast (since failure is usually
-due to invalid parameters).  Checking equivalence of the full
+Haskell, and ML), failure determinism can be automatically checked.
+The overhead should be even lower than for other vertical determinism, in that we can expect most failing
+operations to be fast.  Checking equivalence of full
 observable state, however, is still expensive, and requires defining
 the observable components of a state.  A more lightweight, but (as we
 will show) still powerful way of checking for failure nondeteterminism
@@ -172,7 +160,7 @@ factor in ``determinism.''
 \label{sec:formal}
 
 We can formally distinguish the types of nondeterminism by using a
-variant of a labeled transition system (LTS)l, where (1) $S$
+variant of a labeled transition system (LTS), where (1) $S$
 is a set of states; (2) $V$ is a set of \emph{observable} states, where
 $|V| \leq |S|$; (3) $v: S \rightarrow V$ is a total function that, given a state, maps it
   into the set of observable states, such that every state has an observable
