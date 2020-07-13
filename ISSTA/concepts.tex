@@ -16,8 +16,7 @@ behavior of multiple executions that are ``the same'' in terms of
 inputs/actions can be aligned and checked for equality.  In
 vertical determinism, rather than behavior across executions, we are
 interested in behavior within an execution, where repeating the same
-step of a test twice should result in the same behavior.  Vertical determinism is both rarer and more specialized than
-horizontal determinism.
+step of a test twice should result in the same behavior.  
 
 \subsection{Horizontal Determinism}
 
@@ -92,7 +91,7 @@ this method any number of times in a row should always return the
 same value.  One approach, then, would be to identify
 idempotent operations 
 automatically retry all such operations, checking that the
-result is unchanged.  Identifying idempotent operations, however, imposes a specification burden.
+result is unchanged.  Identifying idempotent operations does impose a specification burden.
 
 %\subsubsection{Failure Determinism}
 
@@ -289,21 +288,11 @@ nondeterminism that can usually be detected by
 executing the same test twice in succession, without attempting
 to control any other factors.  {\bf External Environment} nondeterminism arises
   when a test's behavior depends on factors outside the program under
-  test, which are subject to uncontrolled variance.  Calling {\tt
-    random()} in Python is an obvious example. Similarly, calls to {\tt time}
-  functions  will usually return different values on different runs,
-  and even if only elapsed time is used, due to system load, I/O, and
-  other external factors.  {\bf Concurrency} is a second common cause for
-  nondeterminism, when an algorithm is implemented using
-  concurrency, in the (incorrect) belief that the result of the
-  algorithm remains deterministic.  E.g., a multi-threaded
+  test, which are subject to uncontrolled variance.  Calls to {\tt
+    time} or {\tt random} are obvious examples.  {\bf Concurrency} is a second common cause.  E.g., a multi-threaded
   implementation of a search algorithm, that returns the location of
   an item in an unsorted list; in the presence of duplicate items,
-  thread scheduling may change the index returned.  Lam et al. \cite{idflakies} note that flaky tests not due to order
-dependence are generally due to ``concurrency, timeouts,
-network/IO, etc.'' a description that is well accounted for by these two
-primary sources.
-
+  thread scheduling may change the index returned.  
 \begin{comment}
 \begin{itemize}
 \item {\bf External Environment:} This class of nondeterminism arises
@@ -357,18 +346,15 @@ an executable runs in order to make it harder to exploit memory-safety
 vulnerabilities in code, but also makes tests more flaky
 %as nondeterminism.
 
-Another example of process-based nondeterminism was discovered by numerous Python developers when Python
+Another example of process-based nondeterminism arose when Python
 version 3.3 introduced automatic random salting of hashes on a
 per-process basis,
 in order to mitigate hash-based denial of service attacks
 \cite{denial}.  Until version 3.6 this not only resulted in changes in
 exact hash values, but in the order of iteration on
-dictionaries; in Python 3.6, the default dictionary implementation became an ordered dictionary with consistent iteration, though actual hashes remained nondeterministic.  While few programs relied on exact hash values, many
+dictionaries.  Many Python programs
 relied on a
-predictable order for dictionary iteration.  Testing
-Python code for nondeterminism based on hash seed requires
-running in a new process:  Python does not allow changing the salt.
-
+predictable ordering.  
 %Other, less common, effects tied to process also exist.  A few tests
 %may somehow depend on their actual PID (Process ID) or at least the
 %parent process' ID.  Process change increases the likelihood that on a multi-core
@@ -625,10 +611,11 @@ A set of $M$ repeated false positives with
 $N = \frac{K}{M}$ samples each is much less likely than a false positive
 with $K$ samples; so long as we accept the resulting bias in favor of
 false negatives, we can therefore produce a reduced test with a
-desired $P(\mathit{fail})$ much more cheaply:  the use of replications not only
-means we only pay the full sampling price on rare occasions, but a
+desired $P(\mathit{fail})$ much more cheaply, and a
 desired accuracy for $P$ can be obtained with a much smaller value $M
-\times N$ than a non-dynamically-sampled $N$.  For example, if $\mathit{PRED}$
+\times N$ than a non-dynamically-sampled $N$.
+
+\begin{comment}For example, if $\mathit{PRED}$
 is $P(\mathit{fail}) \geq 0.5$, and the true probability for a candidate test
 is 0.25, using $N=8$ will give a false positive rate of over 10\%.
 Using 4 replications on just 2 samples ($M=4;N=2$) yields a false
@@ -646,6 +633,7 @@ probabilities, and the speed and effectiveness of reduction.
 Because increasing $M$ makes false negatives more likely, larger $M$
 will usually result in less-than-optimal reduction of the original
 test.
+\end{comment}
 
 To make the basic concepts, more clear, Figures
 \ref{fig:p1}-\ref{fig:p3} graphically show the interplay of
@@ -667,4 +655,4 @@ we use the same target of 50\% nondeterminism, but use only 10
 samples, with 10 replications ($N$ = 10, $M$ = 10):  the test is not
 much longer than in Figure \ref{fig:p2}, but the probability of
 nondeterminism is above our target value, close to 60\% (and, as a bonus, many fewer
-test executions are required on average for each check of the predicate).  
+test executions were performed).  

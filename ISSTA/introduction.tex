@@ -33,15 +33,18 @@ automated testing.
 A system is deterministic if, given the system's complete state at a point in
 time, it is possible, in principle, to predict its future behavior
 perfectly.  In the real world,
-prediction may be possible but  impractical.  We write
+prediction may be possible but  impractical, or some details neither
+predictable nor interesting.  We write
 complex software systems because we cannot predict their
-behavior.  As a consequence, rather than
+behavior, and we usually want to abstract away from machine-level details.  As a consequence, rather than
 defining determinism in terms of prediction, we usually 
-say that a system is deterministic if, \emph{given a certain limited abstraction of state
+say that a system is deterministic if, \emph{given a certain limited
+  higher-level abstraction of state
 and inputs, observable behavior is repeatable}.  %This abstraction,
 %for most software, is not expected to include many elements outside of
 %the software system itself.
 
+\begin{comment}
 Because the
 programmer's abstraction of the system ignores a large number of
 details, very few tests are ``deterministic'' in the sense
@@ -52,6 +55,7 @@ cache contents, branch predictor history, etc. are almost never
 controlled for; however, what matters is when
 some kind of nondeterminism unexpectedly impacts computed values at a
 higher level of abstraction.
+\end{comment}
 
 \begin{comment} in general, if the operating system
 itself is not buggy, low-level nondeterminism, by design, is invisible
@@ -95,20 +99,21 @@ software changes by forcing the investigation of code-under-test that
 is not actually incorrect.  Second, failures in flaky tests are often ignored, and therefore serious software faults may
 be missed.  Finally, to mitigate these problems, flaky tests are often
 run multiple times, wasting computing resources and
-delaying acceptance of code changes.  As an analogy, we note that  a canary in a coal mine is of
+delaying code changes.  Flaky tests are, for us, simply a special case of general test 
+nondeterminism, in particular the 
+\emph{horizontal} nondeterminism 
+described below.  Our focus is on detecting sources of 
+flaky-ness, \emph{before} they propagate.
+\begin{comment}
+  As an analogy, we note that  a canary in a coal mine is of
 little use if canaries frequently become ill for reasons unrelated to
 the presence of toxic gases.  Mining may stop for no good reason, or
 miners may learn to ignore the canary, leading to tragedy; a third,
 more ``practical'' option is that miners may carry so many redundant
 canaries into the coal mine that canary-care itself becomes a serious burden.
+\end{comment}
 
-Flaky tests are, for us, simply a special case of general test
-nondeterminism, where the nondeterminism of test values is sufficient
-to cause the pass/fail result of the test to vary.  The definitions
-and techniques proposed in this paper all apply to flaky tests, as a
-special case of various kinds of \emph{horizontal} nondeterminism
-described below.  Our focus is on detecting sources of
-flaky-ness in libraries, \emph{before} they propagate.
+
 %unlike all other tools and
 %approaches we are aware of, is on detecting the \emph{sources} of
 %flaky-ness \emph{before} they propagate to cause actual test failure.
@@ -125,7 +130,9 @@ determinism is specialized to the common case of \emph{failure
   determinism}, and (5)  in both cases the formalism is made practical
 by using the \emph{value pool} model of unit tests.
 We also introduce necessary modifications to the widely used delta-debugging algorithm in order to better handle
-nondeterminism as a test property.
+nondeterminism as a test property.  Evaluating these approaches with
+realistic Python libraries, we show large improvements to both fault
+detection and test reduction.
 
 \begin{comment}
 Previous practical approaches to
@@ -155,6 +162,7 @@ delta-debugging that properly handles probabilistic faults and
 reduction properties.
 \end{comment}
 
+\begin{comment}
 Our methods enable automated production of
 nondeterminism-free regression tests even for libraries with some
 sources of nondeterminism, documentation of sources of
@@ -166,3 +174,4 @@ utility of our ideas.  Our novel notion of failure determinism directly
 produces a more than 5\% improvement in mutation score for an already highly
 effective automated test generation tool for a file system, with no
 additional specification or test design burden.
+\end{comment}
