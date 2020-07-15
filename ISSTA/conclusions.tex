@@ -3,18 +3,19 @@
 Unexpected nondeterminism of software systems frustrates users,
 whether they be humans or (more importantly) other software systems.
 Nondeterminism is even more pernicious in software testing,
-frustrating debugging efforts (Heisenbugs \cite{Heisenbug} and
-Mandelbugs \cite{GrottkeBugs,FaultTriggers} are widely loathed), and
+frustrating debugging efforts, and
 leading to the costly problem of flaky tests
 \cite{miccoflaky,listfieldtestanalysis}.
 This paper proposes a formulation of types of nondeterminism, and a
 practical approach to using automated test generation to detect and understand
-nondeterminism, especially in the library code that underlies most
-systems. In addition to traditional \emph{horizontal} nondeterminism, we introduce
+nondeterminism in Python library code.
+
+\begin{comment}
+In addition to traditional \emph{horizontal} nondeterminism, we introduce
 the concept of \emph{vertical} nondeterminism bugs, and show their
 additional specification power compared to a
 strong differential testing harness.  
-\begin{comment}
+
 We implemented our approach in the
 TSTL automated test generation system for Python, and demonstrated the
 simplicity and utility of the approach on real-world examples.

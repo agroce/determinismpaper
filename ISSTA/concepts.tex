@@ -25,7 +25,7 @@ step of a test twice should result in the same behavior.
 
 Horizontal determinism can be best understood by thinking of
 nondeterminism detection as an unusual kind of \emph{differential
-  testing} \cite{Differential,ICSEDiff}.  In differential testing, a
+  testing} \cite{Differential}.  In differential testing, a
 system is compared against a reference in order to ensure that
 it behaves equivalently, at some level of abstraction, to another
 implementation.  Differential testing is
@@ -33,7 +33,7 @@ extremely powerful, in that any (properly defined) divergence of
 behavior indicates a functional correctness fault in (at
 least) one of the systems under test, and  is widely
 used for systems software such as compilers
-\cite{Differential,csmith} and file systems \cite{CFV08,AMAI}.  The major limitation of differential
+\cite{Differential,csmith} and file systems \cite{AMAI}.  The major limitation of differential
 testing is that multiple implementations of a system are
 almost as rare as good correctness specifications.
 For the special case of detecting nondeterminism, however, \emph{a
@@ -101,8 +101,7 @@ Failure determinism is the following restriction on an API: {\bf If a call/actio
   state in any way; changes should be ``rolled back.''}   Some behaviors of the Mac OS High Sierra
 root exploit (CVE-2017-13872 \cite{applebug0}) exhibited failure
 nondeterminism.  Attempting to login with the root account with an
-empty password appeared to fail, then, on a repeated try, succeeded
-\cite{applebug1,applebug2}.   Many library APIs are largely failure deterministic.  For instance, if
+empty password appeared to fail, then, on a repeated try, succeeded.   Many library APIs are largely failure deterministic.  For instance, if
 we exclude actual I/O errors, most POSIX file system calls either
 succeed or do nothing; interfaces that may only partially succeed,
 such as {\tt read} and {\tt write} tend to explicitly return a degree of success, rather than signalling total failure, when appropriate.  
@@ -110,13 +109,12 @@ such as {\tt read} and {\tt write} tend to explicitly return a degree of success
 In languages with a clear mechanism for expressing failure of a call
 (e.g., exceptions in Python and Java, or Option/Result types in Rust,
 Haskell, and ML), failure determinism can be automatically checked.
-The overhead should be even lower than for other vertical determinism, in that we can expect most failing
-operations to be fast.  Checking equivalence of full
+The overhead should be even lower than for other vertical determinism, in that most failing
+operations are fast.  Checking equivalence of full
 observable state, however, is still expensive, and requires defining
-the observable components of a state.  A more lightweight, but (as we
-will show) still powerful way of checking for failure nondeteterminism
-is to simply
-\emph{repeat the failing operation, and check if it still fails}.  This more restrictive notion still captures such issues as the Apple login bug. 
+the observable components of a state, suggesting the shortcut of simply
+\emph{repeating the failing operation, and checking if it still fails}
+which still catches such issues as the Apple login bug. 
 
 \begin{comment}
 \subsection{Nondeterminism vs. Flakiness}
@@ -339,11 +337,11 @@ Some sources of nondeterminism unfortunately require executing a test in a \emph
 process environment}, because the source is inherently tied to the
 process in which code runs.  In terms of our formalism, an
 action needs to be introduced that indicates the generation of a fresh
-process.  Address Space Layout Randomization (ASLR) \cite{ASLR}  is probably the most
-important source of nondeterminism that arises (only) from change in
-process.  ASLR scrambles the layout of memory of the process in which
+process.  Address Space Layout Randomization (ASLR), which scrambles the layout of memory of the process in which
 an executable runs in order to make it harder to exploit memory-safety
-vulnerabilities in code, but also makes tests more flaky
+vulnerabilities, is probably the most
+important source of nondeterminism that arises (only) from change in
+process.  
 %as nondeterminism.
 
 Another example of process-based nondeterminism arose when Python
@@ -388,7 +386,7 @@ The core idea of delta-debugging is to take a test with some
 property (usually ``it fails'')
 and produce a smaller test that has the same property.
 Delta-debugging as originally proposed uses a
-modified binary search, but we rely only on the general structure: \cite{CReduce,onetest}:  Given a
+modified binary search, but we rely only on the general structure \cite{onetest}:  Given a
 test case, $T_{\mathit{INIT}} : \mathit{test}$ and a predicate
 $\mathit{PRED}: \mathit{test} \rightarrow \mathit{bool}$, we
 reduce $T_{\mathit{INIT}}$ with respect to $\mathit{PRED}$
@@ -423,7 +421,7 @@ delta-debugging also tends to \emph{change the probability of
 beneficial.  This behavior is part of a more general (and, to our
 knowledge, not previously investigated) issue: reducing a test with
 respect to an arbitrary predicate $\mathit{PRED}$ (including failure,
-but also code coverage, etc. \cite{icst2014,stvrcausereduce}) that \emph{only holds with a
+but also code coverage, etc. \cite{stvrcausereduce}) that \emph{only holds with a
 certain probability} (the predicate itself is nondeterministic).
 \begin{comment}Note
 that while most descriptions of delta-debugging discuss reducing a
@@ -431,7 +429,7 @@ test with respect to \emph{test failure} (hence the term
 ``delta-\emph{debugging}'') we adopt the wider view of delta-debugging
 as reducing the length of a test while maintaining that an arbitrary
 predicate still holds.   E.g., predicates, related to code-coverage can be very useful
-\cite{icst2014,stvrcausereduce}.
+\cite{stvrcausereduce}.
 \end{comment}
 %We want to consider
 %what happens when $\mathit{PRED}$ is not deterministic.

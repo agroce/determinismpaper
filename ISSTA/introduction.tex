@@ -9,22 +9,17 @@ Determinism is particularly important for testing and debugging, where
 being able to exactly reproduce system behavior is essential to
 productivity.  Developers using a test exhibiting nondeterminism
 to debug a system
-face a serious challenge in reasoning about causality; this
-pernicious phenomenon has been sometimes referred to as the dreaded
-``Heisenbug'' \cite{Heisenbug}, though the more accurate usage is
-``Mandelbug'' \cite{GrottkeBugs,FaultTriggers}, since Heisenbugs, properly speaking, are bugs that disappear or
-alter behavior under instrumentation.
-Even more significantly, regression testing
+face a serious challenge.
+Regression testing
 effectiveness can be significantly reduced if tests cover code or,
 worse yet, fail only
-intermittently and unpredictably, as a result of environmental
-factors rather than bugs in changed code.  Such behavior is
+intermittently and unpredictably.  Such behavior is
 unfortunately all too common:  Gao et
 al. \cite{Gao:2015:MSU:2818754.2818764} observed coverage differences
-of up to 184 lines of code for the same test, and false positive rates
-as high as 96\%.  Nondeterminism is often problematic for
+of up to 184 LOC for the same test, and false positive rates
+as high as 96\%.  Nondeterminism is problematic for
 developers, who want to  assume that library code behaves in a  predictable fashion; nondeterminism is
-frequently vexing in debugging efforts; nondeterminism is \emph{often disastrous} for large-scale highly
+vexing in debugging; nondeterminism is \emph{often disastrous} for large-scale 
 automated testing.
 
 
@@ -87,20 +82,16 @@ have sufficient information to do this.
 Complex
 modern software systems usually include a large set of
 \emph{regression tests}.  A regression test suite is a
-set of tests that can be run against softwarre every time it
+set of tests that can be run every time code
 is modified, to ensure that the modification has not broken the system.  \emph{Flaky tests} \cite{miccoflaky} are regression
 tests that fail in an intermittent, unreliable fashion.  The essence of a flaky
-test is that, for the same snapshot of test code and code under test
-(CUT), it sometimes fails and sometimes passes: the pass/fail result (disposition) of the
+test is that, for the same snapshot of test code and code under test, it sometimes fails and sometimes passes: the pass/fail result (disposition) of the
 test is not a deterministic property of the test code, code under
 test, and testing environment.  This produces three serious
 problems: first, a flaky test often wastes developer time and delays
-software changes by forcing the investigation of code-under-test that
-is not actually incorrect.  Second, failures in flaky tests are often ignored, and therefore serious software faults may
-be missed.  Finally, to mitigate these problems, flaky tests are often
+software changes by forcing the investigation of \emph{correct} code-under-test.  Second, failures in flaky tests are often ignored, and therefore serious software faults missed.  Finally, to mitigate the problem, flaky tests are often
 run multiple times, wasting computing resources and
-delaying code changes.  Flaky tests are, for us, simply a special case of general test 
-nondeterminism, in particular the 
+delaying code changes.  Flaky tests are, for us, simply a special case the 
 \emph{horizontal} nondeterminism 
 described below.  Our focus is on detecting sources of 
 flaky-ness, \emph{before} they propagate.

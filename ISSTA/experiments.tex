@@ -186,14 +186,10 @@ behavior:  thus the resulting tests are very often \emph{flaky}.
 Using AFL, we can see that {\tt redis-py} has a 
 stability of only 56.26\%, a clear indicator of significant nondeterminism. Some
 of the problematic commands are obvious simply by inspection (e.g.,
-{\tt randomkey, srandmember}). It is also clear that 
-commands producing data with a limited lifetime (e.g., {\tt expire,
-  pexpire}) introduce timing-based nondeterminism.
-However, that a command such as {\tt restore} takes an expiration
-argument is not obvious to a non-expert, and it is very
-difficult to guess whether the {\tt pipe} mechanism, which allows a
-large sequence of commands to be queued up and executed
-at once, introduces nondeterminism.
+{\tt randomkey, srandmember, expire}). 
+However, issues such as whether the mechanism that allows a
+sequence of commands to be queued up and executed
+at once introduces nondeterminism are much more subtle.
 \begin{comment}
   Deep experience with Redis would make these
 issues clear, but tests using a library are often written by those not
@@ -209,7 +205,7 @@ Using the original TSTL harness, just over 20\% of all {\tt redis-py}
 regression tests (of length 200) generated were flaky.  We determined
 that the mean time to find all (known to us, over many experimental runs)
 sources of nondeterminism and produce minimal tests is 3.2 
-hours.  Our answer to {\bf RQ1} is thus a strong affirmative. 
+hours ( {\bf RQ1}).
 
 \begin{comment}
   Using the
@@ -283,9 +279,7 @@ identification of sources of nondeterminism.  After making these changes, no fla
 Mean branch coverage  was reduced
 by less than 5 branches (a less than 1\% decrease).  AFL stability was 56.26\% with the harness allowing 
 nondeterminism, but rose to 98.32\% using the harness with 
-nondeterministic operations removed.
-
-The overhead for
+nondeterministic operations removed.  The overhead for
 determinism checks, with no delay between operations, is only
 20\%, much lower than the expected cost of running each test twice,
 answering {\bf RQ2} also in the affirmative. 
@@ -304,8 +298,8 @@ a predicate that ``forces'' the probability to remain high, with a
 large number of samples, does not work (Figure \ref{fig:r3}) and
 requires over 2,000 seconds to produce a test with an even worse
 probability of nondeterminism.  Using 10 samples and 10 replications,
-on the other hand, actually improves the probability of
-nondeterministic behavior, and (in this case) even produces a smaller test (only 14 steps) in just
+on the other hand, improves the probability of
+nondeterministic behavior, and produces a test with only 14 steps in just
 over 10 minutes.
 
 \begin{comment}
@@ -412,36 +406,18 @@ pool: <event> 3
 \end{comment}
 
 The {\tt datarray} module \cite{datarray} is a prototype
-implementation for numpy arrays with named axes to improve data
-management, developed by the Berkeley Institute for Data Science.  As part of its code, it provides a set of algorithms for
+implementation for numpy arrays with named axes, which also provides a set of algorithms for
 inference in
-Bayesian belief networks \cite{russell2016artificial}.  An earlier
-version of these algorithms produced nondeterministic (and in some
-cases incorrect) results due to dependence on the order of values in
-an iterator over a Python dictionary, on Python versions above 3.2,
-until 3.6 (see Section \ref{sec:pnondet}).  
-
-\begin{comment}
-Figure \ref{hashbug} shows TSTL code for generating inputs to the {\tt
-  datarray} algorithms.  The {\tt flat\_sort} function is
-needed because we care about actual differences in probability values,
-not simply the order of list, tuple, or dictionary items.
-\end{comment}
+Bayesian belief networks.  An earlier
+version of these algorithms sometimes produced incorrect results due to dependence on the order of values in
+an iterator over a Python dictionary (see Section \ref{sec:pnondet}).  
 Running our TSTL
-harness to test {\tt datarray} consistently requires less than 10 seconds to produce a test exhibiting process-level nondeterminism in
-the {\tt calc\_marginals\_sumproduct} function (the only broken
-algorithm), answering {\bf RQ1} again in the affirmative.  Reducing this 60 step test to a minimal test of only 6 steps,
-showing an extremely simple input producing the issue, 
-required another 92 seconds ({\bf RQ3}) on average.  Interestingly, the way that {\tt
-  python-afl} is used in TSTL means that AFL stability is 100\% even
-for the original, broken, code,
-because the {\tt PYTHONHASHSEED} has already been chosen before the
-fork in AFL.  Removing the nondeterministic call, we can see that the cost of
-checking for process nondeterminism, with no delay between operations,
-is high, a mean 93\% slowdown ({\bf RQ2}.  This is due to the high cost of subprocess
-creation and communication. However, even with this essentially worst
-case behavior (where test runtime is very low compared to process overheads),
-we don't quite halve test executions.
+harness to test {\tt datarray} consistently requires less than 10 seconds to find process-level nondeterminism in
+the {\tt calc\_marginals\_sumproduct} function, answering {\bf RQ1}
+again in the affirmative.  Reducing this 60 step test to a 6-step test 
+required another 92 seconds ({\bf RQ3}) on average.  The cost of
+checking for process nondeterminism 
+is a mean 93\% slowdown ({\bf RQ2}).  
 
 \subsection {Vertical Determinism: {\tt pyfakefs}}
 
@@ -449,14 +425,13 @@ The {\tt pyfakefs} \cite{pyfakefs} module implements a fake file
 system that mocks the Python file system modules, to allow Python
 tests both to run faster by using an in-memory file system and to make
 file system changes that would not be safe or easily performed using
-real persistent storage.  Originally developed in 2006 at Google by
-Mike Bland, {\tt pyfakefs} is now used in over 2,000 Python tests,
-inside and outside Google \cite{pyfakefs}.
+real persistent storage. It is used in over 2,000 Python tests
+\cite{pyfakefs}.
 The TSTL harness for {\tt pyfakefs} has been used to detect (and
 correct) over 80 faults.
 %\url{https://github.com/jmcgeheeiv/pyfakefs/issues?q=label\%3ATSTL}.  
 
-\subsubsection{Manually Inserted Fault}
+%\subsubsection{Manually Inserted Fault}
 
 We introduced a subtle bug into {\tt pyfakefs}, where the {\tt remove}
 call checks that its target is not a directory, and returns the
@@ -477,7 +452,7 @@ expose the bad state).
 Reducing
 the failing test to just 3 steps required less than a second ({\bf RQ3}).
 
-\subsubsection{Mutation Analysis}
+%\subsubsection{Mutation Analysis}
 
 We wanted to determine whether there were also simple faults that
 could be detected by failure nondeterminism, but \emph{not} detected
@@ -485,7 +460,7 @@ by differential testing, and quantify the additional specification
 strength provided by failure determinism checks, to further answer
 {\bf RQ1} in the special case of failure determinism.  We therefore used
 {\tt universalmutator} \cite{RegExpMut} to produce 2,350 mutants of
-the {\tt pyfakefs} core file system code.   %We restricted the generation
+the core file system code.   %We restricted the generation
 %to only mutate code covered during a 60 second run of the test
 %harness.
 \begin{comment}
