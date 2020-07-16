@@ -88,8 +88,8 @@ Consider adding an element to an AVL tree implementing a set, not a
 multiset.  Assume the method call returns the parent node of the
 element, whether it was added or was already in the tree.  Calling
 this method any number of times in a row should always return the
-same value.  One approach, then, would be to identify
-idempotent operations 
+same value.  One approach would be to identify
+idempotent operations and 
 automatically retry all such operations, checking that the
 result is unchanged.  Identifying idempotent operations does impose a specification burden.
 
