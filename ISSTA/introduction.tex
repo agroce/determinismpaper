@@ -12,7 +12,7 @@ to debug a system
 face a serious challenge.
 Regression testing
 effectiveness can be significantly reduced if tests cover code or,
-worse yet, fail only
+worse yet, fail, only
 intermittently and unpredictably.  Such behavior is
 unfortunately all too common:  Gao et
 al. \cite{Gao:2015:MSU:2818754.2818764} observed coverage differences
@@ -91,7 +91,8 @@ test, and testing environment.  This produces three serious
 problems: first, a flaky test often wastes developer time and delays
 software changes by forcing the investigation of \emph{correct} code-under-test.  Second, failures in flaky tests are often ignored, and therefore serious software faults missed.  Finally, to mitigate the problem, flaky tests are often
 run multiple times, wasting computing resources and
-delaying code changes.  Flaky tests are, for us, simply a special case the 
+delaying code changes.  Flaky tests are, for us, simply a special case
+of the 
 \emph{horizontal} nondeterminism 
 described below.  Our focus is on detecting sources of 
 flaky-ness, \emph{before} they propagate.
